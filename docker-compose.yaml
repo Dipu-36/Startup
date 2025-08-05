@@ -5,7 +5,7 @@ services:
     ports: - "3000:3000"
     environments:
       - DB_HOST=some-postgres
-      - DB_port=5432
+      - DB_PORT=5432
       - DB_USER=postgres 
       - DB_PASSWORD=password 
       - DB_NAME=dbname 
