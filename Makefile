@@ -1,4 +1,4 @@
-.PHONY build, run, test
+.PHONY: build run  test
 build :
 	@go build -o bin/Startup
 run:
