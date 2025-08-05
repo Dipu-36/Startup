@@ -5,28 +5,28 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DB_HOST=some-postgres
+      - DB_HOST=some-db 
       - DB_PORT=5432
       - DB_USER=postgres 
       - DB_PASSWORD=password 
       - DB_NAME=dbname 
-    depends on:
+    depends_on:
       some-db:
         condition: service_healthy
 
-    some-db:
-      image: postgres:15-alpine
-      environment:
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=password
-        - POSTGRES_DB=dbname
-      volumes:
-        - pgdata:/var/lib/postgresql/data
-      healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U postgres"]
-        interval: 5s 
-        timeout: 5s 
-        retries: 5 
+  some-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password 
+      - POSTGRES_DB=dbname
+    volumes:
+      - pgdata:/var/lib/postgresql/datahealthcheck
+    healthcheck:
+       test: ["CMD-SHELL", "pg_isready -U postgres"]
+       interval: 5s 
+       timeout: 5s 
+       retries: 5 
 volumes:
   pgdata:
 
