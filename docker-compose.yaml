@@ -2,8 +2,9 @@ version: '3.8'
 services:
   startup-app:
     build: .
-    ports: - "3000:3000"
-    environments:
+    ports:
+      - "3000:3000"
+    environment:
       - DB_HOST=some-postgres
       - DB_PORT=5432
       - DB_USER=postgres 
