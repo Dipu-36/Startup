@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import AuthHeader from './shared/AuthHeader';
 import '../styles/shared/LoginPage.css';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isLoading, error, clearError } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,12 +20,24 @@ const LoginPage: React.FC = () => {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (error) {
+      clearError();
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login submitted:', formData);
+    try {
+      await login(formData.email, formData.password);
+      
+      // Redirect to the page they were trying to access, or default dashboard
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    } catch (error) {
+      // Error is handled by the context
+      console.error('Login error:', error);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -43,6 +58,12 @@ const LoginPage: React.FC = () => {
           />
 
           <form onSubmit={handleSubmit} className="login-form">
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+            
             <div className="form-group">
               <input
                 type="email"
@@ -52,6 +73,7 @@ const LoginPage: React.FC = () => {
                 onChange={handleInputChange}
                 className="form-input"
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -64,18 +86,20 @@ const LoginPage: React.FC = () => {
                 onChange={handleInputChange}
                 className="form-input"
                 required
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={togglePasswordVisibility}
+                disabled={isLoading}
               >
                 {showPassword ? '👁️' : '👁️‍🗨️'}
               </button>
             </div>
 
-            <button type="submit" className="login-btn">
-              Login
+            <button type="submit" className="login-btn" disabled={isLoading}>
+              {isLoading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 

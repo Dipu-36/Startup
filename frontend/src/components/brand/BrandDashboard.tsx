@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/brand/BrandDashboard.css';
 
 interface Campaign {
@@ -22,6 +24,8 @@ interface Application {
 }
 
 const BrandDashboard: React.FC = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -208,8 +212,8 @@ const BrandDashboard: React.FC = () => {
   ]);
 
   const handleLogout = () => {
-    // Handle logout logic
-    console.log('Logging out...');
+    logout();
+    navigate('/');
   };
 
   const handleCreateCampaign = () => {
@@ -270,19 +274,19 @@ const BrandDashboard: React.FC = () => {
         <div className="header-right">
           <div className="user-profile">
             <div className="profile-info">
-              <span className="profile-name">Brand Manager</span>
-              <span className="profile-email">manager@brandname.com</span>
+              <span className="profile-name">{user?.name || 'User'}</span>
+              <span className="profile-email">{user?.email || 'user@example.com'}</span>
             </div>
             <div className="profile-dropdown" ref={dropdownRef}>
               <div className="profile-avatar" onClick={toggleProfileDropdown}>
-                <span>BM</span>
+                <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
               </div>
               {isProfileDropdownOpen && (
                 <div className="dropdown-menu">
                   <div className="dropdown-header">
                     <div className="dropdown-user-info">
-                      <strong>Brand Manager</strong>
-                      <span>manager@brandname.com</span>
+                      <strong>{user?.name || 'User'}</strong>
+                      <span>{user?.email || 'user@example.com'}</span>
                     </div>
                   </div>
                   <div className="dropdown-divider"></div>

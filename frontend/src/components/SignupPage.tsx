@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import AuthHeader from './shared/AuthHeader';
 import '../styles/shared/SignupPage.css';
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
+  const { signup, isLoading, error, clearError } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    userType: '',
+    userType: '' as 'brand' | 'influencer' | '',
     password: '',
     confirmPassword: '',
   });
@@ -21,23 +23,44 @@ const SignupPage: React.FC = () => {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (error) {
+      clearError();
+    }
   };
 
-  const handleUserTypeSelect = (type: string) => {
+  const handleUserTypeSelect = (type: 'brand' | 'influencer') => {
     setFormData(prev => ({
       ...prev,
       userType: type
     }));
+    // Clear error when user makes a selection
+    if (error) {
+      clearError();
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match!');
       return;
     }
-    // Handle signup logic here
-    console.log('Signup submitted:', formData);
+    
+    if (!formData.userType) {
+      alert('Please select whether you are a brand or creator');
+      return;
+    }
+    
+    try {
+      await signup(formData.email, formData.password, formData.name, formData.userType);
+      // Redirect based on user type
+      navigate('/dashboard');
+    } catch (error) {
+      // Error is handled by the context
+      console.error('Signup error:', error);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -62,6 +85,12 @@ const SignupPage: React.FC = () => {
           />
 
           <form onSubmit={handleSubmit} className="signup-form">
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+            
             <div className="form-group">
               <input
                 type="text"
@@ -71,6 +100,7 @@ const SignupPage: React.FC = () => {
                 onChange={handleInputChange}
                 className="form-input"
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -83,14 +113,15 @@ const SignupPage: React.FC = () => {
                 onChange={handleInputChange}
                 className="form-input"
                 required
+                disabled={isLoading}
               />
             </div>
 
             <div className="user-type-selection">
               <button
                 type="button"
-                className={`user-type-btn ${formData.userType === 'creator' ? 'active' : ''}`}
-                onClick={() => handleUserTypeSelect('creator')}
+                className={`user-type-btn ${formData.userType === 'influencer' ? 'active' : ''}`}
+                onClick={() => handleUserTypeSelect('influencer')}
               >
                 I'm a creator
               </button>
@@ -112,11 +143,13 @@ const SignupPage: React.FC = () => {
                 onChange={handleInputChange}
                 className="form-input"
                 required
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={togglePasswordVisibility}
+                disabled={isLoading}
               >
                 {showPassword ? '👁️' : '👁️‍🗨️'}
               </button>
@@ -131,11 +164,13 @@ const SignupPage: React.FC = () => {
                 onChange={handleInputChange}
                 className="form-input"
                 required
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={toggleConfirmPasswordVisibility}
+                disabled={isLoading}
               >
                 {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
               </button>
@@ -144,9 +179,9 @@ const SignupPage: React.FC = () => {
             <button 
               type="submit" 
               className="signup-btn"
-              disabled={!formData.userType}
+              disabled={!formData.userType || isLoading}
             >
-              Signup
+              {isLoading ? 'Creating Account...' : 'Signup'}
             </button>
           </form>
 
