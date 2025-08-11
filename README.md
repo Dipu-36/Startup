@@ -1,4 +1,4 @@
-# Content Creator Platform
+# Creator Connect Platform
 
 A web platform that connects content creators and businesses for sponsorship campaigns and collaborations.
 
