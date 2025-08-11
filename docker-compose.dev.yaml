@@ -9,7 +9,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./backend/.env
+      - .env
     volumes:
       - ./backend:/app
       - /app/tmp  # For Air hot reload cache
