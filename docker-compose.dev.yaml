@@ -1,0 +1,41 @@
+services:
+  # Backend API with hot reload (connects to MongoDB Atlas)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: sponsorconnect-backend-dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - /app/tmp  # For Air hot reload cache
+    networks:
+      - sponsorconnect-network
+
+  # Frontend with hot reload
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: sponsorconnect-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Prevent overwriting node_modules
+    networks:
+      - sponsorconnect-network
+    depends_on:
+      - backend
+
+# Networks
+networks:
+  sponsorconnect-network:
+    driver: bridge

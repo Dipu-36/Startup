@@ -1,0 +1,118 @@
+# Binaries and executables
+/bin/
+*.exe
+*.dll
+*.# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.envdylib
+
+# Go specific
+*.test
+*.out
+go.work
+vendor/
+
+# Frontend build and dependencies
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Docker
+.dockerignore
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Air (Go hot reload) temporary files
+tmp/
+.air/
+
+# MongoDB data (if running locally)
+data/
+mongodb_data/
+
+# Backup files
+*.bak
+*.backup
+
+# Package files
+*.tar.gz
+*.zip
+
+# Certificate files
+*.pem
+*.key
+*.crt
+
+# Development artifacts and documentation
+*_COMPLETE.md
+*_STRATEGY.md
+*_GUIDE.md
+*_SETUP.md
+API_DOCS.md
+.app.env
+.env.docker
+
+# Hot reload configurations
+.air.toml
+.air/
+
+# Build artifacts
+/bin/
+startup
+startup.exe
