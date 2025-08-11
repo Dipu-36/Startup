@@ -5,11 +5,42 @@ import '../../styles/brand/BrandDashboard.css';
 
 interface Campaign {
   id: string;
+  brandId: string;
+  brandName: string;
   title: string;
-  status: 'active' | 'pending' | 'completed';
+  description: string;
+  category: string;
+  startDate: string;
+  endDate: string;
+  campaignType: string;
+  targetAudience: {
+    location: string;
+    ageGroup: string;
+    gender: string;
+    interests: string;
+  };
+  platforms: string[];
+  minRequirements: {
+    followersCount: string;
+    engagementRate: string;
+    contentStyle: string;
+    languages: string[];
+  };
+  nicheMatch: boolean;
+  geographicRestrictions: string;
+  contentFormat: string[];
+  numberOfPosts: string;
+  contentGuidelines: string;
+  approvalRequired: boolean;
+  compensationType: string;
+  paymentAmount: string;
+  productDetails: string;
+  bannerImageUrl: string;
+  referenceLinks: string;
+  status: 'draft' | 'active' | 'completed' | 'cancelled';
   applicants: number;
-  budget: string;
-  deadline: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Application {
@@ -29,64 +60,45 @@ const BrandDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [campaigns] = useState<Campaign[]>([
-    {
-      id: '1',
-      title: 'Summer Fashion Campaign',
-      status: 'active',
-      applicants: 24,
-      budget: '$5,000',
-      deadline: '2025-09-15'
-    },
-    {
-      id: '2',
-      title: 'Tech Product Launch',
-      status: 'pending',
-      applicants: 12,
-      budget: '$3,000',
-      deadline: '2025-08-30'
-    },
-    {
-      id: '3',
-      title: 'Fitness Equipment Promo',
-      status: 'active',
-      applicants: 18,
-      budget: '$4,500',
-      deadline: '2025-09-20'
-    },
-    {
-      id: '4',
-      title: 'Beauty Brand Collaboration',
-      status: 'completed',
-      applicants: 35,
-      budget: '$8,000',
-      deadline: '2025-08-15'
-    },
-    {
-      id: '5',
-      title: 'Gaming Gear Showcase',
-      status: 'active',
-      applicants: 28,
-      budget: '$6,500',
-      deadline: '2025-10-01'
-    },
-    {
-      id: '6',
-      title: 'Eco-Friendly Products',
-      status: 'pending',
-      applicants: 15,
-      budget: '$3,500',
-      deadline: '2025-09-10'
-    },
-    {
-      id: '7',
-      title: 'Holiday Collection Launch',
-      status: 'active',
-      applicants: 42,
-      budget: '$12,000',
-      deadline: '2025-11-15'
-    }
-  ]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch campaigns from API
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('Please log in to view campaigns');
+          return;
+        }
+
+        const response = await fetch('http://localhost:8080/api/campaigns', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch campaigns');
+        }
+
+        const campaignsData = await response.json();
+        setCampaigns(campaignsData || []);
+      } catch (error) {
+        console.error('Error fetching campaigns:', error);
+        setError('Failed to load campaigns');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCampaigns();
+  }, []);
 
   const [applications] = useState<Application[]>([
     {
@@ -217,8 +229,7 @@ const BrandDashboard: React.FC = () => {
   };
 
   const handleCreateCampaign = () => {
-    // Handle create campaign logic
-    console.log('Creating new campaign...');
+    navigate('/brand/create-campaign');
   };
 
   const toggleProfileDropdown = () => {
@@ -366,25 +377,45 @@ const BrandDashboard: React.FC = () => {
                 <h2>Campaigns</h2>
               </div>
               <div className="campaigns-grid">
-                {campaigns.map((campaign) => (
-                  <div key={campaign.id} className="campaign-card">
-                    <div className="campaign-header">
-                      <h3>{campaign.title}</h3>
-                      <span className={`campaign-status ${campaign.status}`}>
-                        {campaign.status}
-                      </span>
-                    </div>
-                    <div className="campaign-details">
-                      <p><strong>Budget:</strong> {campaign.budget}</p>
-                      <p><strong>Applicants:</strong> {campaign.applicants}</p>
-                      <p><strong>Deadline:</strong> {campaign.deadline}</p>
-                    </div>
-                    <div className="campaign-actions">
-                      <button className="btn-secondary">Edit</button>
-                      <button className="btn-primary">View Applications</button>
-                    </div>
+                {loading ? (
+                  <div className="loading-state">
+                    <p>Loading campaigns...</p>
                   </div>
-                ))}    
+                ) : error ? (
+                  <div className="error-state">
+                    <p>{error}</p>
+                  </div>
+                ) : campaigns.length === 0 ? (
+                  <div className="empty-state">
+                    <p>No campaigns found. Create your first campaign to get started!</p>
+                    <button 
+                      className="btn-primary"
+                      onClick={() => navigate('/brand/create-campaign')}
+                    >
+                      Create Campaign
+                    </button>
+                  </div>
+                ) : (
+                  campaigns.map((campaign) => (
+                    <div key={campaign.id} className="campaign-card">
+                      <div className="campaign-header">
+                        <h3>{campaign.title}</h3>
+                        <span className={`campaign-status ${campaign.status}`}>
+                          {campaign.status}
+                        </span>
+                      </div>
+                      <div className="campaign-details">
+                        <p><strong>Budget:</strong> ${campaign.paymentAmount}</p>
+                        <p><strong>Applicants:</strong> {campaign.applicants}</p>
+                        <p><strong>End Date:</strong> {campaign.endDate}</p>
+                      </div>
+                      <div className="campaign-actions">
+                        <button className="btn-secondary">Edit</button>
+                        <button className="btn-primary">View Applications</button>
+                      </div>
+                    </div>
+                  ))
+                )}   
               </div>
             </section>
 

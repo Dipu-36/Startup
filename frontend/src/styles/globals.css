@@ -10,6 +10,32 @@
   --gradient-teal: linear-gradient(45deg, #00cec9, #55efc4);
   --gradient-purple: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
   
+  /* Standard Color Variables */
+  --color-primary: #6c5ce7;
+  --color-primary-dark: #5f3dc4;
+  --color-secondary: #00cec9;
+  --color-secondary-dark: #00b894;
+  --color-success: #00b894;
+  --color-success-dark: #009c7a;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  
+  /* Gray Scale */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  
+  /* Background Colors */
+  --color-bg-light: #f8fafc;
+  --color-bg-white: #ffffff;
+  
   /* Typography */
   --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   

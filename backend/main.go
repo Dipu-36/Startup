@@ -38,6 +38,11 @@ func main() {
 	api.HandleFunc("/brand/dashboard", requireUserType("brand", brandOnlyHandler)).Methods("GET")
 	api.HandleFunc("/influencer/dashboard", requireUserType("influencer", influencerOnlyHandler)).Methods("GET")
 
+	// Campaign routes
+	api.HandleFunc("/campaigns", authMiddleware(createCampaignHandler)).Methods("POST")
+	api.HandleFunc("/campaigns", authMiddleware(getCampaignsHandler)).Methods("GET")
+	api.HandleFunc("/campaigns/all", authMiddleware(getAllCampaignsHandler)).Methods("GET")
+
 	// Setup CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},

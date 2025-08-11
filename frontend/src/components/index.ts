@@ -7,3 +7,4 @@ export { default as ProtectedRoute } from './ProtectedRoute';
 
 // Brand Components
 export { default as BrandDashboard } from './brand/BrandDashboard';
+export { default as CreateCampaign } from './brand/CreateCampaign';

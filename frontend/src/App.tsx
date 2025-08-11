@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import './styles/App.css';
-import { LandingPage, LoginPage, SignupPage, BrandDashboard, ProtectedRoute } from './components';
+import { LandingPage, LoginPage, SignupPage, BrandDashboard, ProtectedRoute, CreateCampaign } from './components';
 
 function App() {
   return (
@@ -25,6 +25,13 @@ function App() {
             <Route path="/brand/dashboard" element={
               <ProtectedRoute requiredUserType="brand">
                 <BrandDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Create Campaign - only for brand users */}
+            <Route path="/brand/create-campaign" element={
+              <ProtectedRoute requiredUserType="brand">
+                <CreateCampaign />
               </ProtectedRoute>
             } />
           </Routes>
