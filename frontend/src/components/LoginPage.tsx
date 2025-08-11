@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { APP_NAME } from '../config/appConfig';
 import AuthHeader from './shared/AuthHeader';
 import '../styles/shared/LoginPage.css';
 
@@ -54,7 +55,7 @@ const LoginPage: React.FC = () => {
         <div className="login-form-wrapper">
           <AuthHeader 
             title="Welcome Back" 
-            subtitle="Sign in to your SponsorConnect account"
+            subtitle={`Sign in to your ${APP_NAME} account`}
           />
 
           <form onSubmit={handleSubmit} className="login-form">

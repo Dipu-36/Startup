@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { APP_NAME, APP_TAGLINE } from '../config/appConfig';
 import '../styles/LandingPage.css';
 
 const LandingPage: React.FC = () => {
@@ -18,7 +19,7 @@ const LandingPage: React.FC = () => {
       {/* Navigation */}
       <nav className="navbar">
         <div className="nav-brand">
-          <h2>SponsorConnect</h2>
+          <h2>{APP_NAME}</h2>
         </div>
         <div className="nav-links">
           <a href="#home">HOME</a>

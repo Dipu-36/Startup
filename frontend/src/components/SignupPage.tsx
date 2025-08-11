@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { APP_NAME } from '../config/appConfig';
 import AuthHeader from './shared/AuthHeader';
 import '../styles/shared/SignupPage.css';
 
@@ -80,7 +81,7 @@ const SignupPage: React.FC = () => {
       <div className="signup-container">
         <div className="signup-form-wrapper">
           <AuthHeader 
-            title="Join SponsorConnect" 
+            title={`Join ${APP_NAME}`} 
             subtitle="Create your account to get started"
           />
 

@@ -58,12 +58,12 @@ func main() {
 		port = "8080"
 	}
 
-	fmt.Printf("SponsorConnect backend server starting on port %s\n", port)
+	fmt.Printf("%s backend server starting on port %s\n", GetAppName(), port)
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status": "OK", "message": "SponsorConnect API is running"}`))
+	w.Write([]byte(fmt.Sprintf(`{"status": "OK", "message": "%s"}`, GetAPIMessage())))
 }
