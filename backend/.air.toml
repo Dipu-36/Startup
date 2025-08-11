@@ -1,4 +1,4 @@
-# Air configuration file for Go hot reload
+# Air configuration for hot reload
 root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"

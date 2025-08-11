@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  # Backend API (Connected to MongoDB Atlas)
+  # Backend API (connects to MongoDB Atlas)
   backend:
     build:
       context: ./backend
@@ -11,7 +9,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env.docker
+      - ./backend/.env
     networks:
       - sponsorconnect-network
 
@@ -24,14 +22,13 @@ services:
     restart: unless-stopped
     ports:
       - "3000:80"
-    env_file:
-      - .env.docker
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080/api
     depends_on:
       - backend
     networks:
       - sponsorconnect-network
 
-# Removed local MongoDB volumes since we're using Atlas
 networks:
   sponsorconnect-network:
     driver: bridge

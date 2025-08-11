@@ -1,111 +1,172 @@
-# Creator Connect Platform
+# 🚀 SponsorConnect - One Command Setup
 
-A web platform that connects content creators and businesses for sponsorship campaigns and collaborations.
+**An influencer marketing platform built with Go and React**
 
-## Features
+## ⚡ Quick Start (Recommended)
 
-- **For Creators**: Apply to sponsorship campaigns that match your niche
-- **For Businesses**: Post sponsorship campaigns and review creator applications
-- **Collaboration Management**: Streamlined approval process for brand partnerships
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd Startup
+   ```
 
-## Tech Stack
+2. **Set up environment**
+   ```bash
+   cp .env.example .env
+   ```
 
-- **Frontend**: React with TypeScript (no Tailwind CSS)
-- **Backend**: Go with Gorilla Mux and CORS
-- **Database**: MongoDB
-- **Build Tool**: Makefile
+3. **Configure MongoDB Atlas**
+   - Go to [MongoDB Atlas](https://cloud.mongodb.com/) and create a free cluster
+   - Create a database user and whitelist your IP (or use `0.0.0.0/0` for development)
+   - Copy your connection string and update `MONGODB_URI` in `.env`
+   - Generate a secure JWT secret and update `JWT_SECRET` in `.env`
 
-## Project Structure
+4. **Start the application**
+   ```bash
+   make up
+   ```
 
+That's it! 🎉
+
+## 🌐 Access Your Application
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **Health Check**: http://localhost:8080/api/health
+
+## 🛠️ Available Commands
+
+```bash
+make up          # Start the application (RECOMMENDED)
+make dev         # Start in development mode with hot reload
+make down        # Stop the application
+make restart     # Restart the application
+make logs        # View application logs
+make status      # Show container status
+make health      # Check application health
+make clean       # Clean up Docker containers and images
+make help        # Show all available commands
 ```
-├── frontend/          # React TypeScript application
-│   ├── src/
-│   │   ├── components/    # React components
-│   │   │   ├── LandingPage.tsx
-│   │   │   └── index.ts   # Component exports
-│   │   ├── styles/        # CSS files organized by component
-│   │   │   ├── App.css
-│   │   │   ├── LandingPage.css
-│   │   │   ├── globals.css    # Global variables and utilities
-│   │   │   └── index.css      # Main styles index
-│   │   └── ...
-├── backend/           # Go backend application
-│   ├── main.go
-│   ├── go.mod
-│   └── go.sum
-├── bin/              # Compiled binaries
-├── docker-compose.yaml
-├── dockerfile
-└── Makefile          # Build and development commands
-```
 
-## Getting Started
+## 🏗️ Architecture
+
+- **Backend**: Go with Gin framework, JWT authentication, MongoDB Atlas
+- **Frontend**: React with TypeScript, responsive design
+- **Database**: MongoDB Atlas (cloud database)
+- **Deployment**: Docker containers with docker-compose
+## 📋 Features
+
+- ✅ User authentication (signup/login)
+- ✅ Campaign creation and management
+- ✅ Real-time campaign preview
+- ✅ Responsive brand dashboard
+- ✅ MongoDB Atlas integration
+- ✅ JWT-based security
+- ✅ Docker containerization
+- ✅ One-command deployment
+
+## 🔧 Development
 
 ### Prerequisites
+- Docker and Docker Compose
+- MongoDB Atlas account (free tier available)
 
-- Node.js (v16 or higher)
-- Go (v1.22 or higher)
-- MongoDB
-- Make
+### Environment Variables
 
-### Installation
+Key environment variables in `.env`:
 
-1. Clone the repository:
-```bash
-git clone https://github.com/Dipu-36/startup.git
-cd startup
+```env
+APP_NAME=SponsorConnect
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/sponsorconnect
+JWT_SECRET=your-super-secure-jwt-secret
+PORT=8080
+FRONTEND_URL=http://localhost:3000
 ```
 
-2. Install frontend dependencies:
-```bash
-make install
-```
+### API Endpoints
 
-### Development
+#### Authentication
+- `POST /api/signup` - User registration
+- `POST /api/login` - User login
 
-Start the development servers:
+#### Campaigns
+- `GET /api/campaigns` - Get all campaigns (authenticated)
+- `POST /api/campaigns` - Create new campaign (authenticated)
 
-```bash
-# Start frontend only (http://localhost:3000)
-make dev
-
-# Start backend only (http://localhost:8080)
-make build-backend
-make run-backend
-```
-
-### Available Make Commands
-
-#### Frontend Commands
-- `make install-frontend` - Install frontend dependencies
-- `make start-frontend` - Start frontend development server
-- `make build-frontend` - Build frontend for production
-
-#### Backend Commands
-- `make build-backend` - Build backend binary
-- `make run-backend` - Run backend server
-- `make test-backend` - Run backend tests
-
-#### Combined Commands
-- `make install` - Install all dependencies
-- `make dev` - Start frontend development server
-- `make build` - Build both frontend and backend
-
-#### Docker Commands
-- `make up` - Start with Docker Compose
-- `make down` - Stop Docker containers
-- `make start-container` - Start existing containers
-- `make stop-container` - Stop running containers
-
-## API Endpoints
-
+#### Health
 - `GET /api/health` - Health check endpoint
 
-## Landing Page
+### Local Development (without Docker)
 
-The landing page features:
-- Full viewport design inspired by modern SaaS platforms
-- Clean navigation with "LOGIN" and "GET STARTED" buttons
+If you prefer to run without Docker:
+
+```bash
+# Install dependencies
+make install-deps
+
+# Run backend (in one terminal)
+make run-backend-local
+
+# Run frontend (in another terminal)  
+make run-frontend-local
+```
+
+## 🐳 Docker Configuration
+
+The application uses two docker-compose configurations:
+- `docker-compose.yaml` - Production mode
+- `docker-compose.dev.yaml` - Development mode with hot reload
+
+Both configurations use MongoDB Atlas (no local database required).
+
+## 🔒 Security
+
+- JWT-based authentication
+- Password hashing with bcrypt
+- CORS protection
+- Environment-based configuration
+- Secure MongoDB Atlas connection
+
+## 📦 Project Structure
+
+```
+Startup/
+├── backend/           # Go backend API
+├── frontend/          # React TypeScript frontend
+├── docker-compose.yaml
+├── docker-compose.dev.yaml
+├── Makefile          # One-command setup
+├── .env.example      # Environment template
+└── README.md
+```
+
+## 🚀 Deployment
+
+For production deployment:
+
+1. Update `.env` with production values
+2. Set `APP_ENV=production`
+3. Use a secure `JWT_SECRET`
+4. Configure proper CORS origins
+5. Run `make up`
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test with `make up`
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+**Made with ❤️ for the influencer marketing community**
+
+Need help? Check `make help` for all available commands!
 - Animated background elements
 - Responsive design
 - Modern gradient color scheme with CSS variables
