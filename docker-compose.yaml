@@ -1,24 +1,7 @@
 version: '3.8'
 
 services:
-  # Database
-  database:
-    image: mongo:7.0
-    container_name: sponsorconnect-db
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
-      MONGO_INITDB_DATABASE: sponsorconnect
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    networks:
-      - sponsorconnect-network
-
-  # Backend API
+  # Backend API (Connected to MongoDB Atlas)
   backend:
     build:
       context: ./backend
@@ -27,13 +10,8 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
-    environment:
-      - PORT=8080
-      - MONGODB_URI=mongodb://admin:password123@database:27017/sponsorconnect?authSource=admin
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - CORS_ORIGIN=http://localhost:3000
-    depends_on:
-      - database
+    env_file:
+      - .env.docker
     networks:
       - sponsorconnect-network
 
@@ -46,19 +24,15 @@ services:
     restart: unless-stopped
     ports:
       - "3000:80"
-    environment:
-      - REACT_APP_API_URL=http://localhost:8080/api
+    env_file:
+      - .env.docker
     depends_on:
       - backend
     networks:
       - sponsorconnect-network
 
-volumes:
-  mongodb_data:
-    driver: local
-
+# Removed local MongoDB volumes since we're using Atlas
 networks:
   sponsorconnect-network:
     driver: bridge
-  pgdata:
 

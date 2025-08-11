@@ -50,6 +50,9 @@ help:
 	@echo "  build-frontend    - Build React frontend only"
 	@echo "  run-backend       - Run compiled backend"
 	@echo "  test-backend      - Run backend tests"
+	@echo "  test-frontend     - Run frontend tests"
+	@echo "  test              - Run all tests"
+	@echo "  test-watch        - Run tests in watch mode"
 	@echo ""
 	@echo "🐳 Docker Production:"
 	@echo "  docker-up         - Start production environment"
@@ -74,9 +77,23 @@ help:
 	@echo "  docker-shell-backend  - Access backend container"
 	@echo "  docker-shell-mongo    - Access MongoDB shell"
 	@echo ""
+	@echo "⚡ Quick Shortcuts:"
+	@echo "  start             - Same as docker-dev"
+	@echo "  stop              - Same as docker-dev-down"
+	@echo "  restart           - Same as docker-dev-restart"
+	@echo "  logs              - Same as docker-dev-logs"
+	@echo "  clean             - Same as docker-clean"
+	@echo "  reset             - Same as docker-reset"
+	@echo "  status            - Show project status overview"
+	@echo ""
+	@echo "🔍 Utilities:"
+	@echo "  env-check         - Check environment setup"
+	@echo "  backup-db         - Create database backup"
+	@echo ""
 	@echo "💡 Quick Start:"
-	@echo "  make docker-dev   - Best for development"
+	@echo "  make start        - Best for development"
 	@echo "  make docker-up    - Best for production"
+	@echo "  make status       - Check everything is running"
 
 # Docker Production Commands
 .PHONY: docker-up
@@ -167,5 +184,71 @@ docker-status:
 docker-reset:
 	@echo "🔄 Resetting entire Docker environment..."
 	docker-compose down -v
-	docker-compose up -d --build 
+	docker-compose up -d --build
+
+# Testing Commands
+.PHONY: test
+test: test-backend test-frontend
+
+.PHONY: test-frontend
+test-frontend:
+	@echo "🧪 Running frontend tests..."
+	@cd frontend && npm test -- --watchAll=false
+
+.PHONY: test-watch
+test-watch:
+	@echo "🧪 Running tests in watch mode..."
+	@cd frontend && npm test
+
+# Development Shortcuts
+.PHONY: start
+start: docker-dev
+
+.PHONY: stop
+stop: docker-dev-down
+
+.PHONY: restart
+restart: docker-dev-restart
+
+.PHONY: logs
+logs: docker-dev-logs
+
+.PHONY: clean
+clean: docker-clean
+
+.PHONY: reset
+reset: docker-reset
+
+# Environment Management
+.PHONY: env-check
+env-check:
+	@echo "🔍 Checking environment..."
+	@echo "Docker version:"
+	@docker --version
+	@echo "Docker Compose version:"
+	@docker-compose --version
+	@echo "Node version (if installed locally):"
+	@node --version 2>/dev/null || echo "Node not installed locally"
+	@echo "Go version (if installed locally):"
+	@go version 2>/dev/null || echo "Go not installed locally"
+
+.PHONY: backup-db
+backup-db:
+	@echo "💾 Creating database backup..."
+	@mkdir -p backups
+	@docker-compose exec -T mongo mongodump --uri="${MONGO_URI}" --out=/tmp/backup
+	@docker cp $$(docker-compose ps -q mongo):/tmp/backup ./backups/$$(date +%Y%m%d_%H%M%S)
+	@echo "Backup created in ./backups/"
+
+# Quick Status Check
+.PHONY: status
+status:
+	@echo "📊 Project Status:"
+	@echo "=================\n"
+	@echo "Docker Containers:"
+	@docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+	@echo "\nDocker Images:"
+	@docker images | grep -E "(startup|mongo)" || echo "No project images found"
+	@echo "\nDisk Usage:"
+	@docker system df
 

@@ -1,22 +1,5 @@
 services:
-  # Database (same as production)
-  database:
-    image: mongo:7.0
-    container_name: sponsorconnect-db-dev
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
-      MONGO_INITDB_DATABASE: sponsorconnect
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data_dev:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    networks:
-      - sponsorconnect-network-dev
-
-  # Backend with hot reload
+  # Backend with hot reload (Connected to MongoDB Atlas)
   backend-dev:
     build:
       context: ./backend
@@ -25,15 +8,12 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    env_file:
+      - .env.docker
     environment:
-      - PORT=8080
-      - MONGODB_URI=mongodb://admin:password123@database:27017/sponsorconnect?authSource=admin
-      - JWT_SECRET=dev-secret-key
-      - CORS_ORIGIN=http://localhost:3000
+      - JWT_SECRET=dev-secret-key  # Override for development
     volumes:
       - ./backend:/app
-    depends_on:
-      - database
     networks:
       - sponsorconnect-network-dev
 
@@ -46,9 +26,10 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env.docker
     environment:
-      - REACT_APP_API_URL=http://localhost:8080/api
-      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_USEPOLLING=true  # For hot reload in Docker
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -57,10 +38,7 @@ services:
     networks:
       - sponsorconnect-network-dev
 
-volumes:
-  mongodb_data_dev:
-    driver: local
-
+# Removed local MongoDB volumes since we're using Atlas
 networks:
   sponsorconnect-network-dev:
     driver: bridge

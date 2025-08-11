@@ -1,16 +1,25 @@
 # Docker Commands Cheat Sheet
 
+## 🌐 MongoDB Atlas Integration
+
+This Docker setup is configured to use **MongoDB Atlas** (cloud database) instead of a local MongoDB instance. All data will be stored in the cloud and persist across container restarts.
+
+### Configuration
+- **Database**: MongoDB Atlas (soujatya.gjxsm.mongodb.net)
+- **Environment**: Configured in `.env.docker`
+- **Data Persistence**: Automatic in Atlas cloud
+
 ## Quick Start Commands
 
 ### Production Environment
 ```bash
-# Start all services in production mode
+# Start all services in production mode (uses MongoDB Atlas)
 docker-compose up -d
 
 # View logs
 docker-compose logs -f
 
-# Stop all services
+# Stop all services (data remains in Atlas)
 docker-compose down
 
 # Restart a specific service
@@ -19,13 +28,13 @@ docker-compose restart backend
 
 ### Development Environment
 ```bash
-# Start development environment with hot reload
+# Start development environment with hot reload (uses MongoDB Atlas)
 docker-compose -f docker-compose.dev.yaml up
 
 # Run in background
 docker-compose -f docker-compose.dev.yaml up -d
 
-# Stop development environment
+# Stop development environment (data remains in Atlas)
 docker-compose -f docker-compose.dev.yaml down
 ```
 
