@@ -1,4 +1,4 @@
-package main
+package storage
 
 import (
 	"context"
@@ -9,11 +9,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
+//client is a global variable from storage package of type mongo.Client
 var client *mongo.Client
+//datbase is a global variabel from the storage package of type mongo.Database
 var database *mongo.Database
-
-func initMongoDB() {
+//GetCollectionName is agetter function for getting the collection 
+func GetCollection(name string)*mongo.Collection{
+	return database.Collection(name)
+}
+//initMongoDB is the init function required for initialization of MongoDB
+func InitMongoDB() {
 	mongoURI := os.Getenv("MONGODB_URI")
 	dbName := os.Getenv("MONGODB_DATABASE")
 
@@ -39,8 +44,8 @@ func initMongoDB() {
 	database = client.Database(dbName)
 	log.Println("Connected to MongoDB successfully")
 }
-
-func closeMongoDB() {
+//closeMongoDB is a function to close the MongoDB connection
+func CloseMongoDB() {
 	if client != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()

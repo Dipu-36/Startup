@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Dipu-36/startup/storage"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
@@ -18,8 +19,8 @@ func main() {
 	}
 
 	// Initialize MongoDB
-	initMongoDB()
-	defer closeMongoDB()
+	storage.InitMongoDB()
+	defer storage.CloseMongoDB()
 
 	router := mux.NewRouter()
 

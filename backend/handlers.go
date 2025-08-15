@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Dipu-36/startup/storage"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,7 +14,7 @@ import (
 )
 
 func signupHandler(w http.ResponseWriter, r *http.Request) {
-	var req SignupRequest
+	var req storage.SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -32,11 +33,11 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user already exists
-	collection := database.Collection("users")
+	collection := storage.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var existingUser User
+	var existingUser storage.User
 	err := collection.FindOne(ctx, bson.M{"email": req.Email}).Decode(&existingUser)
 	if err == nil {
 		http.Error(w, "User already exists with this email", http.StatusConflict)
@@ -55,7 +56,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create user
-	user := User{
+	user := storage.User{
 		ID:        primitive.NewObjectID(),
 		Email:     req.Email,
 		Password:  string(hashedPassword),
@@ -79,7 +80,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return response
-	response := AuthResponse{
+	response := storage.AuthResponse{
 		Token: token,
 		User:  user,
 	}
@@ -90,7 +91,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	var req LoginRequest
+	var req storage.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -103,11 +104,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find user
-	collection := database.Collection("users")
+	collection := storage.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var user User
+	var user storage.User
 	err := collection.FindOne(ctx, bson.M{"email": req.Email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -133,7 +134,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return response
-	response := AuthResponse{
+	response := storage.AuthResponse{
 		Token: token,
 		User:  user,
 	}
@@ -150,11 +151,11 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch user from database to get latest data
-	collection := database.Collection("users")
+	collection := storage.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var dbUser User
+	var dbUser storage.User
 	objectID, err := primitive.ObjectIDFromHex(user.UserID)
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
@@ -186,7 +187,7 @@ func createCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse request body
-	var req CampaignRequest
+	var req storage.CampaignRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -206,11 +207,11 @@ func createCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user details for brand name
-	userCollection := database.Collection("users")
+	userCollection := storage.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var dbUser User
+	var dbUser storage.User
 	err = userCollection.FindOne(ctx, bson.M{"_id": userObjectID}).Decode(&dbUser)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
@@ -218,7 +219,7 @@ func createCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create campaign
-	campaign := Campaign{
+	campaign := storage.Campaign{
 		ID:           primitive.NewObjectID(),
 		BrandID:      userObjectID,
 		BrandName:    dbUser.Name,
@@ -263,7 +264,7 @@ func createCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	campaign.MinRequirements.Languages = req.MinRequirements.Languages
 
 	// Insert campaign into database
-	collection := database.Collection("campaigns")
+	collection := storage.GetCollection("campaigns")
 	_, err = collection.InsertOne(ctx, campaign)
 	if err != nil {
 		http.Error(w, "Error creating campaign", http.StatusInternalServerError)
@@ -291,7 +292,7 @@ func getCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find campaigns for this brand
-	collection := database.Collection("campaigns")
+	collection := storage.GetCollection("campaigns")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -302,7 +303,7 @@ func getCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer cursor.Close(ctx)
 
-	var campaigns []Campaign
+	var campaigns []storage.Campaign
 	if err = cursor.All(ctx, &campaigns); err != nil {
 		http.Error(w, "Error decoding campaigns", http.StatusInternalServerError)
 		return
@@ -314,7 +315,7 @@ func getCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 
 func getAllCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	// Find all active campaigns (for influencers to browse)
-	collection := database.Collection("campaigns")
+	collection := storage.GetCollection("campaigns")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -325,7 +326,7 @@ func getAllCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer cursor.Close(ctx)
 
-	var campaigns []Campaign
+	var campaigns []storage.Campaign
 	if err = cursor.All(ctx, &campaigns); err != nil {
 		http.Error(w, "Error decoding campaigns", http.StatusInternalServerError)
 		return

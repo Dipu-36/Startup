@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Dipu-36/startup/storage"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -18,7 +19,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func generateJWT(user User) (string, error) {
+func generateJWT(user storage.User) (string, error) {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		return "", errors.New("JWT_SECRET environment variable is required")
