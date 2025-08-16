@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Dipu-36/startup/storage"
+	"github.com/Dipu-36/startup/handlers"
+	"github.com/Dipu-36/startup/internal/auth"
+	"github.com/Dipu-36/startup/internal/storage"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
@@ -34,21 +36,21 @@ func (s *APIServer) routes() {
 
 	//Registers routes with our handler decorater
 	api.HandleFunc("/health", healthCheck).Methods("GET")
-	api.HandleFunc("/auth/signup", signupHandler).Methods("POST")
-	api.HandleFunc("/auth/login", loginHandler).Methods("POST")
+	api.HandleFunc("/auth/signup", handlers.SignupHandler).Methods("POST")
+	api.HandleFunc("/auth/login", handlers.LoginRequest).Methods("POST")
 
 	// Protected routes - general
-	api.HandleFunc("/auth/profile", authMiddleware(profileHandler)).Methods("GET")
+	api.HandleFunc("/auth/profile", auth.AuthMiddleware(handlers.ProfileHandler)).Methods("GET")
 
 	// Protected routes - user type specific
 	api.HandleFunc("/brand/dashboard", requireUserType("brand", brandOnlyHandler)).Methods("GET")
 	api.HandleFunc("/influencer/dashboard", requireUserType("influencer", influencerOnlyHandler)).Methods("GET")
 
 	// Campaign routes
-	api.HandleFunc("/campaigns", authMiddleware(createCampaignHandler)).Methods("POST")
-	api.HandleFunc("/campaigns", authMiddleware(getCampaignsHandler)).Methods("GET")
+	api.HandleFunc("/campaigns", auth.AuthMiddleware(handlers.CreateCampaignHandler)).Methods("POST")
+	api.HandleFunc("/campaigns", auth.AuthMiddleware(handlers.GetCampaignsHandler)).Methods("GET")
 
-	api.HandleFunc("/campaigns/all", authMiddleware(getAllCampaignsHandler)).Methods("GET")
+	api.HandleFunc("/campaigns/all", auth.AuthMiddleware(handlers.GetAllCampaignsHandler)).Methods("GET")
 
 }
 
@@ -62,10 +64,10 @@ func (s *APIServer) Run() {
 		AllowCredentials: true,
 	})
 
-	handler := c.Handler(router)
+	handler := c.Handler(s.router)
 
-	fmt.Printf("%s backend server starting on port %s\n", GetAppName(), port)
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	fmt.Printf("%s backend server starting on port %s\n", auth.GetAppName(), s.listenaddr)
+	log.Fatal(http.ListenAndServe(":"+s.listenaddr, handler))
 }
 
 func main() {
@@ -79,21 +81,22 @@ func main() {
 		port = "8080"
 	}
 
-	store, err := storaage.NewMongoStore()
+	store, err := storage.NewMongoStore()
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB: ", err)
 	}
 	defer store.Close()
+	storage.InitGlobalStore(store)
 
 	//initialize and run the server
-	server := NewAPIServer(port, server)
+	server := NewAPIServer(port, store)
 	server.Run()
 
 }
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf(`{"status": "OK", "message": "%s"}`, GetAPIMessage())))
+	w.Write([]byte(fmt.Sprintf(`{"status": "OK", "message": "%s"}`, auth.GetAPIMessage())))
 }
 
 // WriteJSON writes JSON response with the given status code, it sets the Content-Type as application-json Content-Type, encodes the provided values to v & returns an error if JSON encoding fails

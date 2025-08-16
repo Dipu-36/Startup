@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Dipu-36/startup/internal/auth"
-	"github.com/Dipu-36/startup/storage"
+	"github.com/Dipu-36/startup/internal/storage"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -29,7 +29,7 @@ func LoginRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find user
-	collection := storage.GetCollection("users")
+	collection := ("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

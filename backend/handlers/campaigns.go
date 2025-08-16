@@ -12,9 +12,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func createCampaignHandler(w http.ResponseWriter, r *http.Request) {
+func CreateCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	// Get user from context
-	user, ok := getUserFromContext(r.Context())
+	user, ok := auth.GetUserFromContext(r.Context())
 	if !ok {
 		http.Error(w, "User not found in context", http.StatusInternalServerError)
 		return

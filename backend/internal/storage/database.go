@@ -10,16 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// client is a global variable from storage package of type mongo.Client
-var client *mongo.Client
-
-// datbase is a global variabel from the storage package of type mongo.Database
-var database *mongo.Database
-
-// GetCollectionName is agetter function for getting the collection
-func GetCollection(name string) *mongo.Collection {
-	return database.Collection(name)
-}
+var globalStore *MongoStore
 
 type Storage interface {
 	GetCollection(name string) *mongo.Collection
@@ -29,6 +20,10 @@ type Storage interface {
 type MongoStore struct {
 	client   *mongo.Client
 	database *mongo.Database
+}
+
+func InitGlobalStore(store *MongoStore) {
+	globalStore = store
 }
 
 func NewMongoStore() (*MongoStore, error) {
@@ -42,15 +37,13 @@ func NewMongoStore() (*MongoStore, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var err error
-	client, err = mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatal("Failed to connect to MongoDB:", err)
 	}
 
 	// Test the connection
-	err = client.Ping(ctx, nil)
-	if err != nil {
+	if err := client.Ping(ctx, nil); err != nil {
 		log.Fatal("Failed to ping MongoDB:", err)
 	}
 
@@ -63,14 +56,19 @@ func NewMongoStore() (*MongoStore, error) {
 	}, nil
 }
 
-// closeMongoDB is a function to close the MongoDB connection
-func (m *MongoStore) CloseMongoDB() error {
+// Implements Storage interface
+func (m *MongoStore) GetCollection(name string) *mongo.Collection {
+	if globalStore == nil {
+		log.Fatal("Mongostore is not initialized")
+	}
+	return globalStore.database.Collection(name)
+}
+
+func (m *MongoStore) Close() error {
 	if m.client == nil {
 		return nil
 	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	return m.client.Disconnect(ctx)
 }
