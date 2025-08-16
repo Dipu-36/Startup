@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func generateJWT(user storage.User) (string, error) {
+func GenerateJWT(user storage.User) (string, error) {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		return "", errors.New("JWT_SECRET environment variable is required")
@@ -39,7 +39,7 @@ func generateJWT(user storage.User) (string, error) {
 	return token.SignedString([]byte(jwtSecret))
 }
 
-func validateJWT(tokenString string) (*Claims, error) {
+func ValidateJWT(tokenString string) (*Claims, error) {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		return nil, errors.New("JWT_SECRET environment variable is required")
@@ -60,7 +60,7 @@ func validateJWT(tokenString string) (*Claims, error) {
 	return nil, errors.New("invalid token")
 }
 
-func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
@@ -74,7 +74,7 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		claims, err := validateJWT(tokenString)
+		claims, err := ValidateJWT(tokenString)
 		if err != nil {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
@@ -82,18 +82,18 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		// Add user info to request context
 		ctx := r.Context()
-		ctx = setUserInContext(ctx, claims)
+		ctx = SetUserInContext(ctx, claims)
 		r = r.WithContext(ctx)
 
 		next(w, r)
 	}
 }
 
-func setUserInContext(ctx context.Context, claims *Claims) context.Context {
+func SetUserInContext(ctx context.Context, claims *Claims) context.Context {
 	return context.WithValue(ctx, "user", claims)
 }
 
-func getUserFromContext(ctx context.Context) (*Claims, bool) {
+func GetUserFromContext(ctx context.Context) (*Claims, bool) {
 	user, ok := ctx.Value("user").(*Claims)
 	return user, ok
 }
