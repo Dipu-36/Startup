@@ -126,3 +126,18 @@ type CampaignRequest struct {
 	ReferenceLinks string `json:"referenceLinks"`
 	Status         string `json:"status"`
 }
+
+type Application struct {
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	CampaignID   primitive.ObjectID `bson:"campaignId" json:"campaignId"`
+	CreatorID    primitive.ObjectID `bson:"creatorId" json:"creatorId"`
+	CreatorName  string             `bson:"creatorName" json:"creatorName"`
+	CreatorEmail string             `bson:"creatorEmail" json:"creatorEmail"`
+	Followers    string             `bson:"followers" json:"followers"`
+	Platform     string             `bson:"platform" json:"platform"`
+	Status       string             `bson:"status" json:"status"` // "pending", "approved", "rejected"
+	AppliedDate  time.Time          `bson:"appliedDate" json:"appliedDate"`
+	CampaignName string             `bson:"campaignName" json:"campaignName"`
+	CreatedAt    time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt    time.Time          `bson:"updatedAt" json:"updatedAt"`
+}

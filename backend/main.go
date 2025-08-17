@@ -43,6 +43,11 @@ func main() {
 	api.HandleFunc("/campaigns", authMiddleware(getCampaignsHandler)).Methods("GET")
 	api.HandleFunc("/campaigns/all", authMiddleware(getAllCampaignsHandler)).Methods("GET")
 
+	// Application routes
+	api.HandleFunc("/applications", authMiddleware(getApplicationsForBrandHandler)).Methods("GET")
+	api.HandleFunc("/applications/creator", authMiddleware(getApplicationsForCreatorHandler)).Methods("GET")
+	api.HandleFunc("/applications", authMiddleware(createApplicationHandler)).Methods("POST")
+
 	// Setup CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},

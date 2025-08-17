@@ -8,7 +8,7 @@
 }
 
 /* Header */
-.dashboard-header {
+.brand-dashboard-header {
     background: white;
     border-bottom: 1px solid #e1e5e9;
     padding: 0 30px;
@@ -19,25 +19,25 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.header-left {
+.brand-header-left {
     display: flex;
     align-items: center;
     gap: 40px;
 }
 
-.brand-name {
+.brand-brand-name {
     font-size: 24px;
     font-weight: bold;
     color: var(--primary-purple);
     margin: 0;
 }
 
-.main-nav {
+.brand-main-nav {
     display: flex;
     gap: 30px;
 }
 
-.nav-btn {
+.brand-nav-btn {
     background: none;
     border: none;
     color: #666;
@@ -49,12 +49,12 @@
     position: relative;
 }
 
-.nav-btn:hover,
-.nav-btn.active {
+.brand-nav-btn:hover,
+.brand-nav-btn.active {
     color: var(--primary-purple);
 }
 
-.nav-btn.active::after {
+.brand-nav-btn.active::after {
     content: '';
     position: absolute;
     bottom: -20px;
@@ -65,36 +65,36 @@
     border-radius: 2px;
 }
 
-.header-right {
+.brand-header-right {
     display: flex;
     align-items: center;
 }
 
-.user-profile {
+.brand-user-profile {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-.profile-info {
+.brand-profile-info {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 2px;
 }
 
-.profile-name {
+.brand-profile-name {
     font-size: 14px;
     font-weight: 600;
     color: #333;
 }
 
-.profile-email {
+.brand-profile-email {
     font-size: 12px;
     color: #666;
 }
 
-.profile-dropdown {
+.brand-profile-dropdown {
     position: relative;
 }
 
@@ -275,14 +275,14 @@
 }
 
 /* Quick Stats - Single Row */
-.quick-stats {
+.brand-quick-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     margin-bottom: 40px;
 }
 
-.stat-card {
+.brand-stat-card {
     background: linear-gradient(135deg, #f9f9ff, #f2f2ff);
     padding: 25px;
     border-radius: 12px;
@@ -295,20 +295,27 @@
     border: 2px solid rgba(108, 92, 231, 0.2);
 }
 
-.stat-card:hover {
+.brand-stat-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(108, 92, 231, 0.25);
     border-color: var(--primary-purple);
     background: linear-gradient(135deg, #f5f5ff, #ebebff);
 }
 
-.stat-card:first-child {
+.brand-stat-card:first-child {
     background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple));
     color: white;
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-.stat-icon {
+.brand-stat-card:first-child:hover {
+    background: linear-gradient(135deg, var(--color-primary-dark), var(--primary-purple));
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(108, 92, 231, 0.4);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.brand-stat-icon {
     font-size: 24px;
     width: 50px;
     height: 50px;
@@ -319,32 +326,32 @@
     border-radius: 50%;
 }
 
-.stat-card:first-child .stat-icon {
+.brand-stat-card:first-child .brand-stat-icon {
     background: rgba(255, 255, 255, 0.2);
 }
 
-.stat-info {
+.brand-stat-info {
     display: flex;
     flex-direction: column;
 }
 
-.stat-number {
+.brand-stat-number {
     font-size: 20px;
     font-weight: bold;
     color: var(--primary-purple);
 }
 
-.stat-card:first-child .stat-number {
+.brand-stat-card:first-child .brand-stat-number {
     color: white;
 }
 
-.stat-label {
+.brand-stat-label {
     font-size: 14px;
     color: #666;
     margin-top: 2px;
 }
 
-.stat-card:first-child .stat-label {
+.brand-stat-card:first-child .brand-stat-label {
     color: rgba(255, 255, 255, 0.9);
 }
 
@@ -626,7 +633,9 @@
 }
 
 .btn-primary:hover {
-    background-color: var(--secondary-purple);
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
 }
 
 .btn-secondary {
@@ -638,6 +647,8 @@
 .btn-secondary:hover {
     background-color: var(--primary-purple);
     color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
 }
 
 
@@ -760,6 +771,7 @@
 }
 
 .empty-state .btn-primary:hover {
-    background: var(--primary-purple-dark);
+    background: var(--color-primary-dark);
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.3);
 }

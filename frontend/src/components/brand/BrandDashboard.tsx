@@ -46,6 +46,8 @@ interface Campaign {
 
 interface Application {
   id: string;
+  campaignId?: string;
+  creatorId?: string;
   creatorName: string;
   creatorEmail: string;
   followers: string;
@@ -53,6 +55,8 @@ interface Application {
   status: 'pending' | 'approved' | 'rejected';
   appliedDate: string;
   campaignName: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 const BrandDashboard: React.FC = () => {
@@ -62,6 +66,7 @@ const BrandDashboard: React.FC = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,128 +106,38 @@ const BrandDashboard: React.FC = () => {
     fetchCampaigns();
   }, []);
 
-  const [applications] = useState<Application[]>([
-    {
-      id: '1',
-      creatorName: 'Sarah Johnson',
-      creatorEmail: 'sarah@example.com',
-      followers: '50K',
-      platform: 'Instagram',
-      status: 'pending',
-      appliedDate: '2025-08-10',
-      campaignName: 'Summer Fashion Campaign'
-    },
-    {
-      id: '2',
-      creatorName: 'Mike Chen',
-      creatorEmail: 'mike@example.com',
-      followers: '75K',
-      platform: 'TikTok',
-      status: 'pending',
-      appliedDate: '2025-08-09',
-      campaignName: 'Tech Product Launch'
-    },
-    {
-      id: '3',
-      creatorName: 'Emma Rodriguez',
-      creatorEmail: 'emma@example.com',
-      followers: '120K',
-      platform: 'YouTube',
-      status: 'approved',
-      appliedDate: '2025-08-08',
-      campaignName: 'Fitness Equipment Promo'
-    },
-    {
-      id: '4',
-      creatorName: 'Alex Kim',
-      creatorEmail: 'alex@example.com',
-      followers: '85K',
-      platform: 'Instagram',
-      status: 'rejected',
-      appliedDate: '2025-08-07',
-      campaignName: 'Beauty Brand Collaboration'
-    },
-    {
-      id: '5',
-      creatorName: 'Jessica Brown',
-      creatorEmail: 'jessica@example.com',
-      followers: '95K',
-      platform: 'TikTok',
-      status: 'approved',
-      appliedDate: '2025-08-06',
-      campaignName: 'Gaming Gear Showcase'
-    },
-    {
-      id: '6',
-      creatorName: 'David Wilson',
-      creatorEmail: 'david@example.com',
-      followers: '65K',
-      platform: 'YouTube',
-      status: 'pending',
-      appliedDate: '2025-08-05',
-      campaignName: 'Eco-Friendly Products'
-    },
-    {
-      id: '7',
-      creatorName: 'Lisa Martinez',
-      creatorEmail: 'lisa@example.com',
-      followers: '110K',
-      platform: 'Instagram',
-      status: 'pending',
-      appliedDate: '2025-08-04',
-      campaignName: 'Holiday Collection Launch'
-    },
-    {
-      id: '8',
-      creatorName: 'Ryan Taylor',
-      creatorEmail: 'ryan@example.com',
-      followers: '45K',
-      platform: 'TikTok',
-      status: 'approved',
-      appliedDate: '2025-08-03',
-      campaignName: 'Summer Fashion Campaign'
-    },
-    {
-      id: '9',
-      creatorName: 'Sophie Anderson',
-      creatorEmail: 'sophie@example.com',
-      followers: '78K',
-      platform: 'YouTube',
-      status: 'pending',
-      appliedDate: '2025-08-02',
-      campaignName: 'Tech Product Launch'
-    },
-    {
-      id: '10',
-      creatorName: 'Carlos Garcia',
-      creatorEmail: 'carlos@example.com',
-      followers: '92K',
-      platform: 'Instagram',
-      status: 'rejected',
-      appliedDate: '2025-08-01',
-      campaignName: 'Fitness Equipment Promo'
-    },
-    {
-      id: '11',
-      creatorName: 'Maya Patel',
-      creatorEmail: 'maya@example.com',
-      followers: '135K',
-      platform: 'TikTok',
-      status: 'approved',
-      appliedDate: '2025-07-31',
-      campaignName: 'Beauty Brand Collaboration'
-    },
-    {
-      id: '12',
-      creatorName: 'Tom Lewis',
-      creatorEmail: 'tom@example.com',
-      followers: '58K',
-      platform: 'YouTube',
-      status: 'pending',
-      appliedDate: '2025-07-30',
-      campaignName: 'Gaming Gear Showcase'
-    }
-  ]);
+  // Fetch applications from API
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('Please log in to view applications');
+          return;
+        }
+
+        const response = await fetch('http://localhost:8080/api/applications', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch applications');
+        }
+
+        const applicationsData = await response.json();
+        setApplications(applicationsData || []);
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+        setError('Failed to load applications');
+      }
+    };
+
+    fetchApplications();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -259,35 +174,35 @@ const BrandDashboard: React.FC = () => {
   return (
     <div className="brand-dashboard">
       {/* Header */}
-      <header className="dashboard-header">
-        <div className="header-left">
-          <h1 className="brand-name">{APP_NAME}</h1>
-          <nav className="main-nav">
+      <header className="brand-dashboard-header">
+        <div className="brand-header-left">
+          <h1 className="brand-brand-name">{APP_NAME}</h1>
+          <nav className="brand-main-nav">
             <button 
-              className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+              className={`brand-nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => setActiveTab('dashboard')}
             >
               Dashboard
             </button>
             <button 
-              className={`nav-btn ${activeTab === 'campaigns' ? 'active' : ''}`}
-              onClick={() => setActiveTab('campaigns')}
+              className={`brand-nav-btn ${activeTab === 'campaigns' ? 'active' : ''}`}
+              onClick={() => navigate('/brand/campaigns')}
             >
               Campaigns
             </button>
             <button 
-              className={`nav-btn ${activeTab === 'applications' ? 'active' : ''}`}
+              className={`brand-nav-btn ${activeTab === 'applications' ? 'active' : ''}`}
               onClick={() => setActiveTab('applications')}
             >
               Applications
             </button>
           </nav>
         </div>
-        <div className="header-right">
-          <div className="user-profile">
-            <div className="profile-info">
-              <span className="profile-name">{user?.name || 'User'}</span>
-              <span className="profile-email">{user?.email || 'user@example.com'}</span>
+        <div className="brand-header-right">
+          <div className="brand-user-profile">
+            <div className="brand-profile-info">
+              <span className="brand-profile-name">{user?.name || 'User'}</span>
+              <span className="brand-profile-email">{user?.email || 'user@example.com'}</span>
             </div>
             <div className="profile-dropdown" ref={dropdownRef}>
               <div className="profile-avatar" onClick={toggleProfileDropdown}>
@@ -339,33 +254,33 @@ const BrandDashboard: React.FC = () => {
           </div>
 
           {/* Quick Stats - Single Row */}
-          <div className="quick-stats">
-            <div className="stat-card" onClick={handleCreateCampaign}>
-              <div className="stat-icon">📝</div>
-              <div className="stat-info">
-                <span className="stat-number">Create</span>
-                <span className="stat-label">Campaign</span>
+          <div className="brand-quick-stats">
+            <div className="brand-stat-card" onClick={handleCreateCampaign}>
+              <div className="brand-stat-icon">📝</div>
+              <div className="brand-stat-info">
+                <span className="brand-stat-number">Create</span>
+                <span className="brand-stat-label">Campaign</span>
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon">🚀</div>
-              <div className="stat-info">
-                <span className="stat-number">{campaigns.filter(c => c.status === 'active').length}</span>
-                <span className="stat-label">Active Campaigns</span>
+            <div className="brand-stat-card">
+              <div className="brand-stat-icon">🚀</div>
+              <div className="brand-stat-info">
+                <span className="brand-stat-number">{campaigns.filter(c => c.status === 'active').length}</span>
+                <span className="brand-stat-label">Active Campaigns</span>
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon">⏳</div>
-              <div className="stat-info">
-                <span className="stat-number">{applications.filter(a => a.status === 'pending').length}</span>
-                <span className="stat-label">Pending Applications</span>
+            <div className="brand-stat-card">
+              <div className="brand-stat-icon">⏳</div>
+              <div className="brand-stat-info">
+                <span className="brand-stat-number">{applications.filter(a => a.status === 'pending').length}</span>
+                <span className="brand-stat-label">Pending Applications</span>
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon">✅</div>
-              <div className="stat-info">
-                <span className="stat-number">{applications.filter(a => a.status === 'approved').length}</span>
-                <span className="stat-label">Approved Applications</span>
+            <div className="brand-stat-card">
+              <div className="brand-stat-icon">✅</div>
+              <div className="brand-stat-info">
+                <span className="brand-stat-number">{applications.filter(a => a.status === 'approved').length}</span>
+                <span className="brand-stat-label">Approved Applications</span>
               </div>
             </div>
           </div>
@@ -439,7 +354,13 @@ const BrandDashboard: React.FC = () => {
                           <span className={`status ${application.status}`}>
                             {application.status}
                           </span>
-                          <span className="applied-date">{application.appliedDate}</span>
+                          <span className="applied-date">
+                            {new Date(application.appliedDate).toLocaleDateString('en-US', { 
+                              year: 'numeric', 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
+                          </span>
                         </div>
                       </div>
                     </div>
