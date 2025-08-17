@@ -70,6 +70,14 @@ const CreatorDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to check if creator has already applied to a campaign
+  const hasAppliedToCampaign = (campaignId: string): boolean => {
+    return applications.some(app => app.campaignId === campaignId);
+  };
+
+  // Filter campaigns to exclude those the creator has already applied to
+  const availableCampaigns = campaigns.filter(campaign => !hasAppliedToCampaign(campaign.id));
+
   // Fetch campaigns from API
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -229,6 +237,12 @@ const CreatorDashboard: React.FC = () => {
 
   const handleApplyToCampaign = async (campaignId: string) => {
     try {
+      // Check if already applied to this campaign
+      if (hasAppliedToCampaign(campaignId)) {
+        alert('You have already applied to this campaign!');
+        return;
+      }
+
       const token = localStorage.getItem('token');
       if (!token) {
         alert('Please log in to apply to campaigns');
@@ -253,9 +267,15 @@ const CreatorDashboard: React.FC = () => {
         alert('Application submitted successfully!');
         // Refresh applications list
         setApplications(prev => [newApplication, ...prev]);
+        
+        // Remove the campaign from available campaigns list
+        setCampaigns(prev => prev.filter(campaign => campaign.id !== campaignId));
+      } else if (response.status === 409) {
+        // Conflict - already applied
+        alert('You have already applied to this campaign!');
       } else {
-        const errorData = await response.json();
-        alert(`Failed to submit application: ${errorData.message || 'Unknown error'}`);
+        const errorData = await response.text();
+        alert(`Failed to submit application: ${errorData || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error applying to campaign:', error);
@@ -422,12 +442,17 @@ const CreatorDashboard: React.FC = () => {
                   <div className="creator-error-state">
                     <p>{error}</p>
                   </div>
-                ) : campaigns.length === 0 ? (
+                ) : availableCampaigns.length === 0 ? (
                   <div className="creator-empty-state">
-                    <p>No campaigns available at the moment. Check back later!</p>
+                    <p>
+                      {campaigns.length === 0 
+                        ? "No campaigns available at the moment. Check back later!" 
+                        : "You have applied to all available campaigns! Check back later for new opportunities."
+                      }
+                    </p>
                   </div>
                 ) : (
-                  campaigns.map((campaign) => (
+                  availableCampaigns.map((campaign) => (
                     <div key={campaign.id} className="creator-campaign-card">
                       <div className="creator-campaign-header">
                         <h3>{campaign.title}</h3>

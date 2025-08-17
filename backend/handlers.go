@@ -459,6 +459,21 @@ func createApplicationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if creator has already applied to this campaign
+	applicationsCollection := database.Collection("applications")
+	existingApp := applicationsCollection.FindOne(ctx, bson.M{
+		"campaignId": campaignObjID,
+		"creatorId":  userObjID,
+	})
+
+	if existingApp.Err() == nil {
+		http.Error(w, "You have already applied to this campaign", http.StatusConflict)
+		return
+	} else if existingApp.Err() != mongo.ErrNoDocuments {
+		http.Error(w, "Error checking existing applications", http.StatusInternalServerError)
+		return
+	}
+
 	// Create application
 	application := Application{
 		ID:           primitive.NewObjectID(),
@@ -475,7 +490,6 @@ func createApplicationHandler(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:    time.Now(),
 	}
 
-	applicationsCollection := database.Collection("applications")
 	_, err = applicationsCollection.InsertOne(ctx, application)
 	if err != nil {
 		http.Error(w, "Error creating application", http.StatusInternalServerError)
