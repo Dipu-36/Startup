@@ -70,14 +70,6 @@ const CreatorDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper function to check if creator has already applied to a campaign
-  const hasAppliedToCampaign = (campaignId: string): boolean => {
-    return applications.some(app => app.campaignId === campaignId);
-  };
-
-  // Filter campaigns to exclude those the creator has already applied to
-  const availableCampaigns = campaigns.filter(campaign => !hasAppliedToCampaign(campaign.id));
-
   // Fetch campaigns from API
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -238,7 +230,8 @@ const CreatorDashboard: React.FC = () => {
   const handleApplyToCampaign = async (campaignId: string) => {
     try {
       // Check if already applied to this campaign
-      if (hasAppliedToCampaign(campaignId)) {
+      const hasApplied = applications.some(app => app.campaignId === campaignId);
+      if (hasApplied) {
         alert('You have already applied to this campaign!');
         return;
       }
@@ -267,15 +260,12 @@ const CreatorDashboard: React.FC = () => {
         alert('Application submitted successfully!');
         // Refresh applications list
         setApplications(prev => [newApplication, ...prev]);
-        
-        // Remove the campaign from available campaigns list
-        setCampaigns(prev => prev.filter(campaign => campaign.id !== campaignId));
       } else if (response.status === 409) {
-        // Conflict - already applied
+        // Handle duplicate application error from backend
         alert('You have already applied to this campaign!');
       } else {
-        const errorData = await response.text();
-        alert(`Failed to submit application: ${errorData || 'Unknown error'}`);
+        const errorData = await response.json().catch(() => ({}));
+        alert(`Failed to submit application: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error applying to campaign:', error);
@@ -305,6 +295,11 @@ const CreatorDashboard: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Filter out campaigns that the creator has already applied to
+  const availableCampaigns = campaigns.filter(campaign => 
+    !applications.some(app => app.campaignId === campaign.id)
+  );
 
   return (
     <div className="creator-dashboard">
@@ -444,12 +439,7 @@ const CreatorDashboard: React.FC = () => {
                   </div>
                 ) : availableCampaigns.length === 0 ? (
                   <div className="creator-empty-state">
-                    <p>
-                      {campaigns.length === 0 
-                        ? "No campaigns available at the moment. Check back later!" 
-                        : "You have applied to all available campaigns! Check back later for new opportunities."
-                      }
-                    </p>
+                    <p>No new campaigns available at the moment. Check back later!</p>
                   </div>
                 ) : (
                   availableCampaigns.map((campaign) => (
