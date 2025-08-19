@@ -14,6 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// TODO: Refactor the handlers to avoid the globals for easy testing
 func LoginRequest(w http.ResponseWriter, r *http.Request) {
 
 	var req storage.LoginRequest
@@ -29,7 +30,7 @@ func LoginRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find user
-	collection := ("users")
+	collection := storage.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
