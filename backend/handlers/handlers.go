@@ -4,9 +4,9 @@ import "github.com/Dipu-36/startup/internal/storage"
 
 // Using dependecy injection
 type Handlers struct {
-	store *storage.MongoStore
+	Store *storage.MongoStore
 }
 
 func NewHandler(store *storage.MongoStore) *Handlers {
-	return &Handlers{store: store}
+	return &Handlers{Store: store}
 }
