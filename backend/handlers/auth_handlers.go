@@ -15,7 +15,7 @@ import (
 )
 
 // TODO: Refactor the handlers to avoid the globals for easy testing
-func LoginRequest(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) LoginRequest(w http.ResponseWriter, r *http.Request) {
 
 	var req storage.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -30,7 +30,7 @@ func LoginRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find user
-	collection := storage.GetCollection("users")
+	collection := h.store.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -69,7 +69,7 @@ func LoginRequest(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func SignupHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	var req storage.SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -145,7 +145,8 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
 }
-func ProfileHandler(w http.ResponseWriter, r *http.Request) {
+
+func (h *Handlers) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	user, ok := auth.GetUserFromContext(r.Context())
 	if !ok {
 		http.Error(w, "User not found in context", http.StatusInternalServerError)
@@ -153,7 +154,7 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch user from database to get latest data
-	collection := storage.GetCollection("users")
+	collection := h.store.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

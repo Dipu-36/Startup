@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/Dipu-36/startup/internal/auth"
-	"github.com/Dipu-36/startup/storage"
+	"github.com/Dipu-36/startup/internal/storage"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func CreateCampaignHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) CreateCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	// Get user from context
 	user, ok := auth.GetUserFromContext(r.Context())
 	if !ok {
@@ -41,7 +41,7 @@ func CreateCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user details for brand name
-	userCollection := storage.GetCollection("users")
+	userCollection := h.store.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -98,7 +98,7 @@ func CreateCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	campaign.MinRequirements.Languages = req.MinRequirements.Languages
 
 	// Insert campaign into database
-	collection := storage.GetCollection("campaigns")
+	collection := h.store.GetCollection("campaigns")
 	_, err = collection.InsertOne(ctx, campaign)
 	if err != nil {
 		http.Error(w, "Error creating campaign", http.StatusInternalServerError)
@@ -110,7 +110,7 @@ func CreateCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(campaign)
 }
 
-func GetCampaignsHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) GetCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	// Get user from context
 	user, ok := auth.GetUserFromContext(r.Context())
 	if !ok {
@@ -126,7 +126,7 @@ func GetCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find campaigns for this brand
-	collection := storage.GetCollection("campaigns")
+	collection := h.store.GetCollection("campaigns")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -147,9 +147,9 @@ func GetCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(campaigns)
 }
 
-func GetAllCampaignsHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) GetAllCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	// Find all active campaigns (for influencers to browse)
-	collection := storage.GetCollection("campaigns")
+	collection := h.store.GetCollection("campaigns")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
