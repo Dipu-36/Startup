@@ -72,3 +72,11 @@ func (m *MongoStore) Close() error {
 	defer cancel()
 	return m.client.Disconnect(ctx)
 }
+
+// Package level helper function for handlers to call GetCollection
+func GetCollection(name string) *mongo.Collection {
+	if globalStore == nil {
+		log.Fatal("Mongostore is not initialized")
+	}
+	return globalStore.database.Collection(name)
+}

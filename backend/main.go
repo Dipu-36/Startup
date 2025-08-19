@@ -19,13 +19,15 @@ type APIServer struct {
 	listenaddr string
 	store      storage.Storage
 	router     *mux.Router
+	handlers   *handlers.Handlers
 }
 
-func NewAPIServer(port string, db storage.Storage) *APIServer {
+func NewAPIServer(port string, db storage.Storage, h *handlers.Handlers) *APIServer {
 	server := &APIServer{
 		listenaddr: port,
 		store:      db,
 		router:     mux.NewRouter(),
+		handlers:   h,
 	}
 	server.routes()
 	return server
@@ -36,21 +38,21 @@ func (s *APIServer) routes() {
 
 	//Registers routes with our handler decorater
 	api.HandleFunc("/health", healthCheck).Methods("GET")
-	api.HandleFunc("/auth/signup", handlers.SignupHandler).Methods("POST")
-	api.HandleFunc("/auth/login", handlers.LoginRequest).Methods("POST")
+	api.HandleFunc("/auth/signup", s.handlers.SignupHandler).Methods("POST")
+	api.HandleFunc("/auth/login", s.handlers.LoginRequest).Methods("POST")
 
 	// Protected routes - general
-	api.HandleFunc("/auth/profile", auth.AuthMiddleware(handlers.ProfileHandler)).Methods("GET")
+	api.HandleFunc("/auth/profile", auth.AuthMiddleware(s.handlers.ProfileHandler)).Methods("GET")
 
 	// Protected routes - user type specific
 	api.HandleFunc("/brand/dashboard", requireUserType("brand", brandOnlyHandler)).Methods("GET")
 	api.HandleFunc("/influencer/dashboard", requireUserType("influencer", influencerOnlyHandler)).Methods("GET")
 
 	// Campaign routes
-	api.HandleFunc("/campaigns", auth.AuthMiddleware(handlers.CreateCampaignHandler)).Methods("POST")
-	api.HandleFunc("/campaigns", auth.AuthMiddleware(handlers.GetCampaignsHandler)).Methods("GET")
+	api.HandleFunc("/campaigns", auth.AuthMiddleware(s.handlers.CreateCampaignHandler)).Methods("POST")
+	api.HandleFunc("/campaigns", auth.AuthMiddleware(s.handlers.GetCampaignsHandler)).Methods("GET")
 
-	api.HandleFunc("/campaigns/all", auth.AuthMiddleware(handlers.GetAllCampaignsHandler)).Methods("GET")
+	api.HandleFunc("/campaigns/all", auth.AuthMiddleware(s.handlers.GetAllCampaignsHandler)).Methods("GET")
 
 }
 
@@ -81,6 +83,7 @@ func main() {
 		port = "8080"
 	}
 
+	//Initilaizing the MongoDB
 	store, err := storage.NewMongoStore()
 	if err != nil {
 		log.Fatal("Failed to initialize MongoDB: ", err)
@@ -88,8 +91,11 @@ func main() {
 	defer store.Close()
 	storage.InitGlobalStore(store)
 
+	//Initilaizing the handlers
+	h := handlers.NewHandler(store)
+
 	//initialize and run the server
-	server := NewAPIServer(port, store)
+	server := NewAPIServer(port, store, h)
 	server.Run()
 
 }

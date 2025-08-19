@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Dipu-36/startup/storage"
+	"github.com/Dipu-36/startup/internal/storage"
 	"github.com/golang-jwt/jwt/v5"
 )
 
