@@ -30,7 +30,7 @@ func (h *Handlers) LoginRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find user
-	collection := h.store.GetCollection("users")
+	collection := h.Store.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -89,7 +89,7 @@ func (h *Handlers) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user already exists
-	collection := storage.GetCollection("users")
+	collection := h.Store.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -154,7 +154,7 @@ func (h *Handlers) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch user from database to get latest data
-	collection := h.store.GetCollection("users")
+	collection := h.Store.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

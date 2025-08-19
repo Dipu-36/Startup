@@ -41,7 +41,7 @@ func (h *Handlers) CreateCampaignHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get user details for brand name
-	userCollection := h.store.GetCollection("users")
+	userCollection := h.Store.GetCollection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -98,7 +98,7 @@ func (h *Handlers) CreateCampaignHandler(w http.ResponseWriter, r *http.Request)
 	campaign.MinRequirements.Languages = req.MinRequirements.Languages
 
 	// Insert campaign into database
-	collection := h.store.GetCollection("campaigns")
+	collection := h.Store.GetCollection("campaigns")
 	_, err = collection.InsertOne(ctx, campaign)
 	if err != nil {
 		http.Error(w, "Error creating campaign", http.StatusInternalServerError)
@@ -126,7 +126,7 @@ func (h *Handlers) GetCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find campaigns for this brand
-	collection := h.store.GetCollection("campaigns")
+	collection := h.Store.GetCollection("campaigns")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -149,7 +149,7 @@ func (h *Handlers) GetCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handlers) GetAllCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	// Find all active campaigns (for influencers to browse)
-	collection := h.store.GetCollection("campaigns")
+	collection := h.Store.GetCollection("campaigns")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
