@@ -1,4 +1,4 @@
-# 🚀 SponsorConnect - One Command Setup
+# SponsorConnect - One Command Setup
 # Just run: make up
 
 # Main commands for Docker setup
