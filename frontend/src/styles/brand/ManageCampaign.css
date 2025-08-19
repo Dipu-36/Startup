@@ -1,14 +1,238 @@
 /* Manage Campaign Component Styles */
 @import '../globals.css';
 
+/* CSS Custom Properties for Dynamic Viewport Heights */
+:root {
+    --header-height: 70px;
+    --summary-padding: 40px;
+    --main-padding: 50px;
+    --available-height: calc(100vh - var(--header-height) - var(--summary-padding) - var(--main-padding));
+    --available-height-dvh: calc(100dvh - var(--header-height) - var(--summary-padding) - var(--main-padding));
+}
+
+/* CSS Custom Properties for Dynamic Viewport Heights */
+:root {
+    --header-height: 70px;
+    --summary-padding: 40px;
+    --main-padding: 50px;
+    --available-height: calc(100vh - var(--header-height) - var(--summary-padding) - var(--main-padding));
+    --available-height-dvh: calc(100dvh - var(--header-height) - var(--summary-padding) - var(--main-padding));
+    --vh: 1vh; /* This will be set by JavaScript */
+}
+
+/* Use JavaScript-calculated viewport height when available */
+.manage-campaign-page {
+    height: calc(var(--vh, 1vh) * 100);
+    min-height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Dynamic classes applied by JavaScript */
+.vh-very-small .manage-campaign-page {
+    --header-height: 45px;
+    --summary-padding: 20px;
+    --main-padding: 30px;
+}
+
+.vh-small .manage-campaign-page {
+    --header-height: 50px;
+    --summary-padding: 25px;
+    --main-padding: 35px;
+}
+
+.vh-medium .manage-campaign-page {
+    --header-height: 60px;
+    --summary-padding: 30px;
+    --main-padding: 40px;
+}
+
+/* Apply dynamic heights to other elements */
+.vh-very-small .main-content {
+    height: calc(var(--vh, 1vh) * 100 - 110px);
+    padding: 0px 30px 10px;
+}
+
+.vh-small .main-content {
+    height: calc(var(--vh, 1vh) * 100 - 130px);
+    padding: 0px 30px 15px;
+}
+
+.vh-medium .main-content {
+    height: calc(var(--vh, 1vh) * 100 - 150px);
+    padding: 0px 30px 20px;
+}
+
+.vh-very-small .content-wrapper {
+    max-height: calc(var(--vh, 1vh) * 100 - 130px);
+}
+
+.vh-small .content-wrapper {
+    max-height: calc(var(--vh, 1vh) * 100 - 150px);
+}
+
+.vh-medium .content-wrapper {
+    max-height: calc(var(--vh, 1vh) * 100 - 170px);
+}
+
+.vh-very-small .tab-content {
+    max-height: calc(var(--vh, 1vh) * 100 - 190px);
+    padding: 8px 20px 12px;
+}
+
+.vh-small .tab-content {
+    max-height: calc(var(--vh, 1vh) * 100 - 220px);
+    padding: 10px 20px 14px;
+}
+
+.vh-medium .tab-content {
+    max-height: calc(var(--vh, 1vh) * 100 - 250px);
+    padding: 12px 20px 16px;
+}
+
+.vh-very-small .sidebar {
+    height: calc(var(--vh, 1vh) * 100 - 160px);
+    max-height: calc(var(--vh, 1vh) * 100 - 160px);
+}
+
+.vh-small .sidebar {
+    height: calc(var(--vh, 1vh) * 100 - 180px);
+    max-height: calc(var(--vh, 1vh) * 100 - 180px);
+}
+
+.vh-medium .sidebar {
+    height: calc(var(--vh, 1vh) * 100 - 210px);
+    max-height: calc(var(--vh, 1vh) * 100 - 210px);
+}
+
+/* Match notifications section to correct height */
+.vh-very-small .manage-sidebar-section.notifications-section {
+    max-height: calc(var(--vh, 1vh) * 100 - 365px) !important;
+    overflow-x: hidden;
+}
+
+.vh-small .manage-sidebar-section.notifications-section {
+    max-height: calc(var(--vh, 1vh) * 100 - 365px) !important;
+    overflow-x: hidden;
+}
+
+.vh-medium .manage-sidebar-section.notifications-section {
+    max-height: calc(var(--vh, 1vh) * 100 - 365px) !important;
+    overflow-x: hidden;
+}
+
+.vh-very-small .notifications-container {
+    max-height: calc(var(--vh, 1vh) * 100 - 405px) !important;
+    overflow-x: hidden;
+}
+
+.vh-small .notifications-container {
+    max-height: calc(var(--vh, 1vh) * 100 - 405px) !important;
+    overflow-x: hidden;
+}
+
+.vh-medium .notifications-container {
+    max-height: calc(var(--vh, 1vh) * 100 - 405px) !important;
+    overflow-x: hidden;
+}
+
+/* Dynamic adjustments for different viewport heights */
+@media (max-height: 700px) {
+    :root {
+        --header-height: 60px;
+        --summary-padding: 30px;
+        --main-padding: 40px;
+    }
+}
+
+@media (max-height: 600px) {
+    :root {
+        --header-height: 50px;
+        --summary-padding: 25px;
+        --main-padding: 35px;
+    }
+}
+
+@media (max-height: 500px) {
+    :root {
+        --header-height: 45px;
+        --summary-padding: 20px;
+        --main-padding: 30px;
+    }
+}
+
 .manage-campaign-page {
     min-height: 100vh;
-    max-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
+    height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height */
     background: #f8f9fa;
     font-family: var(--font-primary);
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    container-type: size; /* Enable container queries */
+    
+    /* Fallback for browsers that don't support dvh */
+    height: calc(var(--vh, 1vh) * 100);
+    min-height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Enhanced support for different viewport units */
+@supports (height: 100dvh) {
+    .manage-campaign-page {
+        height: 100dvh;
+        min-height: 100dvh;
+    }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .manage-campaign-page {
+        height: -webkit-fill-available;
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* Container queries for better responsive behavior */
+@container (max-height: 700px) {
+    .manage-campaign-summary {
+        padding: 15px 30px;
+    }
+    
+    .main-content {
+        padding: 0px 30px 20px;
+    }
+}
+
+@container (max-height: 600px) {
+    .manage-header {
+        height: 60px;
+    }
+    
+    .manage-campaign-summary {
+        padding: 12px 30px;
+    }
+    
+    .manage-campaign-title {
+        font-size: 24px;
+    }
+}
+
+@container (max-height: 500px) {
+    .manage-header {
+        height: 50px;
+    }
+    
+    .brand-name {
+        font-size: 18px;
+    }
+    
+    .manage-campaign-summary {
+        padding: 10px 30px;
+    }
+    
+    .manage-campaign-title {
+        font-size: 20px;
+    }
 }
 
 /* Header - Same as other pages */
@@ -713,6 +937,22 @@
     min-height: 0;
     overflow: hidden;
     align-items: flex-start;
+    height: calc(100vh - 180px); /* Adjust based on header + summary height */
+    height: calc(100dvh - 180px); /* Use dynamic viewport height */
+}
+
+@supports (height: 100dvh) {
+    .main-content {
+        height: calc(100dvh - 180px);
+    }
+}
+
+/* Fallback for browsers that don't support dvh */
+@supports not (height: 100dvh) {
+    .main-content {
+        height: calc(100vh - 180px);
+        min-height: calc(100vh - 180px);
+    }
 }
 
 .content-wrapper {
@@ -723,7 +963,9 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: fit-content;
+    height: 100%;
+    max-height: calc(100vh - 200px); /* Prevent overflow */
+    max-height: calc(100dvh - 200px); /* Use dynamic viewport height */
 }
 
 /* Tab Navigation */
@@ -775,6 +1017,32 @@
     overflow-y: auto;
     min-height: 0;
     position: relative;
+    max-height: calc(100vh - 280px); /* Prevent overflow beyond viewport */
+    max-height: calc(100dvh - 280px); /* Use dynamic viewport height */
+}
+
+/* Smooth scrolling for better UX */
+.tab-content {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar styling for better aesthetics */
+.tab-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 /* Applications Tab */
@@ -1296,11 +1564,35 @@
     width: 280px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 0; /* Remove gap since we only have one section now */
     flex-shrink: 0;
-    align-self: flex-start;
+    align-self: flex-start; /* Changed from stretch to flex-start */
     position: sticky;
     top: 20px;
+    height: calc(100vh - 250px); /* Reduced height to stay above the red line */
+    height: calc(100dvh - 250px); /* Use dynamic viewport height */
+    max-height: calc(100vh - 250px); /* Ensure it doesn't exceed this height */
+    max-height: calc(100dvh - 250px);
+    overflow: hidden; /* Let the notifications container handle scrolling */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
 }
 
 .manage-sidebar-section {
@@ -1308,6 +1600,20 @@
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 200px; /* Ensure minimum height */
+}
+
+.manage-sidebar-section.notifications-section {
+    flex: 1;
+    overflow: hidden;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 365px) !important;
+    max-height: calc(100dvh - 365px) !important;
 }
 
 .manage-sidebar-section h3 {
@@ -1315,14 +1621,60 @@
     font-weight: 600;
     color: #333;
     margin: 0 0 12px 0;
+    flex-shrink: 0;
+}
+
+.notifications-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    padding-right: 4px;
+    margin-right: -4px;
+    min-height: 0; /* Important for flex children with overflow */
+    max-height: calc(100vh - 405px) !important; /* Account for adjusted height + header + padding */
+    max-height: calc(100dvh - 405px) !important;
+}
+
+/* Enhanced scrollbar styling for notifications */
+.notifications-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notifications-container::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 3px;
+}
+
+.notifications-container::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.notifications-container::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* For Firefox */
+.notifications-container {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f8f9fa;
 }
 
 .notification-item {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 8px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 0 -8px;
+    padding: 12px 8px;
 }
 
 .notification-item:last-child {
@@ -1332,6 +1684,7 @@
 .notification-icon {
     font-size: 16px;
     margin-top: 2px;
+    flex-shrink: 0;
 }
 
 .notification-content {
@@ -1348,27 +1701,6 @@
 .notification-time {
     font-size: 12px;
     color: #666;
-}
-
-.sidebar-action-btn {
-    width: 100%;
-    background: #f8f9fa;
-    border: 1px solid #e1e5e9;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-bottom: 6px;
-    text-align: left;
-}
-
-.sidebar-action-btn:hover {
-    background: white;
-    border-color: var(--primary-purple);
-    color: var(--primary-purple);
 }
 
 /* Loading and Error States */
@@ -1419,6 +1751,292 @@
     background: var(--color-primary-dark);
 }
 
+/* Dynamic Viewport Height Adjustments */
+
+/* Fallback for browsers without dvh support */
+@supports not (height: 100dvh) {
+    .manage-campaign-page {
+        height: 100vh !important;
+        min-height: 100vh !important;
+    }
+    
+    .main-content {
+        height: calc(100vh - 180px) !important;
+    }
+    
+    .content-wrapper {
+        max-height: calc(100vh - 200px) !important;
+    }
+    
+    .tab-content {
+        max-height: calc(100vh - 280px) !important;
+    }
+    
+    .sidebar {
+        height: calc(100vh - 250px) !important;
+        max-height: calc(100vh - 250px) !important;
+    }
+    
+    .manage-sidebar-section.notifications-section {
+        max-height: calc(100vh - 365px) !important;
+        overflow-x: hidden;
+    }
+    
+    .notifications-container {
+        max-height: calc(100vh - 405px) !important;
+        overflow-x: hidden;
+    }
+}
+
+/* Enhanced support for dvh when available */
+@supports (height: 100dvh) {
+    .manage-campaign-page {
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+    }
+    
+    .main-content {
+        height: calc(100dvh - 180px) !important;
+    }
+    
+    .content-wrapper {
+        max-height: calc(100dvh - 200px) !important;
+    }
+    
+    .tab-content {
+        max-height: calc(100dvh - 280px) !important;
+    }
+    
+    .sidebar {
+        height: calc(100dvh - 250px) !important;
+        max-height: calc(100dvh - 250px) !important;
+    }
+    
+    .manage-sidebar-section.notifications-section {
+        max-height: calc(100dvh - 365px) !important;
+        overflow-x: hidden;
+    }
+    
+    .notifications-container {
+        max-height: calc(100dvh - 405px) !important;
+        overflow-x: hidden;
+    }
+}
+
+/* iOS Safari specific fixes for viewport height issues */
+@supports (-webkit-touch-callout: none) {
+    .manage-campaign-page {
+        height: -webkit-fill-available !important;
+        min-height: -webkit-fill-available !important;
+    }
+}
+
+@media (max-height: 700px) {
+    .manage-campaign-summary {
+        padding: 15px 30px;
+        margin: 15px 30px 0;
+    }
+    
+    .main-content {
+        height: calc(100vh - 150px);
+        height: calc(100dvh - 150px);
+        padding: 0px 30px 20px;
+    }
+    
+    .content-wrapper {
+        max-height: calc(100vh - 170px);
+        max-height: calc(100dvh - 170px);
+    }
+    
+    .tab-content {
+        max-height: calc(100vh - 250px);
+        max-height: calc(100dvh - 250px);
+        padding: 12px 20px 16px;
+    }
+    
+    .sidebar {
+        height: calc(100vh - 220px);
+        height: calc(100dvh - 220px);
+        max-height: calc(100vh - 220px);
+        max-height: calc(100dvh - 220px);
+    }
+    
+    .manage-sidebar-section.notifications-section {
+        max-height: calc(100vh - 365px);
+        max-height: calc(100dvh - 365px);
+        overflow-x: hidden;
+    }
+    
+    .notifications-container {
+        max-height: calc(100vh - 405px);
+        max-height: calc(100dvh - 405px);
+        overflow-x: hidden;
+    }
+}
+
+@media (max-height: 600px) {
+    .manage-header {
+        height: 60px;
+        padding: 0 30px;
+    }
+    
+    .brand-name {
+        font-size: 20px;
+    }
+    
+    .nav-btn {
+        font-size: 14px;
+        padding: 8px 0;
+    }
+    
+    .manage-campaign-summary {
+        padding: 12px 30px;
+        margin: 12px 30px 0;
+    }
+    
+    .manage-campaign-title {
+        font-size: 24px;
+        margin: 0 0 10px 0;
+    }
+    
+    .main-content {
+        height: calc(100vh - 130px);
+        height: calc(100dvh - 130px);
+        padding: 0px 30px 15px;
+    }
+    
+    .content-wrapper {
+        max-height: calc(100vh - 150px);
+        max-height: calc(100dvh - 150px);
+    }
+    
+    .tab-content {
+        max-height: calc(100vh - 220px);
+        max-height: calc(100dvh - 220px);
+        padding: 10px 20px 14px;
+    }
+    
+    .sidebar {
+        height: calc(100vh - 180px);
+        height: calc(100dvh - 180px);
+        max-height: calc(100vh - 180px);
+        max-height: calc(100dvh - 180px);
+    }
+    
+    .manage-sidebar-section.notifications-section {
+        max-height: calc(100vh - 365px);
+        max-height: calc(100dvh - 365px);
+        overflow-x: hidden;
+    }
+    
+    .notifications-container {
+        max-height: calc(100vh - 405px);
+        max-height: calc(100dvh - 405px);
+        overflow-x: hidden;
+    }
+    
+    .manage-sidebar-section {
+        padding: 15px;
+    }
+}
+
+/* Very short screens - like browser windows on smaller monitors */
+@media (max-height: 500px) {
+    .manage-header {
+        height: 50px;
+    }
+    
+    .brand-name {
+        font-size: 18px;
+    }
+    
+    .manage-campaign-summary {
+        padding: 10px 30px;
+        margin: 10px 30px 0;
+    }
+    
+    .manage-campaign-title {
+        font-size: 20px;
+        margin: 0 0 8px 0;
+    }
+    
+    .quick-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+    
+    .stat-card {
+        padding: 12px;
+    }
+    
+    .stat-number {
+        font-size: 20px;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+    }
+    
+    .main-content {
+        height: calc(100vh - 110px);
+        height: calc(100dvh - 110px);
+        padding: 0px 30px 10px;
+        gap: 15px;
+    }
+    
+    .content-wrapper {
+        max-height: calc(100vh - 130px);
+        max-height: calc(100dvh - 130px);
+    }
+    
+    .tab-content {
+        max-height: calc(100vh - 190px);
+        max-height: calc(100dvh - 190px);
+        padding: 8px 20px 12px;
+    }
+    
+    .sidebar {
+        width: 250px;
+        height: calc(100vh - 160px);
+        height: calc(100dvh - 160px);
+        max-height: calc(100vh - 160px);
+        max-height: calc(100dvh - 160px);
+    }
+    
+    .manage-sidebar-section.notifications-section {
+        max-height: calc(100vh - 365px);
+        max-height: calc(100dvh - 365px);
+        overflow-x: hidden;
+    }
+    
+    .notifications-container {
+        max-height: calc(100vh - 405px);
+        max-height: calc(100dvh - 405px);
+        overflow-x: hidden;
+    }
+    
+    .manage-sidebar-section {
+        padding: 12px;
+    }
+    
+    .manage-sidebar-section h3 {
+        font-size: 14px;
+        margin: 0 0 8px 0;
+    }
+    
+    .notification-item {
+        padding: 6px 0;
+    }
+    
+    .notification-content p {
+        font-size: 13px;
+    }
+    
+    .notification-time {
+        font-size: 11px;
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
     .main-content {
@@ -1427,11 +2045,10 @@
     
     .sidebar {
         width: 100%;
-        flex-direction: row;
-    }
-    
-    .manage-sidebar-section {
-        flex: 1;
+        height: auto;
+        max-height: 400px;
+        position: relative;
+        top: 0;
     }
     
     .quick-stats-grid {
@@ -1511,7 +2128,8 @@
     }
     
     .sidebar {
-        flex-direction: column;
+        height: auto;
+        max-height: 300px;
     }
 }
 
@@ -1541,4 +2159,64 @@
     .action-btn {
         width: 100%;
     }
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideInRight 0.3s ease-out;
+    max-width: 400px;
+    word-break: break-word;
+}
+
+.notification.success {
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+    border: 1px solid #047857;
+}
+
+.notification.error {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    color: white;
+    border: 1px solid #B91C1C;
+}
+
+.notification-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Disabled button styles */
+.action-btn-modern:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #94a3b8;
+    border-color: #64748b;
+}
+
+.action-btn-modern:disabled:hover {
+    background: #94a3b8;
+    transform: none;
 }

@@ -2,55 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
+import campaignService, { Campaign, Creator, Deliverable, PaymentRecord } from '../../services/campaignService';
 import '../../styles/brand/ManageCampaign.css';
-
-interface Creator {
-  id: string;
-  name: string;
-  email: string;
-  platform: string;
-  followers: number;
-  engagementRate: number;
-  niche: string;
-  applicationDate: string;
-  status: 'pending' | 'approved' | 'rejected' | 'shortlisted';
-  profileImage?: string;
-}
-
-interface Deliverable {
-  id: string;
-  creatorId: string;
-  creatorName: string;
-  type: string;
-  dueDate: string;
-  status: 'pending' | 'submitted' | 'approved' | 'revision_needed';
-  submissionDate?: string;
-  content?: string;
-}
-
-interface PaymentRecord {
-  id: string;
-  creatorId: string;
-  creatorName: string;
-  amount: number;
-  status: 'pending' | 'paid' | 'processing';
-  dueDate: string;
-}
-
-interface Campaign {
-  id: string;
-  title: string;
-  status: 'draft' | 'active' | 'completed' | 'paused';
-  startDate: string;
-  endDate: string;
-  category: string;
-  description: string;
-  budget: number;
-  usedBudget: number;
-  applicantsCount: number;
-  approvedCreators: number;
-  deliverablesCount: number;
-}
 
 const ManageCampaign: React.FC = () => {
   const { user, logout } = useAuth();
@@ -62,11 +15,13 @@ const ManageCampaign: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'applications' | 'creators' | 'content' | 'budget'>('applications');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   
   // Applications tab state
   const [applications, setApplications] = useState<Creator[]>([]);
   const [applicationSearch, setApplicationSearch] = useState('');
   const [applicationFilter, setApplicationFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'shortlisted'>('all');
+  const [updatingApplicationId, setUpdatingApplicationId] = useState<string | null>(null);
   
   // Approved creators state
   const [approvedCreators, setApprovedCreators] = useState<Creator[]>([]);
@@ -81,108 +36,42 @@ const ManageCampaign: React.FC = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Mock data (replace with API calls)
+  // Load campaign data from API
   useEffect(() => {
     const loadCampaignData = async () => {
+      if (!campaignId) {
+        setError('Campaign ID is required');
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Mock campaign data
-        const mockCampaign: Campaign = {
-          id: campaignId || '1',
-          title: 'Summer Fashion Collection 2025',
-          status: 'active',
-          startDate: '2025-08-01',
-          endDate: '2025-09-30',
-          category: 'Fashion',
-          description: 'Promote our new summer collection with authentic lifestyle content',
-          budget: 50000,
-          usedBudget: 32000,
-          applicantsCount: 127,
-          approvedCreators: 8,
-          deliverablesCount: 24
-        };
+        setLoading(true);
+        
+        // Fetch real campaign data
+        const campaignData = await campaignService.getCampaign(campaignId);
+        setCampaign(campaignData);
 
-        // Mock applications data
-        const mockApplications: Creator[] = [
-          {
-            id: '1',
-            name: 'Sarah Johnson',
-            email: 'sarah@example.com',
-            platform: 'Instagram',
-            followers: 125000,
-            engagementRate: 3.2,
-            niche: 'Fashion',
-            applicationDate: '2025-08-10',
-            status: 'pending'
-          },
-          {
-            id: '2',
-            name: 'Mike Chen',
-            email: 'mike@example.com',
-            platform: 'TikTok',
-            followers: 89000,
-            engagementRate: 4.8,
-            niche: 'Lifestyle',
-            applicationDate: '2025-08-09',
-            status: 'shortlisted'
-          },
-          {
-            id: '3',
-            name: 'Emma Davis',
-            email: 'emma@example.com',
-            platform: 'YouTube',
-            followers: 256000,
-            engagementRate: 2.9,
-            niche: 'Fashion',
-            applicationDate: '2025-08-08',
-            status: 'approved'
-          }
-        ];
+        // Fetch real applications data
+        const applicationsData = await campaignService.getCampaignApplications(campaignId);
+        setApplications(applicationsData);
+        
+        // Filter approved creators
+        const approvedCreatorsData = applicationsData.filter((app: Creator) => app.status === 'approved');
+        setApprovedCreators(approvedCreatorsData);
 
-        // Mock approved creators
-        const mockApprovedCreators = mockApplications.filter(app => app.status === 'approved');
+        // Fetch deliverables (using mock data for now)
+        const deliverablesData = await campaignService.getCampaignDeliverables(campaignId);
+        setDeliverables(deliverablesData);
 
-        // Mock deliverables
-        const mockDeliverables: Deliverable[] = [
-          {
-            id: '1',
-            creatorId: '3',
-            creatorName: 'Emma Davis',
-            type: 'Instagram Post',
-            dueDate: '2025-08-20',
-            status: 'submitted',
-            submissionDate: '2025-08-19'
-          },
-          {
-            id: '2',
-            creatorId: '3',
-            creatorName: 'Emma Davis',
-            type: 'Instagram Story',
-            dueDate: '2025-08-25',
-            status: 'pending'
-          }
-        ];
-
-        // Mock payments
-        const mockPayments: PaymentRecord[] = [
-          {
-            id: '1',
-            creatorId: '3',
-            creatorName: 'Emma Davis',
-            amount: 2500,
-            status: 'pending',
-            dueDate: '2025-08-25'
-          }
-        ];
-
-        setCampaign(mockCampaign);
-        setApplications(mockApplications);
-        setApprovedCreators(mockApprovedCreators);
-        setDeliverables(mockDeliverables);
-        setPayments(mockPayments);
+        // Fetch payments (using mock data for now)
+        const paymentsData = await campaignService.getCampaignPayments(campaignId);
+        setPayments(paymentsData);
+        
         setLoading(false);
       } catch (error) {
         console.error('Error loading campaign data:', error);
-        setError('Failed to load campaign data');
+        setError(error instanceof Error ? error.message : 'Failed to load campaign data');
         setLoading(false);
       }
     };
@@ -243,29 +132,65 @@ const ManageCampaign: React.FC = () => {
   };
 
   // Application handlers
-  const handleApplicationAction = (creatorId: string, action: 'approve' | 'reject' | 'shortlist' | 'pending') => {
-    setApplications(prev =>
-      prev.map(app =>
-        app.id === creatorId
-          ? { 
-              ...app, 
-              status: action === 'approve' ? 'approved' : 
-                     action === 'reject' ? 'rejected' : 
-                     action === 'shortlist' ? 'shortlisted' : 
-                     'pending' 
-            }
-          : app
-      )
-    );
-    
-    if (action === 'approve') {
-      const approvedCreator = applications.find(app => app.id === creatorId);
-      if (approvedCreator) {
-        setApprovedCreators(prev => [...prev, { ...approvedCreator, status: 'approved' }]);
+  const handleApplicationAction = async (creatorId: string, action: 'approve' | 'reject' | 'shortlist' | 'pending') => {
+    try {
+      // Find the application to get the applicationId
+      const application = applications.find(app => app.id === creatorId);
+      if (!application) {
+        console.error('Application not found');
+        return;
       }
-    } else if (action === 'pending' || action === 'reject' || action === 'shortlist') {
-      // Remove from approved creators if moved back to pending/rejected/shortlisted
-      setApprovedCreators(prev => prev.filter(creator => creator.id !== creatorId));
+
+      // Set loading state for this specific application
+      setUpdatingApplicationId(application.applicationId);
+
+      // Use the actual application ID from the application data
+      const applicationId = application.applicationId;
+
+      // Map action to API status
+      const apiStatus = action === 'approve' ? 'approved' : 
+                       action === 'reject' ? 'rejected' : 
+                       action === 'shortlist' ? 'shortlisted' : 
+                       'pending';
+
+      // Call API to update status
+      await campaignService.updateApplicationStatus(applicationId, apiStatus);
+
+      // Update local state after successful API call
+      setApplications(prev =>
+        prev.map(app =>
+          app.id === creatorId
+            ? { 
+                ...app, 
+                status: apiStatus
+              }
+            : app
+        )
+      );
+      
+      if (action === 'approve') {
+        const approvedCreator = applications.find(app => app.id === creatorId);
+        if (approvedCreator) {
+          setApprovedCreators(prev => [...prev, { ...approvedCreator, status: 'approved' }]);
+        }
+      } else if (action === 'pending' || action === 'reject' || action === 'shortlist') {
+        // Remove from approved creators if moved back to pending/rejected/shortlisted
+        setApprovedCreators(prev => prev.filter(creator => creator.id !== creatorId));
+      }
+
+      // Clear loading state and show success message
+      setUpdatingApplicationId(null);
+      const actionText = action === 'approve' ? 'approved' : 
+                        action === 'reject' ? 'rejected' : 
+                        action === 'shortlist' ? 'shortlisted' : 
+                        'moved to pending';
+      setSuccessMessage(`Application ${actionText} successfully!`);
+      setTimeout(() => setSuccessMessage(''), 3000); // Clear message after 3 seconds
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update application status');
+      setUpdatingApplicationId(null);
+      setTimeout(() => setError(''), 5000); // Clear error after 5 seconds
     }
   };
 
@@ -275,7 +200,7 @@ const ManageCampaign: React.FC = () => {
     const matchesSearch = applicationSearch === '' || 
       app.name.toLowerCase().includes(applicationSearch.toLowerCase()) ||
       app.platform.toLowerCase().includes(applicationSearch.toLowerCase()) ||
-      app.niche.toLowerCase().includes(applicationSearch.toLowerCase());
+      (app.niche && app.niche.toLowerCase().includes(applicationSearch.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
 
@@ -290,6 +215,54 @@ const ManageCampaign: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Dynamic viewport height handling
+  useEffect(() => {
+    const setDynamicViewportHeight = () => {
+      // Set CSS custom property for 1% of actual viewport height
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      
+      // Handle different viewport height ranges
+      const viewportHeight = window.innerHeight;
+      
+      if (viewportHeight <= 500) {
+        document.documentElement.classList.add('vh-very-small');
+        document.documentElement.classList.remove('vh-small', 'vh-medium');
+      } else if (viewportHeight <= 600) {
+        document.documentElement.classList.add('vh-small');
+        document.documentElement.classList.remove('vh-very-small', 'vh-medium');
+      } else if (viewportHeight <= 700) {
+        document.documentElement.classList.add('vh-medium');
+        document.documentElement.classList.remove('vh-very-small', 'vh-small');
+      } else {
+        document.documentElement.classList.remove('vh-very-small', 'vh-small', 'vh-medium');
+      }
+    };
+
+    // Set on component mount
+    setDynamicViewportHeight();
+
+    // Update on window resize
+    const handleResize = () => {
+      setDynamicViewportHeight();
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    // Also listen for orientation change on mobile devices
+    window.addEventListener('orientationchange', () => {
+      // Small delay to ensure the viewport has updated
+      setTimeout(setDynamicViewportHeight, 100);
+    });
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', setDynamicViewportHeight);
+      // Clean up classes on unmount
+      document.documentElement.classList.remove('vh-very-small', 'vh-small', 'vh-medium');
     };
   }, []);
 
@@ -393,6 +366,20 @@ const ManageCampaign: React.FC = () => {
         </div>
       </header>
 
+      {/* Notifications */}
+      {successMessage && (
+        <div className="notification success">
+          <span className="notification-icon">✅</span>
+          {successMessage}
+        </div>
+      )}
+      {error && (
+        <div className="notification error">
+          <span className="notification-icon">❌</span>
+          {error}
+        </div>
+      )}
+
       {/* Campaign Summary Section */}
       <div className="manage-campaign-summary">
         <div className="summary-header">
@@ -451,12 +438,12 @@ const ManageCampaign: React.FC = () => {
           <div className="stat-card">
             <div className="stat-icon">💰</div>
             <div className="stat-content">
-              <span className="stat-number">${campaign.usedBudget.toLocaleString()}</span>
+              <span className="stat-number">${(campaign.usedBudget || 0).toLocaleString()}</span>
               <span className="stat-label">Budget Used</span>
               <div className="budget-bar">
                 <div 
                   className="budget-progress" 
-                  style={{ width: `${(campaign.usedBudget / campaign.budget) * 100}%` }}
+                  style={{ width: `${((campaign.usedBudget || 0) / (campaign.budget || 1)) * 100}%` }}
                 ></div>
               </div>
             </div>
@@ -572,26 +559,29 @@ const ManageCampaign: React.FC = () => {
                           <button 
                             className="action-btn-modern approve"
                             onClick={() => handleApplicationAction(applicant.id, 'approve')}
+                            disabled={updatingApplicationId === applicant.applicationId}
                             title="Approve Application"
                           >
-                            <span className="btn-icon">✓</span>
-                            <span className="btn-text">Approve</span>
+                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✓'}</span>
+                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Approve'}</span>
                           </button>
                           <button 
                             className="action-btn-modern shortlist"
                             onClick={() => handleApplicationAction(applicant.id, 'shortlist')}
+                            disabled={updatingApplicationId === applicant.applicationId}
                             title="Add to Shortlist"
                           >
-                            <span className="btn-icon">⭐</span>
-                            <span className="btn-text">Shortlist</span>
+                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '⭐'}</span>
+                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Shortlist'}</span>
                           </button>
                           <button 
                             className="action-btn-modern reject"
                             onClick={() => handleApplicationAction(applicant.id, 'reject')}
+                            disabled={updatingApplicationId === applicant.applicationId}
                             title="Reject Application"
                           >
-                            <span className="btn-icon">✗</span>
-                            <span className="btn-text">Reject</span>
+                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✗'}</span>
+                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Reject'}</span>
                           </button>
                         </div>
                       )}
@@ -601,26 +591,29 @@ const ManageCampaign: React.FC = () => {
                           <button 
                             className="action-btn-modern approve primary"
                             onClick={() => handleApplicationAction(applicant.id, 'approve')}
+                            disabled={updatingApplicationId === applicant.applicationId}
                             title="Approve Shortlisted Candidate"
                           >
-                            <span className="btn-icon">✓</span>
-                            <span className="btn-text">Approve</span>
+                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✓'}</span>
+                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Approve'}</span>
                           </button>
                           <button 
                             className="action-btn-modern neutral"
                             onClick={() => handleApplicationAction(applicant.id, 'pending')}
+                            disabled={updatingApplicationId === applicant.applicationId}
                             title="Move Back to Pending"
                           >
-                            <span className="btn-icon">↶</span>
-                            <span className="btn-text">Pending</span>
+                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '↶'}</span>
+                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Pending'}</span>
                           </button>
                           <button 
                             className="action-btn-modern reject"
                             onClick={() => handleApplicationAction(applicant.id, 'reject')}
+                            disabled={updatingApplicationId === applicant.applicationId}
                             title="Reject Candidate"
                           >
-                            <span className="btn-icon">✗</span>
-                            <span className="btn-text">Reject</span>
+                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✗'}</span>
+                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Reject'}</span>
                           </button>
                         </div>
                       )}
@@ -630,10 +623,11 @@ const ManageCampaign: React.FC = () => {
                             <button 
                             className="action-btn-modern reject"
                             onClick={() => handleApplicationAction(applicant.id, 'reject')}
+                            disabled={updatingApplicationId === applicant.applicationId}
                             title="Reject Candidate"
                           >
-                            <span className="btn-icon">✗</span>
-                            <span className="btn-text">Reject</span>
+                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✗'}</span>
+                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Reject'}</span>
                           </button>
                           <button 
                             className="action-btn-modern message"
@@ -655,10 +649,11 @@ const ManageCampaign: React.FC = () => {
                           <button 
                             className="action-btn-modern neutral"
                             onClick={() => handleApplicationAction(applicant.id, 'pending')}
+                            disabled={updatingApplicationId === applicant.applicationId}
                             title="Reconsider Application"
                           >
-                            <span className="btn-icon">↶</span>
-                            <span className="btn-text">Reconsider</span>
+                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '↶'}</span>
+                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Reconsider'}</span>
                           </button>
                         </div>
                       )}
@@ -779,15 +774,15 @@ const ManageCampaign: React.FC = () => {
                   <div className="budget-summary">
                     <div className="budget-card">
                       <h3>Total Budget</h3>
-                      <span className="budget-amount">${campaign.budget.toLocaleString()}</span>
+                      <span className="budget-amount">${(campaign.budget || 0).toLocaleString()}</span>
                     </div>
                     <div className="budget-card">
                       <h3>Used Budget</h3>
-                      <span className="budget-amount used">${campaign.usedBudget.toLocaleString()}</span>
+                      <span className="budget-amount used">${(campaign.usedBudget || 0).toLocaleString()}</span>
                     </div>
                     <div className="budget-card">
                       <h3>Remaining</h3>
-                      <span className="budget-amount remaining">${(campaign.budget - campaign.usedBudget).toLocaleString()}</span>
+                      <span className="budget-amount remaining">${((campaign.budget || 0) - (campaign.usedBudget || 0)).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -842,35 +837,66 @@ const ManageCampaign: React.FC = () => {
 
         {/* Sidebar */}
         <div className="sidebar">
-          <div className="manage-sidebar-section">
+          <div className="manage-sidebar-section notifications-section">
             <h3>Notifications</h3>
-            <div className="notification-item">
-              <span className="notification-icon">🔔</span>
-              <div className="notification-content">
-                <p>3 new applications received</p>
-                <span className="notification-time">2 hours ago</span>
+            <div className="notifications-container">
+              <div className="notification-item">
+                <span className="notification-icon">🔔</span>
+                <div className="notification-content">
+                  <p>3 new applications received</p>
+                  <span className="notification-time">2 hours ago</span>
+                </div>
+              </div>
+              <div className="notification-item">
+                <span className="notification-icon">📋</span>
+                <div className="notification-content">
+                  <p>Emma Davis submitted content</p>
+                  <span className="notification-time">5 hours ago</span>
+                </div>
+              </div>
+              <div className="notification-item">
+                <span className="notification-icon">👍</span>
+                <div className="notification-content">
+                  <p>Mike Chen's content approved</p>
+                  <span className="notification-time">1 day ago</span>
+                </div>
+              </div>
+              <div className="notification-item">
+                <span className="notification-icon">💰</span>
+                <div className="notification-content">
+                  <p>Payment processed for Sarah Johnson</p>
+                  <span className="notification-time">2 days ago</span>
+                </div>
+              </div>
+              <div className="notification-item">
+                <span className="notification-icon">📸</span>
+                <div className="notification-content">
+                  <p>New submission from Alex Rodriguez</p>
+                  <span className="notification-time">3 days ago</span>
+                </div>
+              </div>
+              <div className="notification-item">
+                <span className="notification-icon">⏰</span>
+                <div className="notification-content">
+                  <p>Deadline reminder: Instagram posts due tomorrow</p>
+                  <span className="notification-time">3 days ago</span>
+                </div>
+              </div>
+              <div className="notification-item">
+                <span className="notification-icon">✉️</span>
+                <div className="notification-content">
+                  <p>Message from campaign manager</p>
+                  <span className="notification-time">4 days ago</span>
+                </div>
+              </div>
+              <div className="notification-item">
+                <span className="notification-icon">📊</span>
+                <div className="notification-content">
+                  <p>Weekly performance report available</p>
+                  <span className="notification-time">1 week ago</span>
+                </div>
               </div>
             </div>
-            <div className="notification-item">
-              <span className="notification-icon">📋</span>
-              <div className="notification-content">
-                <p>Emma Davis submitted content</p>
-                <span className="notification-time">5 hours ago</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="manage-sidebar-section">
-            <h3>Quick Actions</h3>
-            <button className="sidebar-action-btn">
-              📢 Send Reminder to All
-            </button>
-            <button className="sidebar-action-btn">
-              💬 Message Approved Creators
-            </button>
-            <button className="sidebar-action-btn">
-              📊 Export Campaign Report
-            </button>
           </div>
         </div>
       </div>
