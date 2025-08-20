@@ -20,7 +20,7 @@ type Storage interface {
 	Close() error
 }
 
-// MongoStore struct is to create an instance of the MongoDB connection
+// MongoStore struct is to create an instance of the MongoDB connection and handle the DB lifecycle
 type MongoStore struct {
 	client   *mongo.Client
 	database *mongo.Database
