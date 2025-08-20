@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import BrandNavbar from './BrandNavbar';
 import '../../styles/brand/CreateCampaign.css';
 
 interface CampaignFormData {
@@ -1085,23 +1086,7 @@ const CreateCampaign: React.FC = () => {
         </div>
       )}
       
-      <div className="campaign-header">
-        <button 
-          onClick={() => navigate('/brand/dashboard')}
-          className="cc-back-btn"
-        >
-          ← Back to Dashboard
-        </button>
-        <h1>Create New Campaign</h1>
-        <div className="header-actions">
-          <button 
-            onClick={handleClearDraft}
-            className="cc-clear-draft-btn"
-          >
-            �️ Clear Draft
-          </button>
-        </div>
-      </div>
+      <BrandNavbar activeTab="create-campaign" />
 
       <div className="main-content">
         <div className="createCampaignFormColumn">

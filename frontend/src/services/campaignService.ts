@@ -18,8 +18,55 @@ export interface Campaign {
   brandName: string;
   campaignType: string;
   platforms: string[];
+  contentFormat?: string[];
+  languages?: string[];
+  approvalSteps?: any | null;
   createdAt: string;
   updatedAt: string;
+  // Additional fields from the API response
+  targetAudience?: {
+    location?: string;
+    ageGroup?: string;
+    gender?: string;
+    interests?: string;
+    targetAudienceAge?: string | null;
+    targetAudienceGender?: string | null;
+    targetAudienceRegion?: string | null;
+    languagePreference?: string;
+    customRegion?: string;
+  };
+  minRequirements?: {
+    followersCount?: string;
+    engagementRate?: string;
+    contentStyle?: string;
+  };
+  currency?: string;
+  minimumFollowers?: string;
+  minimumEngagement?: string;
+  creatorTier?: string;
+  nicheMatch?: boolean;
+  geographicRestrictions?: string;
+  numberOfPosts?: string;
+  hashtagsToUse?: string;
+  mentionsRequired?: string;
+  contentGuidelines?: string;
+  creativeApprovalNeeded?: boolean;
+  approvalRequired?: boolean;
+  compensationType?: string;
+  paymentAmount?: string;
+  commissionPercentage?: string;
+  freeProductsOffered?: string;
+  deliverables?: string;
+  performanceBonus?: boolean;
+  bonusCriteria?: string;
+  productDetails?: string;
+  deadlineReminders?: boolean;
+  communicationChannel?: string;
+  timeZone?: string;
+  bannerImageUrl?: string;
+  referenceLinks?: string;
+  referenceMedia?: string;
+  applicants?: number;
 }
 
 export interface Creator {
@@ -78,7 +125,15 @@ class CampaignService {
       throw new Error(error || 'Failed to fetch campaign');
     }
 
-    return await response.json();
+    const campaignData = await response.json();
+    
+    // Ensure array fields are arrays, not null
+    return {
+      ...campaignData,
+      platforms: Array.isArray(campaignData.platforms) ? campaignData.platforms : [],
+      contentFormat: Array.isArray(campaignData.contentFormat) ? campaignData.contentFormat : [],
+      languages: Array.isArray(campaignData.languages) ? campaignData.languages : [],
+    };
   }
 
   async getCampaignApplications(campaignId: string): Promise<Creator[]> {
@@ -97,8 +152,11 @@ class CampaignService {
 
     const applications = await response.json();
     
+    // Ensure applications is an array, fallback to empty array if null/undefined
+    const applicationsArray = Array.isArray(applications) ? applications : [];
+    
     // Transform backend Application model to frontend Creator interface
-    return applications.map((app: any): Creator => ({
+    return applicationsArray.map((app: any): Creator => ({
       id: app.creatorId,
       applicationId: app.id, // Use the actual application ID
       name: app.creatorName,
@@ -186,6 +244,31 @@ class CampaignService {
         dueDate: '2025-08-25'
       }
     ];
+  }
+
+  async publishCampaign(campaignId: string): Promise<Campaign> {
+    const response = await fetch(`${API_BASE_URL}/campaigns/${campaignId}/publish`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to publish campaign');
+    }
+
+    const campaignData = await response.json();
+    
+    // Ensure array fields are arrays, not null
+    return {
+      ...campaignData,
+      platforms: Array.isArray(campaignData.platforms) ? campaignData.platforms : [],
+      contentFormat: Array.isArray(campaignData.contentFormat) ? campaignData.contentFormat : [],
+      languages: Array.isArray(campaignData.languages) ? campaignData.languages : [],
+    };
   }
 }
 

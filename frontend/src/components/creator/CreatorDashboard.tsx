@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
+import CreatorNavbar from './CreatorNavbar';
 import '../../styles/creator/CreatorDashboard.css';
 
 interface Campaign {
@@ -63,8 +64,6 @@ const CreatorDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications' | 'content'>('dashboard');
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -273,29 +272,6 @@ const CreatorDashboard: React.FC = () => {
     }
   };
 
-  const toggleProfileDropdown = () => {
-    setIsProfileDropdownOpen(!isProfileDropdownOpen);
-  };
-
-  const handleProfileAction = (action: string) => {
-    console.log(`Profile action: ${action}`);
-    setIsProfileDropdownOpen(false);
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsProfileDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   // Filter out campaigns that the creator has already applied to
   const availableCampaigns = campaigns.filter(campaign => 
     !applications.some(app => app.campaignId === campaign.id)
@@ -303,83 +279,7 @@ const CreatorDashboard: React.FC = () => {
 
   return (
     <div className="creator-dashboard">
-      {/* Header */}
-      <header className="creator-dashboard-header">
-        <div className="creator-header-left">
-          <h1 className="creator-brand-name">{APP_NAME}</h1>
-          <nav className="creator-main-nav">
-            <button 
-              className={`creator-nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              Dashboard
-            </button>
-            <button 
-              className={`creator-nav-btn ${activeTab === 'campaigns' ? 'active' : ''}`}
-              onClick={() => navigate('/creator/campaigns')}
-            >
-              Campaigns
-            </button>
-            <button 
-              className={`creator-nav-btn ${activeTab === 'applications' ? 'active' : ''}`}
-              onClick={() => setActiveTab('applications')}
-            >
-              Applications
-            </button>
-            <button 
-              className={`creator-nav-btn ${activeTab === 'content' ? 'active' : ''}`}
-              onClick={() => setActiveTab('content')}
-            >
-              Content
-            </button>
-          </nav>
-        </div>
-        <div className="creator-header-right">
-          <div className="creator-user-profile">
-            <div className="creator-profile-info">
-              <span className="creator-profile-name">{user?.name || 'creator1'}</span>
-              <span className="creator-profile-email">{user?.email || 'creator1@gmail.com'}</span>
-            </div>
-            <div className="creator-profile-dropdown" ref={dropdownRef}>
-              <div className="creator-profile-avatar" onClick={toggleProfileDropdown}>
-                <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'C'}</span>
-              </div>
-              {isProfileDropdownOpen && (
-                <div className="creator-dropdown-menu">
-                  <div className="creator-dropdown-header">
-                    <div className="creator-dropdown-user-info">
-                      <strong>{user?.name || 'creator1'}</strong>
-                      <span>{user?.email || 'creator1@gmail.com'}</span>
-                    </div>
-                  </div>
-                  <div className="creator-dropdown-divider"></div>
-                  <div className="creator-dropdown-item" onClick={() => handleProfileAction('profile')}>
-                    <span className="creator-dropdown-icon">👤</span>
-                    Profile Settings
-                  </div>
-                  <div className="creator-dropdown-item" onClick={() => handleProfileAction('portfolio')}>
-                    <span className="creator-dropdown-icon">🎨</span>
-                    Portfolio
-                  </div>
-                  <div className="creator-dropdown-item" onClick={() => handleProfileAction('earnings')}>
-                    <span className="creator-dropdown-icon">💰</span>
-                    Earnings
-                  </div>
-                  <div className="creator-dropdown-item" onClick={() => handleProfileAction('help')}>
-                    <span className="creator-dropdown-icon">❓</span>
-                    Help & Support
-                  </div>
-                  <div className="creator-dropdown-divider"></div>
-                  <div className="creator-dropdown-item creator-logout-item" onClick={handleLogout}>
-                    <span className="creator-dropdown-icon">🚪</span>
-                    Sign Out
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <CreatorNavbar activeTab="dashboard" />
 
       {/* Main Content */}
       <main className="creator-dashboard-main">

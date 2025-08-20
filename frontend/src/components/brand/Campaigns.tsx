@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
+import BrandNavbar from './BrandNavbar';
 import '../../styles/brand/Campaigns.css';
 
 interface Campaign {
@@ -45,7 +46,7 @@ interface Campaign {
 }
 
 const Campaigns: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   
   // State management
@@ -59,10 +60,6 @@ const Campaigns: React.FC = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
-  
-  // Profile dropdown state
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Filter options
   const filterOptions = [
@@ -157,59 +154,11 @@ const Campaigns: React.FC = () => {
   };
 
   // Navigation functions
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
-  const handleBackToDashboard = () => {
-    navigate('/brand/dashboard');
-  };
-
   const handleCreateCampaign = () => {
     navigate('/brand/create-campaign');
   };
 
-  // Profile dropdown handlers
-  const toggleProfileDropdown = () => {
-    setIsProfileDropdownOpen(!isProfileDropdownOpen);
-  };
-
-  const handleProfileAction = (action: string) => {
-    setIsProfileDropdownOpen(false);
-    // Handle different profile actions
-    switch (action) {
-      case 'profile':
-        console.log('Navigate to profile settings');
-        break;
-      case 'billing':
-        console.log('Navigate to billing');
-        break;
-      case 'notifications':
-        console.log('Navigate to notifications');
-        break;
-      case 'help':
-        console.log('Navigate to help');
-        break;
-      default:
-        break;
-    }
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsProfileDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
+  // Filter and search functions
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -237,74 +186,7 @@ const Campaigns: React.FC = () => {
 
   return (
     <div className="campaigns-page">
-      {/* Header */}
-      <header className="campaigns-header">
-        <div className="header-left">
-          <h1 className="brand-name">{APP_NAME}</h1>
-          <nav className="main-nav">
-            <button 
-              className="nav-btn"
-              onClick={handleBackToDashboard}
-            >
-              Dashboard
-            </button>
-            <button className="nav-btn active">
-              Campaigns
-            </button>
-            <button 
-              className="nav-btn"
-              onClick={() => console.log('Navigate to applications')}
-            >
-              Applications
-            </button>
-          </nav>
-        </div>
-        <div className="header-right">
-          <div className="user-profile">
-            <div className="profile-info">
-              <span className="profile-name">{user?.name || 'User'}</span>
-              <span className="profile-email">{user?.email || 'user@example.com'}</span>
-            </div>
-            <div className="profile-dropdown" ref={dropdownRef}>
-              <div className="profile-avatar" onClick={toggleProfileDropdown}>
-                <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
-              </div>
-              {isProfileDropdownOpen && (
-                <div className="dropdown-menu">
-                  <div className="dropdown-header">
-                    <div className="dropdown-user-info">
-                      <strong>{user?.name || 'User'}</strong>
-                      <span>{user?.email || 'user@example.com'}</span>
-                    </div>
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('profile')}>
-                    <span className="dropdown-icon">👤</span>
-                    Profile Settings
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('billing')}>
-                    <span className="dropdown-icon">💳</span>
-                    Billing & Plans
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('notifications')}>
-                    <span className="dropdown-icon">🔔</span>
-                    Notifications
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('help')}>
-                    <span className="dropdown-icon">❓</span>
-                    Help & Support
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div className="dropdown-item logout-item" onClick={handleLogout}>
-                    <span className="dropdown-icon">🚪</span>
-                    Sign Out
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <BrandNavbar activeTab="campaigns" />
 
       {/* Main Content */}
       <main className="campaigns-main">
@@ -366,7 +248,7 @@ const Campaigns: React.FC = () => {
             <div className="sidebar-section">
               <h3 className="sidebar-title">Quick Actions</h3>
               <div className="quick-actions">
-                <button className="action-btn" onClick={handleBackToDashboard}>
+                <button className="action-btn" onClick={() => navigate('/brand/dashboard')}>
                   <span className="action-icon">📊</span>
                   View Dashboard
                 </button>

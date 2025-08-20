@@ -11,22 +11,22 @@
 .creator-dashboard-header {
     background: white;
     border-bottom: 1px solid #e1e5e9;
-    padding: 0 30px;
+    padding: 0 23px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 70px;
+    height: 55px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .creator-header-left {
     display: flex;
     align-items: center;
-    gap: 40px;
+    gap: 30px;
 }
 
 .creator-brand-name {
-    font-size: 24px;
+    font-size: 19px;
     font-weight: bold;
     color: var(--accent-teal);
     margin: 0;
@@ -34,16 +34,16 @@
 
 .creator-main-nav {
     display: flex;
-    gap: 30px;
+    gap: 23px;
 }
 
 .creator-nav-btn {
     background: none;
     border: none;
     color: #666;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
-    padding: 10px 0;
+    padding: 8px 0;
     cursor: pointer;
     transition: color 0.3s ease;
     position: relative;

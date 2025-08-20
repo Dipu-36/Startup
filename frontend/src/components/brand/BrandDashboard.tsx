@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
+import BrandNavbar from './BrandNavbar';
 import '../../styles/brand/BrandDashboard.css';
 
 interface Campaign {
@@ -60,11 +61,9 @@ interface Application {
 }
 
 const BrandDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,111 +138,13 @@ const BrandDashboard: React.FC = () => {
     fetchApplications();
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
   const handleCreateCampaign = () => {
     navigate('/brand/create-campaign');
   };
 
-  const toggleProfileDropdown = () => {
-    setIsProfileDropdownOpen(!isProfileDropdownOpen);
-  };
-
-  const handleProfileAction = (action: string) => {
-    console.log(`Profile action: ${action}`);
-    setIsProfileDropdownOpen(false);
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsProfileDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   return (
     <div className="brand-dashboard">
-      {/* Header */}
-      <header className="brand-dashboard-header">
-        <div className="brand-header-left">
-          <h1 className="brand-brand-name">{APP_NAME}</h1>
-          <nav className="brand-main-nav">
-            <button 
-              className={`brand-nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              Dashboard
-            </button>
-            <button 
-              className={`brand-nav-btn ${activeTab === 'campaigns' ? 'active' : ''}`}
-              onClick={() => navigate('/brand/campaigns')}
-            >
-              Campaigns
-            </button>
-            <button 
-              className={`brand-nav-btn ${activeTab === 'applications' ? 'active' : ''}`}
-              onClick={() => setActiveTab('applications')}
-            >
-              Applications
-            </button>
-          </nav>
-        </div>
-        <div className="brand-header-right">
-          <div className="brand-user-profile">
-            <div className="brand-profile-info">
-              <span className="brand-profile-name">{user?.name || 'User'}</span>
-              <span className="brand-profile-email">{user?.email || 'user@example.com'}</span>
-            </div>
-            <div className="profile-dropdown" ref={dropdownRef}>
-              <div className="profile-avatar" onClick={toggleProfileDropdown}>
-                <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
-              </div>
-              {isProfileDropdownOpen && (
-                <div className="dropdown-menu">
-                  <div className="dropdown-header">
-                    <div className="dropdown-user-info">
-                      <strong>{user?.name || 'User'}</strong>
-                      <span>{user?.email || 'user@example.com'}</span>
-                    </div>
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('profile')}>
-                    <span className="dropdown-icon">👤</span>
-                    Profile Settings
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('billing')}>
-                    <span className="dropdown-icon">💳</span>
-                    Billing & Plans
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('notifications')}>
-                    <span className="dropdown-icon">🔔</span>
-                    Notifications
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('help')}>
-                    <span className="dropdown-icon">❓</span>
-                    Help & Support
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div className="dropdown-item logout-item" onClick={handleLogout}>
-                    <span className="dropdown-icon">🚪</span>
-                    Sign Out
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <BrandNavbar activeTab="dashboard" />
 
       {/* Main Content */}
       <main className="dashboard-main">

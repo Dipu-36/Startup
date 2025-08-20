@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
 import campaignService, { Campaign, Creator, Deliverable, PaymentRecord } from '../../services/campaignService';
+import BrandNavbar from './BrandNavbar';
 import '../../styles/brand/ManageCampaign.css';
 
 const ManageCampaign: React.FC = () => {
@@ -32,10 +33,6 @@ const ManageCampaign: React.FC = () => {
   // Budget & payments state
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   
-  // Profile dropdown state
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   // Load campaign data from API
   useEffect(() => {
     const loadCampaignData = async () => {
@@ -54,19 +51,20 @@ const ManageCampaign: React.FC = () => {
 
         // Fetch real applications data
         const applicationsData = await campaignService.getCampaignApplications(campaignId);
-        setApplications(applicationsData);
+        setApplications(Array.isArray(applicationsData) ? applicationsData : []);
         
         // Filter approved creators
-        const approvedCreatorsData = applicationsData.filter((app: Creator) => app.status === 'approved');
+        const safeApplicationsData = Array.isArray(applicationsData) ? applicationsData : [];
+        const approvedCreatorsData = safeApplicationsData.filter((app: Creator) => app.status === 'approved');
         setApprovedCreators(approvedCreatorsData);
 
         // Fetch deliverables (using mock data for now)
         const deliverablesData = await campaignService.getCampaignDeliverables(campaignId);
-        setDeliverables(deliverablesData);
+        setDeliverables(Array.isArray(deliverablesData) ? deliverablesData : []);
 
         // Fetch payments (using mock data for now)
         const paymentsData = await campaignService.getCampaignPayments(campaignId);
-        setPayments(paymentsData);
+        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
         
         setLoading(false);
       } catch (error) {
@@ -78,36 +76,6 @@ const ManageCampaign: React.FC = () => {
 
     loadCampaignData();
   }, [campaignId]);
-
-  // Profile dropdown handlers
-  const toggleProfileDropdown = () => {
-    setIsProfileDropdownOpen(!isProfileDropdownOpen);
-  };
-
-  const handleProfileAction = (action: string) => {
-    setIsProfileDropdownOpen(false);
-    switch (action) {
-      case 'profile':
-        console.log('Navigate to profile settings');
-        break;
-      case 'billing':
-        console.log('Navigate to billing');
-        break;
-      case 'notifications':
-        console.log('Navigate to notifications');
-        break;
-      case 'help':
-        console.log('Navigate to help');
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
 
   // Navigation handlers
   const handleBackToCampaigns = () => {
@@ -129,6 +97,24 @@ const ManageCampaign: React.FC = () => {
 
   const handleEditCampaign = () => {
     console.log('Edit campaign');
+  };
+
+  const handlePublishCampaign = async () => {
+    if (!campaignId) return;
+    
+    try {
+      setLoading(true);
+      const updatedCampaign = await campaignService.publishCampaign(campaignId);
+      setCampaign(updatedCampaign);
+      setSuccessMessage('Campaign published successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Error publishing campaign:', error);
+      setError(error instanceof Error ? error.message : 'Failed to publish campaign');
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Application handlers
@@ -195,7 +181,7 @@ const ManageCampaign: React.FC = () => {
   };
 
   // Filter applications
-  const filteredApplications = applications.filter(app => {
+  const filteredApplications = (Array.isArray(applications) ? applications : []).filter(app => {
     const matchesFilter = applicationFilter === 'all' || app.status === applicationFilter;
     const matchesSearch = applicationSearch === '' || 
       app.name.toLowerCase().includes(applicationSearch.toLowerCase()) ||
@@ -203,20 +189,6 @@ const ManageCampaign: React.FC = () => {
       (app.niche && app.niche.toLowerCase().includes(applicationSearch.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsProfileDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   // Dynamic viewport height handling
   useEffect(() => {
@@ -303,68 +275,7 @@ const ManageCampaign: React.FC = () => {
 
   return (
     <div className="manage-campaign-page">
-      {/* Header */}
-      <header className="manage-header">
-        <div className="header-left">
-          <h1 className="brand-name">{APP_NAME}</h1>
-          <nav className="main-nav">
-            <button className="nav-btn" onClick={handleBackToDashboard}>
-              Dashboard
-            </button>
-            <button className="nav-btn active" onClick={handleBackToCampaigns}>
-              Campaigns
-            </button>
-            <button className="nav-btn">
-              Applications
-            </button>
-          </nav>
-        </div>
-        <div className="header-right">
-          <div className="user-profile">
-            <div className="profile-info">
-              <span className="profile-name">{user?.name || 'User'}</span>
-              <span className="profile-email">{user?.email || 'user@example.com'}</span>
-            </div>
-            <div className="profile-dropdown" ref={dropdownRef}>
-              <div className="profile-avatar" onClick={toggleProfileDropdown}>
-                <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
-              </div>
-              {isProfileDropdownOpen && (
-                <div className="dropdown-menu">
-                  <div className="dropdown-header">
-                    <div className="dropdown-user-info">
-                      <strong>{user?.name || 'User'}</strong>
-                      <span>{user?.email || 'user@example.com'}</span>
-                    </div>
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('profile')}>
-                    <span className="dropdown-icon">👤</span>
-                    Profile Settings
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('billing')}>
-                    <span className="dropdown-icon">💳</span>
-                    Billing & Plans
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('notifications')}>
-                    <span className="dropdown-icon">🔔</span>
-                    Notifications
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('help')}>
-                    <span className="dropdown-icon">❓</span>
-                    Help & Support
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div className="dropdown-item logout-item" onClick={handleLogout}>
-                    <span className="dropdown-icon">🚪</span>
-                    Sign Out
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <BrandNavbar activeTab="manage-campaign" />
 
       {/* Notifications */}
       {successMessage && (
@@ -398,15 +309,20 @@ const ManageCampaign: React.FC = () => {
           <div className="manage-campaign-actions">
             {campaign.status === 'active' && (
               <>
-                <button className="action-btn secondary" onClick={handlePauseCampaign}>
+                <button className="manage-campaign-action-btn manage-campaign-action-btn-secondary" onClick={handlePauseCampaign}>
                   Pause Campaign
                 </button>
-                <button className="action-btn secondary" onClick={handleEndCampaign}>
+                <button className="manage-campaign-action-btn manage-campaign-action-btn-secondary" onClick={handleEndCampaign}>
                   End Campaign
                 </button>
               </>
             )}
-            <button className="action-btn primary" onClick={handleEditCampaign}>
+            {campaign.status === 'draft' && (
+              <button className="manage-campaign-action-btn manage-campaign-action-btn-primary publish-campaign" onClick={handlePublishCampaign}>
+                Publish Campaign
+              </button>
+            )}
+            <button className="manage-campaign-action-btn manage-campaign-action-btn-primary" onClick={handleEditCampaign}>
               Edit Campaign
             </button>
           </div>
@@ -484,7 +400,24 @@ const ManageCampaign: React.FC = () => {
 
           {/* Tab Content */}
           <div className="tab-content">
-            {activeTab === 'applications' && (
+            {/* Draft Campaign Banner - Show only for draft campaigns */}
+            {campaign.status === 'draft' ? (
+              <div className="manage-campaign-draft-banner">
+                <div className="manage-campaign-draft-banner-content">
+                  <div className="manage-campaign-draft-banner-icon">📝</div>
+                  <div className="manage-campaign-draft-banner-text">
+                    <h3>Campaign is in Draft</h3>
+                    <p>This campaign is not yet published. Publish it to start receiving applications from creators.</p>
+                  </div>
+                  <button className="manage-campaign-draft-banner-btn" onClick={handlePublishCampaign}>
+                    Publish Campaign
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Show normal tab content only for non-draft campaigns */}
+                {activeTab === 'applications' && (
               <div className="applications-tab">
                 <div className="tab-header">
                   <div className="search-filter-container">
@@ -516,7 +449,7 @@ const ManageCampaign: React.FC = () => {
                 </div>
 
                 <div className="applications-grid">
-                  {filteredApplications.map((applicant) => (
+                  {Array.isArray(filteredApplications) && filteredApplications.map((applicant) => (
                     <div key={applicant.id} className="applicant-card">
                       <div className="applicant-header">
                         <div className="applicant-avatar">
@@ -666,7 +599,7 @@ const ManageCampaign: React.FC = () => {
             {activeTab === 'creators' && (
               <div className="creators-tab">
                 <div className="creators-grid">
-                  {approvedCreators.map((creator) => (
+                  {Array.isArray(approvedCreators) && approvedCreators.map((creator) => (
                     <div key={creator.id} className="creator-card">
                       <div className="creator-header">
                         <div className="creator-avatar">
@@ -683,7 +616,7 @@ const ManageCampaign: React.FC = () => {
                       
                       <div className="deliverables-status">
                         <h5>Assigned Deliverables</h5>
-                        {deliverables
+                        {(Array.isArray(deliverables) ? deliverables : [])
                           .filter(d => d.creatorId === creator.id)
                           .map((deliverable) => (
                             <div key={deliverable.id} className="deliverable-item">
@@ -706,7 +639,7 @@ const ManageCampaign: React.FC = () => {
                 <div className="timeline-view">
                   <h3>Content Timeline</h3>
                   <div className="timeline-list">
-                    {deliverables.map((deliverable) => (
+                    {Array.isArray(deliverables) && deliverables.map((deliverable) => (
                       <div key={deliverable.id} className="timeline-item">
                         <div className="timeline-marker"></div>
                         <div className="timeline-content">
@@ -790,7 +723,7 @@ const ManageCampaign: React.FC = () => {
                 <div className="payments-section">
                   <h3>Creator Payments</h3>
                   <div className="payments-list">
-                    {payments.map((payment) => (
+                    {Array.isArray(payments) && payments.map((payment) => (
                       <div key={payment.id} className="payment-item">
                         <div className="payment-info">
                           <h4>{payment.creatorName}</h4>
@@ -831,6 +764,8 @@ const ManageCampaign: React.FC = () => {
                   </div>
                 </div>
               </div>
+            )}
+              </>
             )}
           </div>
         </div>

@@ -3,6 +3,8 @@ export { default as LandingPage } from './LandingPage';
 export { default as LoginPage } from './LoginPage';
 export { default as SignupPage } from './SignupPage';
 export { default as AuthHeader } from './shared/AuthHeader';
+// export { default as BrandNavbar } from './shared/BrandNavbar';
+// export { default as CreatorNavbar } from './shared/CreatorNavbar';
 export { default as ProtectedRoute } from './ProtectedRoute';
 
 // Brand Components

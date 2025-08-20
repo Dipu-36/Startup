@@ -2,7 +2,7 @@
 @import '../globals.css';
 
 .auth-header {
-  margin-bottom: 30px;
+  margin-bottom: 23px;
 }
 
 .auth-header-content {
@@ -10,21 +10,21 @@
 }
 
 .auth-header-content h1 {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: bold;
   color: var(--primary-purple);
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
 }
 
 .auth-header-content p {
   color: #666;
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* Responsive Design */
 @media (max-width: 480px) {
   .auth-header-content h1 {
-    font-size: 24px;
+    font-size: 19px;
   }
 }
