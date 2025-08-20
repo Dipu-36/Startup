@@ -25,7 +25,7 @@ func requireUserType(userType string, next http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-// Example protected handler for brands only
+// protected handler for brands only
 func brandOnlyHandler(w http.ResponseWriter, r *http.Request) {
 	user, _ := auth.GetUserFromContext(r.Context())
 
@@ -39,7 +39,7 @@ func brandOnlyHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// Example protected handler for influencers only
+// handler for influencers only
 func influencerOnlyHandler(w http.ResponseWriter, r *http.Request) {
 	user, _ := auth.GetUserFromContext(r.Context())
 
