@@ -1,7 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import '../../styles/brand/CreateCampaign.css';
+import { 
+  ArrowLeft, 
+  Save, 
+  Rocket, 
+  Target, 
+  Users, 
+  Calendar, 
+  MapPin, 
+  Heart, 
+  Eye, 
+  Globe, 
+  DollarSign,
+  FileText,
+  Image,
+  Link,
+  CheckCircle2
+} from 'lucide-react';
 
 interface CampaignFormData {
   // Campaign Basics
@@ -275,7 +291,7 @@ const CreateCampaign: React.FC = () => {
       localStorage.removeItem('campaignDraft');
       localStorage.removeItem('campaignFormData');
       
-      // Clear the form
+      // Clear the form and navigate back
       setFormData({
         title: '',
         brandName: user?.name || '',
@@ -283,8 +299,7 @@ const CreateCampaign: React.FC = () => {
         category: '',
         startDate: '',
         endDate: '',
-        campaignType: 'brand-partnership',
-        
+        campaignType: '',
         targetAudience: {
           location: '',
           ageGroup: '',
@@ -300,966 +315,679 @@ const CreateCampaign: React.FC = () => {
         },
         nicheMatch: false,
         geographicRestrictions: '',
-        
         contentFormat: [],
         numberOfPosts: '',
         contentGuidelines: '',
         approvalRequired: false,
-        
-        compensationType: 'monetary',
+        compensationType: '',
         paymentAmount: '',
         productDetails: '',
-        
         bannerImage: null,
-        referenceLinks: ''
+        referenceLinks: '',
       });
       
-      // Clear draft and saved data
-      localStorage.removeItem('campaignDraft');
-      localStorage.removeItem('campaignFormData');
-      
       navigate('/brand/dashboard');
+      
     } catch (error) {
       console.error('Error creating campaign:', error);
-      alert(`Error creating campaign: ${error instanceof Error ? error.message : 'Please try again.'}`);
+      alert(error instanceof Error ? error.message : 'Failed to create campaign. Please try again.');
     } finally {
       setIsSubmitting(false);
-      setFormSubmitted(false);
     }
   };
 
-  const renderCampaignBasics = () => (
-    <div className="form-section">
-      <h3>Campaign Basics</h3>
-      
-      <div className="form-group">
-        <label>Campaign Title *</label>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={(e) => handleInputChange('title', e.target.value)}
-          placeholder="Enter a catchy campaign title"
-          className="form-input"
-          required
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Brand Name</label>
-        <input
-          type="text"
-          value={formData.brandName}
-          onChange={(e) => handleInputChange('brandName', e.target.value)}
-          placeholder="Your brand name"
-          className="form-input"
-          disabled
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Campaign Description *</label>
-        <textarea
-          value={formData.description}
-          onChange={(e) => handleInputChange('description', e.target.value)}
-          placeholder="Describe your campaign goals, expectations, and details..."
-          className="form-textarea"
-          rows={4}
-          required
-        />
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Category *</label>
-          <select
-            value={formData.category}
-            onChange={(e) => handleInputChange('category', e.target.value)}
-            className="form-select"
-            required
-          >
-            <option value="">Select category</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Campaign Type *</label>
-          <select
-            value={formData.campaignType}
-            onChange={(e) => handleInputChange('campaignType', e.target.value)}
-            className="form-select"
-            required
-          >
-            <option value="">Select type</option>
-            {campaignTypes.map(type => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Start Date *</label>
-          <input
-            type="date"
-            value={formData.startDate}
-            onChange={(e) => handleInputChange('startDate', e.target.value)}
-            className="form-input"
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Application Deadline *</label>
-          <input
-            type="date"
-            value={formData.endDate}
-            onChange={(e) => handleInputChange('endDate', e.target.value)}
-            className="form-input"
-            required
-          />
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderTargetRequirements = () => (
-    <div className="form-section">
-      <h3>Target Audience & Requirements</h3>
-      
-      <div className="subsection">
-        <h4>Target Audience</h4>
-        
-        <div className="form-row">
-          <div className="form-group">
-            <label>Location</label>
-            <input
-              type="text"
-              value={formData.targetAudience.location}
-              onChange={(e) => handleInputChange('targetAudience.location', e.target.value)}
-              placeholder="e.g., Global, US, Europe"
-              className="form-input"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Age Group</label>
-            <input
-              type="text"
-              value={formData.targetAudience.ageGroup}
-              onChange={(e) => handleInputChange('targetAudience.ageGroup', e.target.value)}
-              placeholder="e.g., 18-35"
-              className="form-input"
-            />
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label>Gender</label>
-            <select
-              value={formData.targetAudience.gender}
-              onChange={(e) => handleInputChange('targetAudience.gender', e.target.value)}
-              className="form-select"
-            >
-              <option value="">Any</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Non-binary">Non-binary</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Interests</label>
-            <input
-              type="text"
-              value={formData.targetAudience.interests}
-              onChange={(e) => handleInputChange('targetAudience.interests', e.target.value)}
-              placeholder="e.g., Gaming, Fashion, Tech"
-              className="form-input"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="subsection">
-        <h4>Platform Requirements</h4>
-        <div className="checkbox-grid">
-          {platforms.map(platform => (
-            <label key={platform} className="checkbox-item">
-              <input
-                type="checkbox"
-                checked={formData.platforms.includes(platform)}
-                onChange={(e) => handleArrayChange('platforms', platform, e.target.checked)}
-              />
-              <span>{platform}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="subsection">
-        <h4>Minimum Creator Requirements</h4>
-        
-        <div className="form-row">
-          <div className="form-group">
-            <label>Minimum Followers</label>
-            <input
-              type="text"
-              value={formData.minRequirements.followersCount}
-              onChange={(e) => handleInputChange('minRequirements.followersCount', e.target.value)}
-              placeholder="e.g., 10K, 100K+"
-              className="form-input"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Minimum Engagement Rate</label>
-            <input
-              type="text"
-              value={formData.minRequirements.engagementRate}
-              onChange={(e) => handleInputChange('minRequirements.engagementRate', e.target.value)}
-              placeholder="e.g., 3%, 5%+"
-              className="form-input"
-            />
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label>Content Style/Tone</label>
-          <input
-            type="text"
-            value={formData.minRequirements.contentStyle}
-            onChange={(e) => handleInputChange('minRequirements.contentStyle', e.target.value)}
-            placeholder="e.g., Professional, Casual, Humorous"
-            className="form-input"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Language Preferences</label>
-          <div className="checkbox-grid">
-            {languages.map(lang => (
-              <label key={lang} className="checkbox-item">
-                <input
-                  type="checkbox"
-                  checked={formData.minRequirements.languages.includes(lang)}
-                  onChange={(e) => handleArrayChange('minRequirements.languages', lang, e.target.checked)}
-                />
-                <span>{lang}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label className="checkbox-item">
-          <input
-            type="checkbox"
-            checked={formData.nicheMatch}
-            onChange={(e) => handleInputChange('nicheMatch', e.target.checked)}
-          />
-          <span>Require niche match (creators must be in relevant category)</span>
-        </label>
-      </div>
-
-      <div className="form-group">
-        <label>Geographic Restrictions</label>
-        <input
-          type="text"
-          value={formData.geographicRestrictions}
-          onChange={(e) => handleInputChange('geographicRestrictions', e.target.value)}
-          placeholder="e.g., US only, English-speaking countries"
-          className="form-input"
-        />
-      </div>
-    </div>
-  );
-
-  const renderDeliverables = () => (
-    <div className="form-section">
-      <h3>Deliverables</h3>
-      
-      <div className="form-group">
-        <label>Content Format *</label>
-        <div className="checkbox-grid">
-          {contentFormats.map(format => (
-            <label key={format} className="checkbox-item">
-              <input
-                type="checkbox"
-                checked={formData.contentFormat.includes(format)}
-                onChange={(e) => handleArrayChange('contentFormat', format, e.target.checked)}
-              />
-              <span>{format}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label>Number of Posts/Videos *</label>
-        <input
-          type="text"
-          value={formData.numberOfPosts}
-          onChange={(e) => handleInputChange('numberOfPosts', e.target.value)}
-          placeholder="e.g., 2 Instagram posts + 1 story"
-          className="form-input"
-          required
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Content Guidelines</label>
-        <textarea
-          value={formData.contentGuidelines}
-          onChange={(e) => handleInputChange('contentGuidelines', e.target.value)}
-          placeholder="Specific hashtags, mentions, tone, do's & don'ts..."
-          className="form-textarea"
-          rows={4}
-        />
-      </div>
-
-      <div className="form-group">
-        <label className="checkbox-item">
-          <input
-            type="checkbox"
-            checked={formData.approvalRequired}
-            onChange={(e) => handleInputChange('approvalRequired', e.target.checked)}
-          />
-          <span>Content requires pre-approval before posting</span>
-        </label>
-      </div>
-    </div>
-  );
-
-  const renderCompensation = () => (
-    <div className="form-section">
-      <h3>Compensation & Perks</h3>
-      
-      <div className="form-group">
-        <label>Compensation Type *</label>
-        <select
-          value={formData.compensationType}
-          onChange={(e) => handleInputChange('compensationType', e.target.value)}
-          className="form-select"
-          required
-        >
-          <option value="">Select compensation type</option>
-          {compensationTypes.map(type => (
-            <option key={type} value={type}>{type}</option>
-          ))}
-        </select>
-      </div>
-
-      {(formData.compensationType === 'Fixed Payment' || formData.compensationType === 'Commission/Affiliate') && (
-        <div className="form-group">
-          <label>Payment Amount/Range</label>
-          <input
-            type="text"
-            value={formData.paymentAmount}
-            onChange={(e) => handleInputChange('paymentAmount', e.target.value)}
-            placeholder="e.g., $500-1000, 5% commission"
-            className="form-input"
-          />
-        </div>
-      )}
-
-      <div className="form-group">
-        <label>Product/Service Details</label>
-        <textarea
-          value={formData.productDetails}
-          onChange={(e) => handleInputChange('productDetails', e.target.value)}
-          placeholder="Describe products/services being offered, event details, etc."
-          className="form-textarea"
-          rows={3}
-        />
-      </div>
-    </div>
-  );
-
-  const renderMediaAssets = () => (
-    <div className="form-section">
-      <h3>Media & Assets</h3>
-      
-      <div className="form-group">
-        <label>Campaign Banner Image</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="form-file"
-        />
-        <small>Upload a banner image for your campaign listing</small>
-      </div>
-
-      <div className="form-group">
-        <label>Reference Links & Brand Kit</label>
-        <textarea
-          value={formData.referenceLinks}
-          onChange={(e) => handleInputChange('referenceLinks', e.target.value)}
-          placeholder="Links to brand kit, style guides, example posts, website..."
-          className="form-textarea"
-          rows={3}
-        />
-      </div>
-    </div>
-  );
-
   return (
-    <div className="create-campaign-page">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-secondary/3 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-accent/3 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}}></div>
+      </div>
+
+      {/* Save notification */}
       {showSaveNotification && (
-        <div className="save-notification">
-          ✅ Draft saved automatically
+        <div className="fixed top-6 right-6 z-50 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-fadeIn">
+          <CheckCircle2 className="w-5 h-5" />
+          <span className="font-medium">Draft saved automatically</span>
         </div>
       )}
       
-      <div className="campaign-header">
-        <button 
-          onClick={() => navigate('/brand/dashboard')}
-          className="back-btn"
-        >
-          ← Back to Dashboard
-        </button>
-        <h1 className="font-display text-2xl font-bold">Create New Campaign</h1>
-        <button 
-          onClick={() => handleSubmit(true)}
-          className="save-draft-btn"
-        >
-          💾 Save Draft
-        </button>
-      </div>
-
-      <div className="campaign-form">
-        <div className="form-content">
-          {/* Campaign Basics */}
-          <div className="form-section">
-          <h3 className="font-display text-lg font-semibold">Campaign Basics</h3>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label>Campaign Title *</label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="Enter a catchy campaign title"
-                className="form-input"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Brand Name</label>
-              <input
-                type="text"
-                value={formData.brandName}
-                onChange={(e) => handleInputChange('brandName', e.target.value)}
-                placeholder="Your brand name"
-                className="form-input"
-                disabled
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Campaign Description *</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Describe your campaign goals, expectations, and details..."
-              className="form-textarea"
-              rows={4}
-              required
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Category *</label>
-              <select
-                value={formData.category}
-                onChange={(e) => handleInputChange('category', e.target.value)}
-                className="form-select"
-                required
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur-lg">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => navigate('/brand/dashboard')}
+                className="flex items-center space-x-2 px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200 hover:scale-105"
               >
-                <option value="">Select category</option>
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+                <ArrowLeft className="w-4 h-4" />
+                <span className="font-medium">Back to Dashboard</span>
+              </button>
+              <div className="h-6 w-px bg-border"></div>
+              <h1 className="text-2xl font-display font-bold text-foreground tracking-tight">Create New Campaign</h1>
             </div>
-
-            <div className="form-group">
-              <label>Campaign Type *</label>
-              <select
-                value={formData.campaignType}
-                onChange={(e) => handleInputChange('campaignType', e.target.value)}
-                className="form-select"
-                required
-              >
-                <option value="">Select type</option>
-                {campaignTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Start Date *</label>
-              <input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => handleInputChange('startDate', e.target.value)}
-                className="form-input"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Application Deadline *</label>
-              <input
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => handleInputChange('endDate', e.target.value)}
-                className="form-input"
-                required
-              />
-            </div>
+            
+            <button 
+              onClick={() => handleSubmit(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg"
+            >
+              <Save className="w-4 h-4" />
+              <span className="font-medium">Save Draft</span>
+            </button>
           </div>
         </div>
+      </header>
 
-        {/* Target Audience & Requirements */}
-        <div className="form-section">
-          <h3 className="font-display text-lg font-semibold">Target Audience & Requirements</h3>
-          
-          <div className="subsection">
-            <h4>Target Audience</h4>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Location</label>
-                <input
-                  type="text"
-                  value={formData.targetAudience.location}
-                  onChange={(e) => handleInputChange('targetAudience.location', e.target.value)}
-                  placeholder="e.g., Global, US, Europe"
-                  className="form-input"
-                />
+      {/* Main Content */}
+      <main className="relative z-10 px-6 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Form Content - Left Side */}
+            <div className="lg:col-span-2 space-y-8">
+              
+              {/* Campaign Basics */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white">
+                    <Rocket className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-display font-semibold text-foreground">Campaign Basics</h3>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Campaign Title *</label>
+                      <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => handleInputChange('title', e.target.value)}
+                        placeholder="Enter a catchy campaign title"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Brand Name</label>
+                      <input
+                        type="text"
+                        value={formData.brandName}
+                        onChange={(e) => handleInputChange('brandName', e.target.value)}
+                        placeholder="Your brand name"
+                        className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg text-muted-foreground cursor-not-allowed"
+                        disabled
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Campaign Description *</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      placeholder="Describe your campaign goals, expectations, and details..."
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      rows={4}
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Category *</label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => handleInputChange('category', e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        required
+                      >
+                        <option value="">Select category</option>
+                        {categories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Campaign Type *</label>
+                      <select
+                        value={formData.campaignType}
+                        onChange={(e) => handleInputChange('campaignType', e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        required
+                      >
+                        <option value="">Select type</option>
+                        {campaignTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Start Date *</label>
+                      <input
+                        type="date"
+                        value={formData.startDate}
+                        onChange={(e) => handleInputChange('startDate', e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Application Deadline *</label>
+                      <input
+                        type="date"
+                        value={formData.endDate}
+                        onChange={(e) => handleInputChange('endDate', e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Age Group</label>
-                <input
-                  type="text"
-                  value={formData.targetAudience.ageGroup}
-                  onChange={(e) => handleInputChange('targetAudience.ageGroup', e.target.value)}
-                  placeholder="e.g., 18-35"
-                  className="form-input"
-                />
-              </div>
-            </div>
+              {/* Target Audience & Requirements */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-display font-semibold text-foreground">Target Audience & Requirements</h3>
+                </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Gender</label>
-                <select
-                  value={formData.targetAudience.gender}
-                  onChange={(e) => handleInputChange('targetAudience.gender', e.target.value)}
-                  className="form-select"
-                >
-                  <option value="">Any</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Non-binary">Non-binary</option>
-                </select>
-              </div>
+                {/* Target Audience Subsection */}
+                <div className="mb-8">
+                  <h4 className="text-md font-medium text-foreground mb-4 flex items-center">
+                    <Users className="w-4 h-4 mr-2" />
+                    Target Audience
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Location</label>
+                        <input
+                          type="text"
+                          value={formData.targetAudience.location}
+                          onChange={(e) => handleInputChange('targetAudience.location', e.target.value)}
+                          placeholder="e.g., Global, US, Europe"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
 
-              <div className="form-group">
-                <label>Interests</label>
-                <input
-                  type="text"
-                  value={formData.targetAudience.interests}
-                  onChange={(e) => handleInputChange('targetAudience.interests', e.target.value)}
-                  placeholder="e.g., Gaming, Fashion, Tech"
-                  className="form-input"
-                />
-              </div>
-            </div>
-          </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Age Group</label>
+                        <input
+                          type="text"
+                          value={formData.targetAudience.ageGroup}
+                          onChange={(e) => handleInputChange('targetAudience.ageGroup', e.target.value)}
+                          placeholder="e.g., 18-35"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
+                    </div>
 
-          <div className="subsection">
-            <h4>Platform Requirements</h4>
-            <div className="checkbox-grid">
-              {platforms.map(platform => (
-                <label key={platform} className="checkbox-item">
-                  <input
-                    type="checkbox"
-                    checked={formData.platforms.includes(platform)}
-                    onChange={(e) => handleArrayChange('platforms', platform, e.target.checked)}
-                  />
-                  <span>{platform}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Gender</label>
+                        <select
+                          value={formData.targetAudience.gender}
+                          onChange={(e) => handleInputChange('targetAudience.gender', e.target.value)}
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        >
+                          <option value="">Any</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Non-binary">Non-binary</option>
+                        </select>
+                      </div>
 
-          <div className="subsection">
-            <h4>Minimum Creator Requirements</h4>
-            
-            <div className="form-row">
-              <div className="form-group">
-                <label>Minimum Followers</label>
-                <input
-                  type="text"
-                  value={formData.minRequirements.followersCount}
-                  onChange={(e) => handleInputChange('minRequirements.followersCount', e.target.value)}
-                  placeholder="e.g., 10K, 100K+"
-                  className="form-input"
-                />
-              </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Interests</label>
+                        <input
+                          type="text"
+                          value={formData.targetAudience.interests}
+                          onChange={(e) => handleInputChange('targetAudience.interests', e.target.value)}
+                          placeholder="e.g., Gaming, Fashion, Tech"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="form-group">
-                <label>Minimum Engagement Rate</label>
-                <input
-                  type="text"
-                  value={formData.minRequirements.engagementRate}
-                  onChange={(e) => handleInputChange('minRequirements.engagementRate', e.target.value)}
-                  placeholder="e.g., 3%, 5%+"
-                  className="form-input"
-                />
-              </div>
-            </div>
+                {/* Platform Requirements */}
+                <div className="mb-8">
+                  <h4 className="text-md font-medium text-foreground mb-4 flex items-center">
+                    <Globe className="w-4 h-4 mr-2" />
+                    Platform Requirements
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {platforms.map(platform => (
+                      <label key={platform} className="flex items-center space-x-2 p-3 bg-background border border-border rounded-lg hover:bg-muted/30 transition-all duration-200 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.platforms.includes(platform)}
+                          onChange={(e) => handleArrayChange('platforms', platform, e.target.checked)}
+                          className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
+                        />
+                        <span className="text-sm font-medium text-foreground">{platform}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
 
-            <div className="form-group">
-              <label>Content Style/Tone</label>
-              <input
-                type="text"
-                value={formData.minRequirements.contentStyle}
-                onChange={(e) => handleInputChange('minRequirements.contentStyle', e.target.value)}
-                placeholder="e.g., Professional, Casual, Humorous"
-                className="form-input"
-              />
-            </div>
+                {/* Minimum Creator Requirements */}
+                <div className="mb-6">
+                  <h4 className="text-md font-medium text-foreground mb-4 flex items-center">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Minimum Creator Requirements
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Minimum Followers</label>
+                        <input
+                          type="text"
+                          value={formData.minRequirements.followersCount}
+                          onChange={(e) => handleInputChange('minRequirements.followersCount', e.target.value)}
+                          placeholder="e.g., 10K, 100K+"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
 
-            <div className="form-group">
-              <label>Language Preferences</label>
-              <div className="checkbox-grid">
-                {languages.map(lang => (
-                  <label key={lang} className="checkbox-item">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Minimum Engagement Rate</label>
+                        <input
+                          type="text"
+                          value={formData.minRequirements.engagementRate}
+                          onChange={(e) => handleInputChange('minRequirements.engagementRate', e.target.value)}
+                          placeholder="e.g., 3%, 5%+"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Content Style/Tone</label>
+                      <input
+                        type="text"
+                        value={formData.minRequirements.contentStyle}
+                        onChange={(e) => handleInputChange('minRequirements.contentStyle', e.target.value)}
+                        placeholder="e.g., Professional, Casual, Humorous"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Language Preferences</label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {languages.map(lang => (
+                          <label key={lang} className="flex items-center space-x-2 p-2 bg-background border border-border rounded-lg hover:bg-muted/30 transition-all duration-200 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.minRequirements.languages.includes(lang)}
+                              onChange={(e) => handleArrayChange('minRequirements.languages', lang, e.target.checked)}
+                              className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
+                            />
+                            <span className="text-sm text-foreground">{lang}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Options */}
+                <div className="space-y-4">
+                  <label className="flex items-center space-x-2 p-3 bg-background border border-border rounded-lg hover:bg-muted/30 transition-all duration-200 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.minRequirements.languages.includes(lang)}
-                      onChange={(e) => handleArrayChange('minRequirements.languages', lang, e.target.checked)}
+                      checked={formData.nicheMatch}
+                      onChange={(e) => handleInputChange('nicheMatch', e.target.checked)}
+                      className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
                     />
-                    <span>{lang}</span>
+                    <span className="text-sm font-medium text-foreground">Require niche match (creators must be in relevant category)</span>
                   </label>
-                ))}
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Geographic Restrictions</label>
+                    <input
+                      type="text"
+                      value={formData.geographicRestrictions}
+                      onChange={(e) => handleInputChange('geographicRestrictions', e.target.value)}
+                      placeholder="e.g., US only, English-speaking countries"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Deliverables */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center text-white">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-display font-semibold text-foreground">Deliverables</h3>
+                </div>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Content Format *</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {contentFormats.map(format => (
+                        <label key={format} className="flex items-center space-x-2 p-3 bg-background border border-border rounded-lg hover:bg-muted/30 transition-all duration-200 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.contentFormat.includes(format)}
+                            onChange={(e) => handleArrayChange('contentFormat', format, e.target.checked)}
+                            className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
+                          />
+                          <span className="text-sm font-medium text-foreground">{format}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Number of Posts/Videos *</label>
+                    <input
+                      type="text"
+                      value={formData.numberOfPosts}
+                      onChange={(e) => handleInputChange('numberOfPosts', e.target.value)}
+                      placeholder="e.g., 2 Instagram posts + 1 story"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Content Guidelines</label>
+                    <textarea
+                      value={formData.contentGuidelines}
+                      onChange={(e) => handleInputChange('contentGuidelines', e.target.value)}
+                      placeholder="Specific hashtags, mentions, tone, do's & don'ts..."
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      rows={4}
+                    />
+                  </div>
+
+                  <label className="flex items-center space-x-2 p-3 bg-background border border-border rounded-lg hover:bg-muted/30 transition-all duration-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.approvalRequired}
+                      onChange={(e) => handleInputChange('approvalRequired', e.target.checked)}
+                      className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
+                    />
+                    <span className="text-sm font-medium text-foreground">Content requires pre-approval before posting</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Compensation & Perks */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center text-white">
+                    <DollarSign className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-display font-semibold text-foreground">Compensation & Perks</h3>
+                </div>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Compensation Type *</label>
+                    <select
+                      value={formData.compensationType}
+                      onChange={(e) => handleInputChange('compensationType', e.target.value)}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      required
+                    >
+                      <option value="">Select compensation type</option>
+                      {compensationTypes.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {(formData.compensationType === 'Fixed Payment' || formData.compensationType === 'Commission/Affiliate') && (
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Payment Amount/Range</label>
+                      <input
+                        type="text"
+                        value={formData.paymentAmount}
+                        onChange={(e) => handleInputChange('paymentAmount', e.target.value)}
+                        placeholder="e.g., $500-1000, 5% commission"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Product/Service Details</label>
+                    <textarea
+                      value={formData.productDetails}
+                      onChange={(e) => handleInputChange('productDetails', e.target.value)}
+                      placeholder="Describe products/services being offered, event details, etc."
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Media & Assets */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg flex items-center justify-center text-white">
+                    <Image className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-display font-semibold text-foreground">Media & Assets</h3>
+                </div>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Campaign Banner Image</label>
+                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-lg hover:border-primary/50 transition-colors duration-200">
+                      <div className="space-y-1 text-center">
+                        <div className="flex text-sm text-muted-foreground">
+                          <label htmlFor="file-upload" className="relative cursor-pointer bg-card rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
+                            <span>Upload a file</span>
+                            <input
+                              id="file-upload"
+                              name="file-upload"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileChange}
+                              className="sr-only"
+                            />
+                          </label>
+                          <p className="pl-1">or drag and drop</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Reference Links & Brand Kit</label>
+                    <textarea
+                      value={formData.referenceLinks}
+                      onChange={(e) => handleInputChange('referenceLinks', e.target.value)}
+                      placeholder="Links to brand kit, style guides, example posts, website..."
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-center">
+                <button 
+                  onClick={() => handleSubmit(false)}
+                  disabled={isSubmitting}
+                  className="flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  <Rocket className="w-5 h-5" />
+                  <span>{isSubmitting ? 'Creating Campaign...' : 'Create Campaign'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Live Preview - Right Side */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-24">
+                <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <h3 className="text-lg font-display font-semibold text-foreground">Live Preview</h3>
+                  </div>
+                  
+                  {/* Banner Image */}
+                  <div className="relative mb-6 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
+                    {formData.bannerImage && formData.bannerImage instanceof File ? (
+                      <img src={URL.createObjectURL(formData.bannerImage)} alt="Campaign Banner" className="w-full h-32 object-cover" />
+                    ) : (
+                      <div className="w-full h-32 flex flex-col items-center justify-center text-muted-foreground">
+                        <Image className="w-8 h-8 mb-2" />
+                        <p className="text-sm">Upload banner image</p>
+                      </div>
+                    )}
+                    {formData.category && (
+                      <div className="absolute top-3 left-3 bg-primary/90 backdrop-blur-sm text-primary-foreground px-2 py-1 rounded-md text-xs font-medium">
+                        {formData.category}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Campaign Content */}
+                  <div className="space-y-4">
+                    <div>
+                      <h2 className="text-lg font-display font-bold text-foreground line-clamp-2">
+                        {formData.title || 'Your Amazing Campaign Title'}
+                      </h2>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="text-sm font-medium text-foreground">{formData.brandName || 'Brand Name'}</span>
+                        {formData.campaignType && (
+                          <>
+                            <span className="text-muted-foreground">•</span>
+                            <span className="text-sm text-muted-foreground">{formData.campaignType}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {formData.description || 'Your compelling campaign description will appear here. Make it engaging to attract the right influencers!'}
+                    </p>
+
+                    {/* Quick Stats */}
+                    <div className="space-y-3 pt-4 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Duration</span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">
+                          {formData.startDate && formData.endDate ? 
+                            `${new Date(formData.startDate).toLocaleDateString()} - ${new Date(formData.endDate).toLocaleDateString()}` : 
+                            'Dates TBD'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <FileText className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Content</span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">
+                          {formData.numberOfPosts || 'TBD'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Users className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Min Followers</span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">
+                          {formData.minRequirements?.followersCount || '1K'}+
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Platforms */}
+                    {formData.platforms && formData.platforms.length > 0 && (
+                      <div className="pt-4 border-t border-border">
+                        <h4 className="text-sm font-medium text-foreground mb-2">Platforms</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.platforms.slice(0, 3).map((platform, index) => (
+                            <span key={index} className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-md">
+                              {platform}
+                            </span>
+                          ))}
+                          {formData.platforms.length > 3 && (
+                            <span className="px-2 py-1 bg-muted/50 text-muted-foreground text-xs font-medium rounded-md">
+                              +{formData.platforms.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Compensation */}
+                    <div className="pt-4 border-t border-border">
+                      <div className="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                          <DollarSign className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-foreground">Compensation</h4>
+                          <p className="text-lg font-bold text-green-600">
+                            {formData.paymentAmount ? `$${formData.paymentAmount}` : '$500'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formData.compensationType || 'Fixed Payment'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CTA */}
+                    <button className="w-full mt-6 px-4 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center space-x-2">
+                      <span>Apply for Campaign</span>
+                      <Heart className="w-4 h-4" />
+                    </button>
+                    <p className="text-center text-xs text-muted-foreground">
+                      Join {Math.floor(Math.random() * 50) + 10} other applicants
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="form-group">
-            <label className="checkbox-item">
-              <input
-                type="checkbox"
-                checked={formData.nicheMatch}
-                onChange={(e) => handleInputChange('nicheMatch', e.target.checked)}
-              />
-              <span>Require niche match (creators must be in relevant category)</span>
-            </label>
-          </div>
-
-          <div className="form-group">
-            <label>Geographic Restrictions</label>
-            <input
-              type="text"
-              value={formData.geographicRestrictions}
-              onChange={(e) => handleInputChange('geographicRestrictions', e.target.value)}
-              placeholder="e.g., US only, English-speaking countries"
-              className="form-input"
-            />
-          </div>
-        </div>
-
-        {/* Deliverables */}
-        <div className="form-section">
-          <h3 className="font-display text-lg font-semibold">Deliverables</h3>
-          
-          <div className="form-group">
-            <label>Content Format *</label>
-            <div className="checkbox-grid">
-              {contentFormats.map(format => (
-                <label key={format} className="checkbox-item">
-                  <input
-                    type="checkbox"
-                    checked={formData.contentFormat.includes(format)}
-                    onChange={(e) => handleArrayChange('contentFormat', format, e.target.checked)}
-                  />
-                  <span>{format}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Number of Posts/Videos *</label>
-            <input
-              type="text"
-              value={formData.numberOfPosts}
-              onChange={(e) => handleInputChange('numberOfPosts', e.target.value)}
-              placeholder="e.g., 2 Instagram posts + 1 story"
-              className="form-input"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Content Guidelines</label>
-            <textarea
-              value={formData.contentGuidelines}
-              onChange={(e) => handleInputChange('contentGuidelines', e.target.value)}
-              placeholder="Specific hashtags, mentions, tone, do's & don'ts..."
-              className="form-textarea"
-              rows={4}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="checkbox-item">
-              <input
-                type="checkbox"
-                checked={formData.approvalRequired}
-                onChange={(e) => handleInputChange('approvalRequired', e.target.checked)}
-              />
-              <span>Content requires pre-approval before posting</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Compensation & Perks */}
-        <div className="form-section">
-          <h3 className="font-display text-lg font-semibold">Compensation & Perks</h3>
-          
-          <div className="form-group">
-            <label>Compensation Type *</label>
-            <select
-              value={formData.compensationType}
-              onChange={(e) => handleInputChange('compensationType', e.target.value)}
-              className="form-select"
-              required
-            >
-              <option value="">Select compensation type</option>
-              {compensationTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-
-          {(formData.compensationType === 'Fixed Payment' || formData.compensationType === 'Commission/Affiliate') && (
-            <div className="form-group">
-              <label>Payment Amount/Range</label>
-              <input
-                type="text"
-                value={formData.paymentAmount}
-                onChange={(e) => handleInputChange('paymentAmount', e.target.value)}
-                placeholder="e.g., $500-1000, 5% commission"
-                className="form-input"
-              />
-            </div>
-          )}
-
-          <div className="form-group">
-            <label>Product/Service Details</label>
-            <textarea
-              value={formData.productDetails}
-              onChange={(e) => handleInputChange('productDetails', e.target.value)}
-              placeholder="Describe products/services being offered, event details, etc."
-              className="form-textarea"
-              rows={3}
-            />
-          </div>
-        </div>
-
-        {/* Media & Assets */}
-        <div className="form-section">
-          <h3 className="font-display text-lg font-semibold">Media & Assets</h3>
-          
-          <div className="form-group">
-            <label>Campaign Banner Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="form-file"
-            />
-            <small>Upload a banner image for your campaign listing</small>
-          </div>
-
-          <div className="form-group">
-            <label>Reference Links & Brand Kit</label>
-            <textarea
-              value={formData.referenceLinks}
-              onChange={(e) => handleInputChange('referenceLinks', e.target.value)}
-              placeholder="Links to brand kit, style guides, example posts, website..."
-              className="form-textarea"
-              rows={3}
-            />
-          </div>
-        </div>
-
-        {/* Submit Button */}
-        <div className="form-actions">
-          <button 
-            onClick={() => handleSubmit(false)}
-            className="submit-btn"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? '⏳ Creating Campaign...' : '🚀 Create Campaign'}
-          </button>
         </div>
 
         {/* Loading Overlay */}
         {isSubmitting && (
-          <div className="loading-overlay">
-            <div className="loading-content">
-              <div className="loading-spinner"></div>
-              <h3 className="font-display text-lg font-semibold">Creating Your Campaign</h3>
-              <p>Preparing your campaign for influencers...</p>
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-card/90 backdrop-blur-sm border border-border rounded-xl p-8 text-center max-w-md mx-4">
+              <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+              <h3 className="text-lg font-display font-semibold text-foreground mb-2">Creating Your Campaign</h3>
+              <p className="text-muted-foreground">Preparing your campaign for influencers...</p>
             </div>
           </div>
         )}
-        </div>
-
-        {/* Live Preview Section */}
-        <div className="preview-section">
-          <div className="preview-card">
-            <div className="preview-header">
-              <span className="live-indicator">�</span>
-              <h3 className="font-display text-lg font-semibold">Live Preview</h3>
-            </div>
-            
-            {/* Banner Image */}
-            <div className="preview-banner">
-              {formData.bannerImage && formData.bannerImage instanceof File ? (
-                <img src={URL.createObjectURL(formData.bannerImage)} alt="Campaign Banner" />
-              ) : (
-                <div className="banner-placeholder">
-                  <div className="banner-icon">🖼️</div>
-                  <p>Upload a banner image to see it here</p>
-                </div>
-              )}
-              <div className="banner-overlay">
-                <div className="campaign-badge">{formData.category || 'Campaign'}</div>
-              </div>
-            </div>
-
-            {/* Campaign Content */}
-            <div className="preview-content">
-              <div className="campaign-header-preview">
-                <h2 className="campaign-title font-display text-xl font-bold">{formData.title || 'Your Amazing Campaign Title'}</h2>
-                <p className="brand-info">
-                  <span className="brand-name">{formData.brandName || 'Brand Name'}</span>
-                  <span className="campaign-type">{formData.campaignType || 'Campaign Type'}</span>
-                </p>
-              </div>
-
-              <div className="campaign-description">
-                <p>{formData.description || 'Your compelling campaign description will appear here. Make it engaging to attract the right influencers!'}</p>
-              </div>
-
-              {/* Campaign Stats */}
-              <div className="campaign-stats">
-                <div className="stat-item">
-                  <div className="stat-icon">📅</div>
-                  <div className="stat-content">
-                    <span className="stat-label">Duration</span>
-                    <span className="stat-value">
-                      {formData.startDate && formData.endDate ? 
-                        `${new Date(formData.startDate).toLocaleDateString()} - ${new Date(formData.endDate).toLocaleDateString()}` : 
-                        'Dates TBD'}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="stat-item">
-                  <div className="stat-icon">📱</div>
-                  <div className="stat-content">
-                    <span className="stat-label">Content</span>
-                    <span className="stat-value">
-                      {formData.numberOfPosts ? 
-                        `${formData.numberOfPosts} posts` : 
-                        'TBD'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="stat-item">
-                  <div className="stat-icon">👥</div>
-                  <div className="stat-content">
-                    <span className="stat-label">Min Followers</span>
-                    <span className="stat-value">{formData.minRequirements?.followersCount || '1K'}+</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Platform Tags */}
-              {formData.platforms && formData.platforms.length > 0 && (
-                <div className="platform-tags">
-                  <h4>Platforms</h4>
-                  <div className="tags-container">
-                    {formData.platforms.map((platform, index) => (
-                      <span key={index} className="platform-tag">{platform}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Content Format Tags */}
-              {formData.contentFormat && formData.contentFormat.length > 0 && (
-                <div className="content-tags">
-                  <h4>Content Types</h4>
-                  <div className="tags-container">
-                    {formData.contentFormat.map((format, index) => (
-                      <span key={index} className="content-tag">{format}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Compensation */}
-              <div className="compensation-section">
-                <div className="compensation-card">
-                  <div className="compensation-icon">💰</div>
-                  <div className="compensation-content">
-                    <h4>Compensation</h4>
-                    <p className="compensation-amount">
-                      {formData.paymentAmount ? `$${formData.paymentAmount}` : '$500'}
-                    </p>
-                    <p className="compensation-type">
-                      {formData.compensationType || 'Fixed Payment'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* CTA Button */}
-              <div className="cta-section">
-                <button className="apply-btn">
-                  <span>Apply for Campaign</span>
-                  <span className="btn-arrow">→</span>
-                </button>
-                <p className="apply-note">Join {Math.floor(Math.random() * 50) + 10} other applicants</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 };
