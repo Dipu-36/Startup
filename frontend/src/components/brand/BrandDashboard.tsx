@@ -416,7 +416,6 @@ const BrandDashboard: React.FC = () => {
               onMouseEnter={() => setHoveredCard(stat.id)}
               onMouseLeave={() => setHoveredCard(null)}
               onClick={stat.action}
-              style={{transitionDelay: `${1000 + index * 100}ms`}}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform duration-300`}>
