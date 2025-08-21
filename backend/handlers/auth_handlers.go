@@ -14,7 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// TODO: Refactor the handlers to avoid the globals for easy testing
+// LoginRequest handler handles the login request, it validates if the user exists else throws an error
 func (h *Handlers) LoginRequest(w http.ResponseWriter, r *http.Request) {
 
 	var req storage.LoginRequest
@@ -69,6 +69,7 @@ func (h *Handlers) LoginRequest(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// SignupHandler handles the Sign up request and creates a user in the Database
 func (h *Handlers) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	var req storage.SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -146,6 +147,7 @@ func (h *Handlers) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// ProfileHandler handles the request to check profile by the user
 func (h *Handlers) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	user, ok := auth.GetUserFromContext(r.Context())
 	if !ok {
