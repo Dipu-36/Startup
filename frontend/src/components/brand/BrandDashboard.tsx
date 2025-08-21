@@ -2,7 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
-import '../../styles/brand/BrandDashboard.css';
+import { 
+  Plus, 
+  Rocket, 
+  Clock, 
+  CheckCircle, 
+  User, 
+  CreditCard, 
+  Bell, 
+  HelpCircle, 
+  LogOut 
+} from 'lucide-react';
 
 interface Campaign {
   id: string;
@@ -60,10 +70,18 @@ const BrandDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Trigger entrance animation on mount
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Fetch campaigns from API
   useEffect(() => {
@@ -257,71 +275,102 @@ const BrandDashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="brand-dashboard">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-secondary/3 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-accent/3 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}}></div>
+      </div>
+
       {/* Header */}
-      <header className="dashboard-header">
-        <div className="header-left">
-          <h1 className="brand-name">{APP_NAME}</h1>
-          <nav className="main-nav">
-            <button 
-              className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              Dashboard
-            </button>
-            <button 
-              className={`nav-btn ${activeTab === 'campaigns' ? 'active' : ''}`}
-              onClick={() => setActiveTab('campaigns')}
-            >
-              Campaigns
-            </button>
-            <button 
-              className={`nav-btn ${activeTab === 'applications' ? 'active' : ''}`}
-              onClick={() => setActiveTab('applications')}
-            >
-              Applications
-            </button>
-          </nav>
-        </div>
-        <div className="header-right">
-          <div className="user-profile">
-            <div className="profile-info">
-              <span className="profile-name">{user?.name || 'User'}</span>
-              <span className="profile-email">{user?.email || 'user@example.com'}</span>
+      <header className={`sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg transition-all duration-700 ease-out ${
+        isVisible ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
+      }`}>
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Header Left */}
+            <div className="flex items-center space-x-8">
+              <h1 className={`text-2xl font-display font-bold text-primary hover:scale-105 transition-transform duration-300 cursor-default tracking-tight ${
+                isVisible ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
+              }`} style={{transitionDelay: '200ms'}}>
+                {APP_NAME}
+              </h1>
+              
+              {/* Navigation */}
+              <nav className={`flex space-x-1 transition-all duration-700 ease-out ${
+                isVisible ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
+              }`} style={{transitionDelay: '400ms'}}>
+                {(['dashboard', 'campaigns', 'applications'] as const).map((tab, index) => (
+                  <button
+                    key={tab}
+                    className={`px-4 py-2 rounded-lg font-medium transform hover:scale-105 ${
+                      activeTab === tab
+                        ? 'bg-primary text-primary-foreground shadow-lg transition-all duration-200'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-150 hover:shadow-md'
+                    } ${!isVisible ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}
+                    onClick={() => setActiveTab(tab)}
+                    style={{
+                      transition: isVisible 
+                        ? 'all 0.15s ease-out' 
+                        : `all 0.7s ease-out ${600 + index * 100}ms`
+                    }}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </nav>
             </div>
-            <div className="profile-dropdown" ref={dropdownRef}>
-              <div className="profile-avatar" onClick={toggleProfileDropdown}>
-                <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
+
+            {/* Header Right - User Profile */}
+            <div className={`relative transition-all duration-700 ease-out ${
+              isVisible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+            }`} style={{transitionDelay: '300ms'}} ref={dropdownRef}>
+              <div className="flex items-center space-x-3">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
+                  <p className="text-xs text-muted-foreground">{user?.email || 'user@example.com'}</p>
+                </div>
+                <button
+                  onClick={toggleProfileDropdown}
+                  className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-primary-foreground font-semibold hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </button>
               </div>
+
+              {/* Profile Dropdown */}
               {isProfileDropdownOpen && (
-                <div className="dropdown-menu">
-                  <div className="dropdown-header">
-                    <div className="dropdown-user-info">
-                      <strong>{user?.name || 'User'}</strong>
-                      <span>{user?.email || 'user@example.com'}</span>
-                    </div>
+                <div className="absolute right-0 mt-2 w-56 bg-card/95 backdrop-blur-sm border border-border rounded-xl shadow-xl py-2 animate-fadeIn">
+                  <div className="px-4 py-2 border-b border-border">
+                    <p className="font-medium text-foreground">{user?.name || 'User'}</p>
+                    <p className="text-sm text-muted-foreground">{user?.email || 'user@example.com'}</p>
                   </div>
-                  <div className="dropdown-divider"></div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('profile')}>
-                    <span className="dropdown-icon">👤</span>
-                    Profile Settings
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('billing')}>
-                    <span className="dropdown-icon">💳</span>
-                    Billing & Plans
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('notifications')}>
-                    <span className="dropdown-icon">🔔</span>
-                    Notifications
-                  </div>
-                  <div className="dropdown-item" onClick={() => handleProfileAction('help')}>
-                    <span className="dropdown-icon">❓</span>
-                    Help & Support
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <div className="dropdown-item logout-item" onClick={handleLogout}>
-                    <span className="dropdown-icon">🚪</span>
-                    Sign Out
+                  
+                  {[
+                    { icon: <User className="w-4 h-4" />, label: 'Profile Settings', action: 'profile' },
+                    { icon: <CreditCard className="w-4 h-4" />, label: 'Billing & Plans', action: 'billing' },
+                    { icon: <Bell className="w-4 h-4" />, label: 'Notifications', action: 'notifications' },
+                    { icon: <HelpCircle className="w-4 h-4" />, label: 'Help & Support', action: 'help' },
+                  ].map((item) => (
+                    <button
+                      key={item.action}
+                      className="w-full px-4 py-2 text-left flex items-center space-x-3 hover:bg-muted/50 transition-colors duration-200"
+                      onClick={() => handleProfileAction(item.action)}
+                    >
+                      <span>{item.icon}</span>
+                      <span className="text-sm text-foreground">{item.label}</span>
+                    </button>
+                  ))}
+                  
+                  <div className="border-t border-border mt-2 pt-2">
+                    <button
+                      className="w-full px-4 py-2 text-left flex items-center space-x-3 hover:bg-destructive/10 text-destructive transition-colors duration-200"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="text-sm">Sign Out</span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -331,123 +380,235 @@ const BrandDashboard: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="dashboard-main">
-        <div className="dashboard-content">
-          {/* Welcome Section */}
-          <div className="welcome-section">
-            <h2>Welcome back, Brand Name</h2>
-          </div>
+      <main className="relative z-10 px-6 py-8">
+        {/* Welcome Section */}
+        <div className={`mb-8 transition-all duration-800 ease-out ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+        }`} style={{transitionDelay: '600ms'}}>
+          <h2 className="text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
+            Welcome back, {user?.name || 'Brand'}! 👋
+          </h2>
+          <p className="text-muted-foreground">
+            Here's what's happening with your campaigns today.
+          </p>
+        </div>
 
-          {/* Quick Stats - Single Row */}
-          <div className="quick-stats">
-            <div className="stat-card" onClick={handleCreateCampaign}>
-              <div className="stat-icon">📝</div>
-              <div className="stat-info">
-                <span className="stat-number">Create</span>
-                <span className="stat-label">Campaign</span>
+        {/* Quick Stats Cards */}
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 transition-all duration-900 ease-out ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+        }`} style={{transitionDelay: '800ms'}}>
+          {[
+            {
+              id: 'create',
+              icon: <Plus className="w-6 h-6" />,
+              title: 'Create',
+              subtitle: 'Campaign',
+              value: 'New',
+              color: 'from-blue-500 to-blue-600',
+              action: handleCreateCampaign
+            },
+            {
+              id: 'active',
+              icon: <Rocket className="w-6 h-6" />,
+              title: 'Active',
+              subtitle: 'Campaigns',
+              value: campaigns.filter(c => c.status === 'active').length,
+              color: 'from-green-500 to-green-600'
+            },
+            {
+              id: 'pending',
+              icon: <Clock className="w-6 h-6" />,
+              title: 'Pending',
+              subtitle: 'Applications',
+              value: applications.filter(a => a.status === 'pending').length,
+              color: 'from-yellow-500 to-yellow-600'
+            },
+            {
+              id: 'approved',
+              icon: <CheckCircle className="w-6 h-6" />,
+              title: 'Approved',
+              subtitle: 'Applications',
+              value: applications.filter(a => a.status === 'approved').length,
+              color: 'from-purple-500 to-purple-600'
+            }
+          ].map((stat, index) => (
+            <div
+              key={stat.id}
+              className={`bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:bg-card/70 group ${
+                hoveredCard === stat.id ? 'ring-2 ring-primary/20' : ''
+              }`}
+              onMouseEnter={() => setHoveredCard(stat.id)}
+              onMouseLeave={() => setHoveredCard(null)}
+              onClick={stat.action}
+              style={{transitionDelay: `${1000 + index * 100}ms`}}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform duration-300`}>
+                  {stat.icon}
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                    {stat.value}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                  <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                </div>
               </div>
+              <div className={`w-full h-1 bg-gradient-to-r ${stat.color} rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon">🚀</div>
-              <div className="stat-info">
-                <span className="stat-number">{campaigns.filter(c => c.status === 'active').length}</span>
-                <span className="stat-label">Active Campaigns</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">⏳</div>
-              <div className="stat-info">
-                <span className="stat-number">{applications.filter(a => a.status === 'pending').length}</span>
-                <span className="stat-label">Pending Applications</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">✅</div>
-              <div className="stat-info">
-                <span className="stat-number">{applications.filter(a => a.status === 'approved').length}</span>
-                <span className="stat-label">Approved Applications</span>
-              </div>
-            </div>
-          </div>
+          ))}
+        </div>
 
-          {/* Content Grid */}
-          <div className="content-grid">
-            {/* Campaigns Section */}
-            <section className="campaigns-section">
-              <div className="section-header">
-                <h2>Campaigns</h2>
-              </div>
-              <div className="campaigns-grid">
-                {loading ? (
-                  <div className="loading-state">
-                    <p>Loading campaigns...</p>
-                  </div>
-                ) : error ? (
-                  <div className="error-state">
-                    <p>{error}</p>
-                  </div>
-                ) : campaigns.length === 0 ? (
-                  <div className="empty-state">
-                    <p>No campaigns found. Create your first campaign to get started!</p>
-                    <button 
-                      className="btn-primary"
-                      onClick={() => navigate('/brand/create-campaign')}
-                    >
-                      Create Campaign
-                    </button>
-                  </div>
-                ) : (
-                  campaigns.map((campaign) => (
-                    <div key={campaign.id} className="campaign-card">
-                      <div className="campaign-header">
-                        <h3>{campaign.title}</h3>
-                        <span className={`campaign-status ${campaign.status}`}>
-                          {campaign.status}
-                        </span>
+        {/* Content Based on Active Tab */}
+        <div className={`transition-all duration-1000 ease-out ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+        }`} style={{transitionDelay: '1200ms'}}>
+          {activeTab === 'dashboard' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Recent Campaigns */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                  <span className="mr-2">🚀</span>
+                  Recent Campaigns
+                </h3>
+                <div className="space-y-3">
+                  {campaigns.slice(0, 3).map((campaign) => (
+                    <div key={campaign.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors duration-200">
+                      <div>
+                        <p className="font-medium text-foreground">{campaign.title}</p>
+                        <p className="text-sm text-muted-foreground">{campaign.category}</p>
                       </div>
-                      <div className="campaign-details">
-                        <p><strong>Budget:</strong> ${campaign.paymentAmount}</p>
-                        <p><strong>Applicants:</strong> {campaign.applicants}</p>
-                        <p><strong>End Date:</strong> {campaign.endDate}</p>
-                      </div>
-                      <div className="campaign-actions">
-                        <button className="btn-secondary">Edit</button>
-                        <button className="btn-primary">View Applications</button>
-                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                        campaign.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {campaign.status}
+                      </span>
                     </div>
-                  ))
-                )}   
+                  ))}
+                  {campaigns.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground mb-4">No campaigns yet</p>
+                      <button 
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors duration-200"
+                        onClick={handleCreateCampaign}
+                      >
+                        Create Your First Campaign
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </section>
 
-            {/* Applications Section */}
-            <section className="applications-section">
-              <div className="section-header">
-                <h2>Recent Applications</h2>
-              </div>
-              <div className="applications-container">
-                <div className="applications-list">
-                  {applications.map((application) => (
-                    <div key={application.id} className="application-item">
-                      <div className="application-info">
-                        <div className="creator-details">
-                          <h4>{application.creatorName}</h4>
-                          <p className="platform-info">{application.platform} • {application.followers}</p>
-                          <p className="campaign-info">Applied for: <strong>{application.campaignName}</strong></p>
-                        </div>
-                        <div className="application-meta">
-                          <span className={`status ${application.status}`}>
-                            {application.status}
-                          </span>
-                          <span className="applied-date">{application.appliedDate}</span>
-                        </div>
+              {/* Recent Applications */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                  <span className="mr-2">📝</span>
+                  Recent Applications
+                </h3>
+                <div className="space-y-3">
+                  {applications.slice(0, 3).map((application) => (
+                    <div key={application.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors duration-200">
+                      <div>
+                        <p className="font-medium text-foreground">{application.creatorName}</p>
+                        <p className="text-sm text-muted-foreground">{application.platform} • {application.followers}</p>
                       </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {application.status}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
-            </section>
-          </div>
+            </div>
+          )}
+
+          {activeTab === 'campaigns' && (
+            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-foreground">All Campaigns</h3>
+                <button 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105"
+                  onClick={handleCreateCampaign}
+                >
+                  Create Campaign
+                </button>
+              </div>
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading campaigns...</p>
+                </div>
+              ) : campaigns.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📝</div>
+                  <p className="text-muted-foreground mb-4">No campaigns found</p>
+                  <button 
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg transition-colors duration-200"
+                    onClick={handleCreateCampaign}
+                  >
+                    Create Your First Campaign
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {campaigns.map((campaign) => (
+                    <div key={campaign.id} className="bg-muted/30 border border-border rounded-lg p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
+                      <h4 className="font-semibold text-foreground mb-2">{campaign.title}</h4>
+                      <p className="text-sm text-muted-foreground mb-3">{campaign.description}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{campaign.category}</span>
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                          campaign.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {campaign.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'applications' && (
+            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-6">All Applications</h3>
+              <div className="space-y-4">
+                {applications.map((application) => (
+                  <div key={application.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-all duration-200 hover:scale-[1.02]">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-primary-foreground font-semibold">
+                        {application.creatorName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{application.creatorName}</p>
+                        <p className="text-sm text-muted-foreground">{application.platform} • {application.followers}</p>
+                        <p className="text-xs text-muted-foreground">{application.campaignName}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {application.status}
+                      </span>
+                      <p className="text-xs text-muted-foreground mt-1">{application.appliedDate}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

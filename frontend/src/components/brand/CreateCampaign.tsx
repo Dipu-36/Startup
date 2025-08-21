@@ -724,7 +724,7 @@ const CreateCampaign: React.FC = () => {
         >
           ← Back to Dashboard
         </button>
-        <h1>Create New Campaign</h1>
+        <h1 className="font-display text-2xl font-bold">Create New Campaign</h1>
         <button 
           onClick={() => handleSubmit(true)}
           className="save-draft-btn"
@@ -737,7 +737,7 @@ const CreateCampaign: React.FC = () => {
         <div className="form-content">
           {/* Campaign Basics */}
           <div className="form-section">
-          <h3>Campaign Basics</h3>
+          <h3 className="font-display text-lg font-semibold">Campaign Basics</h3>
           
           <div className="form-row">
             <div className="form-group">
@@ -836,7 +836,7 @@ const CreateCampaign: React.FC = () => {
 
         {/* Target Audience & Requirements */}
         <div className="form-section">
-          <h3>Target Audience & Requirements</h3>
+          <h3 className="font-display text-lg font-semibold">Target Audience & Requirements</h3>
           
           <div className="subsection">
             <h4>Target Audience</h4>
@@ -989,7 +989,7 @@ const CreateCampaign: React.FC = () => {
 
         {/* Deliverables */}
         <div className="form-section">
-          <h3>Deliverables</h3>
+          <h3 className="font-display text-lg font-semibold">Deliverables</h3>
           
           <div className="form-group">
             <label>Content Format *</label>
@@ -1044,7 +1044,7 @@ const CreateCampaign: React.FC = () => {
 
         {/* Compensation & Perks */}
         <div className="form-section">
-          <h3>Compensation & Perks</h3>
+          <h3 className="font-display text-lg font-semibold">Compensation & Perks</h3>
           
           <div className="form-group">
             <label>Compensation Type *</label>
@@ -1088,7 +1088,7 @@ const CreateCampaign: React.FC = () => {
 
         {/* Media & Assets */}
         <div className="form-section">
-          <h3>Media & Assets</h3>
+          <h3 className="font-display text-lg font-semibold">Media & Assets</h3>
           
           <div className="form-group">
             <label>Campaign Banner Image</label>
@@ -1129,7 +1129,7 @@ const CreateCampaign: React.FC = () => {
           <div className="loading-overlay">
             <div className="loading-content">
               <div className="loading-spinner"></div>
-              <h3>Creating Your Campaign</h3>
+              <h3 className="font-display text-lg font-semibold">Creating Your Campaign</h3>
               <p>Preparing your campaign for influencers...</p>
             </div>
           </div>
@@ -1141,7 +1141,7 @@ const CreateCampaign: React.FC = () => {
           <div className="preview-card">
             <div className="preview-header">
               <span className="live-indicator">�</span>
-              <h3>Live Preview</h3>
+              <h3 className="font-display text-lg font-semibold">Live Preview</h3>
             </div>
             
             {/* Banner Image */}
@@ -1162,7 +1162,7 @@ const CreateCampaign: React.FC = () => {
             {/* Campaign Content */}
             <div className="preview-content">
               <div className="campaign-header-preview">
-                <h2 className="campaign-title">{formData.title || 'Your Amazing Campaign Title'}</h2>
+                <h2 className="campaign-title font-display text-xl font-bold">{formData.title || 'Your Amazing Campaign Title'}</h2>
                 <p className="brand-info">
                   <span className="brand-name">{formData.brandName || 'Brand Name'}</span>
                   <span className="campaign-type">{formData.campaignType || 'Campaign Type'}</span>

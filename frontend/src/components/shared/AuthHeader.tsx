@@ -10,8 +10,8 @@ const AuthHeader: React.FC<AuthHeaderProps> = ({ title, subtitle }) => {
   return (
     <div className="auth-header">
       <div className="auth-header-content">
-        <h1>{title}</h1>
-        <p>{subtitle}</p>
+        <h1 className="font-display">{title}</h1>
+        <p className="font-body">{subtitle}</p>
       </div>
     </div>
   );
