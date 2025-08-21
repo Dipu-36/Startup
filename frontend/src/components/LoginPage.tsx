@@ -13,14 +13,7 @@ const LoginPage: React.FC = () => {
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
-
-  // Trigger entrance animation on mount
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -77,17 +70,11 @@ const LoginPage: React.FC = () => {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse opacity-20"></div>
       </div>
 
-      <div className={`max-w-md w-full space-y-8 relative z-10 transition-all duration-1000 ease-out transform ${
-        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-      }`}>
+      <div className="max-w-md w-full space-y-8 relative z-10">
         {/* Login Card */}
-        <div className={`bg-card/80 backdrop-blur-sm border border-border rounded-xl shadow-xl p-8 transition-all duration-700 ease-out transform ${
-          isVisible ? 'scale-100 rotate-0' : 'scale-95 rotate-1'
-        } hover:shadow-2xl hover:scale-[1.02] hover:bg-card/90`}>
+        <div className="bg-card/80 backdrop-blur-sm border border-border rounded-xl shadow-xl p-8 hover:shadow-2xl hover:scale-[1.02] hover:bg-card/90 transition-all duration-200">
           {/* Header */}
-          <div className={`text-center mb-8 transition-all duration-800 ease-out ${
-            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-          }`} style={{transitionDelay: '200ms'}}>
+          <div className="text-center mb-8">
             <h1 className="text-2xl font-display font-bold text-primary mb-2 hover:scale-105 transition-transform duration-300 cursor-default tracking-tight">
               {APP_NAME}
             </h1>
@@ -100,19 +87,15 @@ const LoginPage: React.FC = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className={`space-y-6 transition-all duration-900 ease-out ${
-            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-          }`} style={{transitionDelay: '400ms'}}>
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm animate-bounce">
+              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
             
             {/* Email Field */}
-            <div className={`space-y-2 transition-all duration-700 ease-out ${
-              isVisible ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
-            }`} style={{transitionDelay: '600ms'}}>
+            <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-foreground">
                 Email
               </label>
@@ -147,9 +130,7 @@ const LoginPage: React.FC = () => {
             </div>
 
             {/* Password Field */}
-            <div className={`space-y-2 transition-all duration-700 ease-out ${
-              isVisible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
-            }`} style={{transitionDelay: '800ms'}}>
+            <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium text-foreground">
                 Password
               </label>
@@ -187,9 +168,7 @@ const LoginPage: React.FC = () => {
             </div>
 
             {/* Sign In Button */}
-            <div className={`transition-all duration-1000 ease-out ${
-              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`} style={{transitionDelay: '1000ms'}}>
+            <div>
               <button 
                 type="submit" 
                 disabled={isLoading}
@@ -219,9 +198,7 @@ const LoginPage: React.FC = () => {
           </form>
 
           {/* Footer */}
-          <div className={`mt-6 text-center transition-all duration-1000 ease-out ${
-            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-          }`} style={{transitionDelay: '1200ms'}}>
+          <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
               <button 

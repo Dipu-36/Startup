@@ -7,7 +7,6 @@ import { Eye, EyeOff, Users, Building2 } from 'lucide-react';
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const { signup, isLoading, error, clearError } = useAuth();
-  const [isVisible, setIsVisible] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -18,10 +17,6 @@ const SignupPage: React.FC = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -103,9 +98,7 @@ const SignupPage: React.FC = () => {
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Header */}
-          <div className={`text-center mb-8 transition-all duration-1000 ease-out ${
-            isVisible ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0'
-          }`}>
+          <div className="text-center mb-8">
             <h1 className="text-3xl font-display font-bold mb-2 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent tracking-tight">
               Join {APP_NAME}
             </h1>
@@ -113,9 +106,7 @@ const SignupPage: React.FC = () => {
           </div>
 
           {/* Signup Card */}
-          <div className={`bg-card/80 backdrop-blur-md border border-border rounded-2xl p-8 shadow-xl transition-all duration-1000 ease-out ${
-            isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-12 opacity-0 scale-95'
-          }`} style={{transitionDelay: '200ms'}}>
+          <div className="bg-card/80 backdrop-blur-md border border-border rounded-2xl p-8 shadow-xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg text-sm animate-slide-in-left">
@@ -124,9 +115,7 @@ const SignupPage: React.FC = () => {
               )}
               
               {/* Name Input */}
-              <div className={`space-y-2 transition-all duration-700 ease-out ${
-                isVisible ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
-              }`} style={{transitionDelay: '400ms'}}>
+              <div className="space-y-2">
                 <input
                   type="text"
                   name="name"
@@ -146,9 +135,7 @@ const SignupPage: React.FC = () => {
               </div>
 
               {/* Email Input */}
-              <div className={`space-y-2 transition-all duration-700 ease-out ${
-                isVisible ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
-              }`} style={{transitionDelay: '500ms'}}>
+              <div className="space-y-2">
                 <input
                   type="email"
                   name="email"
@@ -168,9 +155,7 @@ const SignupPage: React.FC = () => {
               </div>
 
               {/* User Type Selection */}
-              <div className={`space-y-3 transition-all duration-700 ease-out ${
-                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-              }`} style={{transitionDelay: '600ms'}}>
+              <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground">I am a:</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -209,9 +194,7 @@ const SignupPage: React.FC = () => {
               </div>
 
               {/* Password Input */}
-              <div className={`space-y-2 transition-all duration-700 ease-out ${
-                isVisible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
-              }`} style={{transitionDelay: '700ms'}}>
+              <div className="space-y-2">
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -241,9 +224,7 @@ const SignupPage: React.FC = () => {
               </div>
 
               {/* Confirm Password Input */}
-              <div className={`space-y-2 transition-all duration-700 ease-out ${
-                isVisible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
-              }`} style={{transitionDelay: '800ms'}}>
+              <div className="space-y-2">
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -273,9 +254,7 @@ const SignupPage: React.FC = () => {
               </div>
 
               {/* Submit Button */}
-              <div className={`transition-all duration-700 ease-out ${
-                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-              }`} style={{transitionDelay: '900ms'}}>
+              <div>
                 <button
                   type="submit"
                   disabled={!formData.userType || isLoading}
@@ -299,9 +278,7 @@ const SignupPage: React.FC = () => {
           </div>
 
           {/* Footer */}
-          <div className={`text-center mt-6 transition-all duration-700 ease-out ${
-            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-          }`} style={{transitionDelay: '1000ms'}}>
+          <div className="text-center mt-6">
             <p className="text-muted-foreground">
               Already have an account?{' '}
               <button

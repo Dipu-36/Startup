@@ -70,18 +70,11 @@ const BrandDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Trigger entrance animation on mount
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Fetch campaigns from API
   useEffect(() => {
@@ -284,23 +277,17 @@ const BrandDashboard: React.FC = () => {
       </div>
 
       {/* Header */}
-      <header className={`sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg transition-all duration-700 ease-out ${
-        isVisible ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
-      }`}>
+      <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Header Left */}
             <div className="flex items-center space-x-8">
-              <h1 className={`text-2xl font-display font-bold text-primary hover:scale-105 transition-transform duration-300 cursor-default tracking-tight ${
-                isVisible ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
-              }`} style={{transitionDelay: '200ms'}}>
+              <h1 className="text-2xl font-display font-bold text-primary hover:scale-105 transition-transform duration-300 cursor-default tracking-tight">
                 {APP_NAME}
               </h1>
               
               {/* Navigation */}
-              <nav className={`flex space-x-1 transition-all duration-700 ease-out ${
-                isVisible ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
-              }`} style={{transitionDelay: '400ms'}}>
+              <nav className="flex space-x-1">
                 {(['dashboard', 'campaigns', 'applications'] as const).map((tab, index) => (
                   <button
                     key={tab}
@@ -308,13 +295,8 @@ const BrandDashboard: React.FC = () => {
                       activeTab === tab
                         ? 'bg-primary text-primary-foreground shadow-lg transition-all duration-200'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-150 hover:shadow-md'
-                    } ${!isVisible ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}
+                    }`}
                     onClick={() => setActiveTab(tab)}
-                    style={{
-                      transition: isVisible 
-                        ? 'all 0.15s ease-out' 
-                        : `all 0.7s ease-out ${600 + index * 100}ms`
-                    }}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </button>
@@ -323,9 +305,7 @@ const BrandDashboard: React.FC = () => {
             </div>
 
             {/* Header Right - User Profile */}
-            <div className={`relative transition-all duration-700 ease-out ${
-              isVisible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
-            }`} style={{transitionDelay: '300ms'}} ref={dropdownRef}>
+            <div className="relative" ref={dropdownRef}>
               <div className="flex items-center space-x-3">
                 <div className="text-right">
                   <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
@@ -382,9 +362,7 @@ const BrandDashboard: React.FC = () => {
       {/* Main Content */}
       <main className="relative z-10 px-6 py-8">
         {/* Welcome Section */}
-        <div className={`mb-8 transition-all duration-800 ease-out ${
-          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-        }`} style={{transitionDelay: '600ms'}}>
+        <div className="mb-8">
           <h2 className="text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
             Welcome back, {user?.name || 'Brand'}! 👋
           </h2>
@@ -394,9 +372,7 @@ const BrandDashboard: React.FC = () => {
         </div>
 
         {/* Quick Stats Cards */}
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 transition-all duration-900 ease-out ${
-          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-        }`} style={{transitionDelay: '800ms'}}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
             {
               id: 'create',
@@ -460,9 +436,7 @@ const BrandDashboard: React.FC = () => {
         </div>
 
         {/* Content Based on Active Tab */}
-        <div className={`transition-all duration-1000 ease-out ${
-          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-        }`} style={{transitionDelay: '1200ms'}}>
+        <div>
           {activeTab === 'dashboard' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Recent Campaigns */}
