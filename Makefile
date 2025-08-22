@@ -4,24 +4,18 @@
 # Main commands for Docker setup
 .PHONY: up
 up:
-	@echo "Starting SponsorConnect with Docker..."
-	@echo "Using MongoDB Atlas (cloud database)"
-	@docker-compose up --build -d
+	docker-compose up --build -d
 	@echo "Application is starting up!"
 	@echo "Frontend: http://localhost:3000"
 	@echo "Backend:  http://localhost:8080"
 	@echo "Health:   http://localhost:8080/api/health"
 
-.PHONY: dev
-dev:
-	@echo "Starting SponsorConnect in Development Mode..."
-	@echo "Using MongoDB Atlas with hot reload"
-	@docker-compose -f docker-compose.dev.yaml up --build
-	@echo "Development environment ready!"
+.PHONY: stop 
+stop:
+	@docker compose stop 
 
 .PHONY: down
 down:
-	@echo "Stopping SponsorConnect..."
 	@docker-compose down
 	@docker-compose -f docker-compose.dev.yaml down
 	@echo "Application stopped!"
@@ -43,7 +37,7 @@ clean:
 
 .PHONY: status
 status:
-	@echo "SponsorConnect Status:"
+	@echo "Status: "
 	@docker-compose ps
 
 # Health check
