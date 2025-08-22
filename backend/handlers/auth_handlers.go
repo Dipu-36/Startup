@@ -123,13 +123,18 @@ func (h *Handlers) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sanitizer := createSanitizer()
+	sanitizedName := sanitizer.Sanitize(req.Name)
+	sanitizedEmail := sanitizer.Sanitize(req.Email)
+	sanitizedUserType := sanitizer.Sanitize(req.UserType)
+
 	// Create user
 	user := storage.User{
 		ID:        primitive.NewObjectID(),
-		Email:     req.Email,
+		Email:     sanitizedEmail,
 		Password:  string(hashedPassword),
-		Name:      req.Name,
-		UserType:  req.UserType,
+		Name:      sanitizedName,
+		UserType:  sanitizedUserType,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}

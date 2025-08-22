@@ -52,13 +52,21 @@ func (h *Handlers) CreateCampaignHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	sanitizer := createSanitizer()
+	sanitizedDescription := sanitizer.Sanitize(req.Description)
+	sanitizedContentGuidelines := sanitizer.Sanitize(req.ContentGuidelines)
+	sanitizedProductDetails := sanitizer.Sanitize(req.ProductDetails)
+	sanitizedReferenceLinks := sanitizer.Sanitize(req.ReferenceLinks)
+	sanitizedTitle := sanitizer.Sanitize(req.Title)
+
 	// Create campaign
 	campaign := storage.Campaign{
-		ID:           primitive.NewObjectID(),
-		BrandID:      userObjectID,
-		BrandName:    dbUser.Name,
-		Title:        req.Title,
-		Description:  req.Description,
+		ID:        primitive.NewObjectID(),
+		BrandID:   userObjectID,
+		BrandName: dbUser.Name,
+		Title:     sanitizedTitle,
+
+		Description:  sanitizedDescription,
 		Category:     req.Category,
 		StartDate:    req.StartDate,
 		EndDate:      req.EndDate,
@@ -70,15 +78,15 @@ func (h *Handlers) CreateCampaignHandler(w http.ResponseWriter, r *http.Request)
 
 		ContentFormat:     req.ContentFormat,
 		NumberOfPosts:     req.NumberOfPosts,
-		ContentGuidelines: req.ContentGuidelines,
+		ContentGuidelines: sanitizedContentGuidelines,
 		ApprovalRequired:  req.ApprovalRequired,
 
 		CompensationType: req.CompensationType,
 		PaymentAmount:    req.PaymentAmount,
-		ProductDetails:   req.ProductDetails,
+		ProductDetails:   sanitizedProductDetails,
 
 		BannerImageURL: req.BannerImageURL,
-		ReferenceLinks: req.ReferenceLinks,
+		ReferenceLinks: sanitizedReferenceLinks,
 
 		Status:     req.Status,
 		Applicants: 0,
