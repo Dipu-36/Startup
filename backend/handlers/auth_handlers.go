@@ -59,6 +59,17 @@ func (h *Handlers) LoginRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Set the JWT as an httpOnly cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",              //Name of the cookie
+		Value:    token,                //JWT string
+		HttpOnly: true,                 //makes it inaccessible to JS
+		Secure:   false,                //TODO: Change when deploying
+		SameSite: http.SameSiteLaxMode, //Important for localhost development
+		Path:     "/",                  // Avaialbel on all routes
+		MaxAge:   86400,                //this is 24 hours in seconds
+	})
+
 	// Return response
 	response := storage.AuthResponse{
 		Token: token,
@@ -135,6 +146,17 @@ func (h *Handlers) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error generating token", http.StatusInternalServerError)
 		return
 	}
+
+	//Set the JWT as an httpOnly cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",              //Name of the cookie
+		Value:    token,                //JWT string
+		HttpOnly: true,                 //makes it inaccessible to JS
+		Secure:   false,                //TODO: Change when deploying
+		SameSite: http.SameSiteLaxMode, //Important for localhost development
+		Path:     "/",                  // Avaialbel on all routes
+		MaxAge:   86400,                //this is 24 hours in seconds
+	})
 
 	// Return response
 	response := storage.AuthResponse{

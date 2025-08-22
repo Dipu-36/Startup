@@ -69,18 +69,29 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 // AuthMiddleware is an HTTP middleware that enforces JWT authentication it returns the extracted user claims in the request context
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			http.Error(w, "Authorization header required", http.StatusUnauthorized)
-			return
-		}
+		var tokenString string
+		var err error
 
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		if tokenString == authHeader {
-			http.Error(w, "Bearer token required", http.StatusUnauthorized)
-			return
-		}
+		//To get the token from the httpOnly Cookie
+		cookie, err := r.Cookie("token")
+		if err == nil {
+			tokenString = cookie.Value
+		} else {
+			//Fallback method to get the token from the Authorization headerauthHeader
+			authHeader := r.Header.Get("Authorization")
 
+			if authHeader == "" {
+				http.Error(w, "Authorization header required", http.StatusUnauthorized)
+				return
+			}
+
+			if !strings.HasPrefix(authHeader, "Bearer") {
+				http.Error(w, "Authorization header must use Bearer", http.StatusUnauthorized)
+			}
+
+			tokenString = strings.TrimPrefix(authHeader, "Bearer ")
+		}
+		//Validate the JWT token
 		claims, err := ValidateJWT(tokenString)
 		if err != nil {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
