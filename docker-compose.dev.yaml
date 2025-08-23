@@ -28,7 +28,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://localhost:8080/api
+      - REACT_APP_API_URL=http://backend:8080/api
       - CHOKIDAR_USEPOLLING=true  # Better file watching on Windows
       - WATCHPACK_POLLING=true    # Additional polling for hot reload
     volumes:

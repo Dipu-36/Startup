@@ -355,45 +355,68 @@ const CreateCampaign: React.FC = () => {
       
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur-lg">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+        <div className="px-4 sm:px-6 py-3 sm:py-4">
+          {/* Mobile Layout (< 640px) */}
+          <div className="sm:hidden">
+            <div className="flex items-center justify-between mb-2">
               <button 
                 onClick={() => navigate('/brand/dashboard')}
-                className="flex items-center space-x-2 px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200 hover:scale-105"
+                className="flex items-center space-x-2 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span className="font-medium">Back to Dashboard</span>
+                <span className="font-medium text-sm">Back</span>
+              </button>
+              
+              <button 
+                onClick={() => handleSubmit(true)}
+                className="flex items-center space-x-2 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all duration-200 text-sm"
+              >
+                <Save className="w-4 h-4" />
+                <span className="font-medium">Save</span>
+              </button>
+            </div>
+            <h1 className="text-lg font-display font-bold text-foreground tracking-tight text-center">Create Campaign</h1>
+          </div>
+
+          {/* Desktop Layout (≥ 640px) */}
+          <div className="hidden sm:flex items-center justify-between">
+            <div className="flex items-center space-x-3 lg:space-x-4">
+              <button 
+                onClick={() => navigate('/brand/dashboard')}
+                className="flex items-center space-x-2 px-3 lg:px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200 hover:scale-105"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="font-medium text-sm lg:text-base">Back to Dashboard</span>
               </button>
               <div className="h-6 w-px bg-border"></div>
-              <h1 className="text-2xl font-display font-bold text-foreground tracking-tight">Create New Campaign</h1>
+              <h1 className="text-xl lg:text-2xl font-display font-bold text-foreground tracking-tight">Create New Campaign</h1>
             </div>
             
             <button 
               onClick={() => handleSubmit(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg"
+              className="flex items-center space-x-2 px-3 lg:px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg"
             >
               <Save className="w-4 h-4" />
-              <span className="font-medium">Save Draft</span>
+              <span className="font-medium text-sm lg:text-base">Save Draft</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 px-6 py-8">
+      <main className="relative z-10 px-4 sm:px-6 py-6 sm:py-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Form Content - Left Side */}
             <div className="lg:col-span-2 space-y-8">
               
               {/* Campaign Basics */}
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white">
-                    <Rocket className="w-5 h-5" />
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white">
+                    <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <h3 className="text-lg font-display font-semibold text-foreground">Campaign Basics</h3>
+                  <h3 className="text-base sm:text-lg font-display font-semibold text-foreground">Campaign Basics</h3>
                 </div>
                 
                 <div className="space-y-6">
@@ -494,12 +517,12 @@ const CreateCampaign: React.FC = () => {
               </div>
 
               {/* Target Audience & Requirements */}
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white">
-                    <Target className="w-5 h-5" />
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white">
+                    <Target className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <h3 className="text-lg font-display font-semibold text-foreground">Target Audience & Requirements</h3>
+                  <h3 className="text-base sm:text-lg font-display font-semibold text-foreground">Target Audience & Requirements</h3>
                 </div>
 
                 {/* Target Audience Subsection */}
@@ -672,12 +695,12 @@ const CreateCampaign: React.FC = () => {
               </div>
 
               {/* Deliverables */}
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center text-white">
-                    <FileText className="w-5 h-5" />
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center text-white">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <h3 className="text-lg font-display font-semibold text-foreground">Deliverables</h3>
+                  <h3 className="text-base sm:text-lg font-display font-semibold text-foreground">Deliverables</h3>
                 </div>
                 
                 <div className="space-y-6">
@@ -734,12 +757,12 @@ const CreateCampaign: React.FC = () => {
               </div>
 
               {/* Compensation & Perks */}
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center text-white">
-                    <DollarSign className="w-5 h-5" />
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center text-white">
+                    <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <h3 className="text-lg font-display font-semibold text-foreground">Compensation & Perks</h3>
+                  <h3 className="text-base sm:text-lg font-display font-semibold text-foreground">Compensation & Perks</h3>
                 </div>
                 
                 <div className="space-y-6">
@@ -785,12 +808,12 @@ const CreateCampaign: React.FC = () => {
               </div>
 
               {/* Media & Assets */}
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg flex items-center justify-center text-white">
-                    <Image className="w-5 h-5" />
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg flex items-center justify-center text-white">
+                    <Image className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <h3 className="text-lg font-display font-semibold text-foreground">Media & Assets</h3>
+                  <h3 className="text-base sm:text-lg font-display font-semibold text-foreground">Media & Assets</h3>
                 </div>
                 
                 <div className="space-y-6">
@@ -846,14 +869,14 @@ const CreateCampaign: React.FC = () => {
             {/* Live Preview - Right Side */}
             <div className="lg:col-span-1">
               <div className="sticky top-24">
-                <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                  <div className="flex items-center space-x-3 mb-6">
+                <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center space-x-3 mb-4 sm:mb-6">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <h3 className="text-lg font-display font-semibold text-foreground">Live Preview</h3>
+                    <h3 className="text-base sm:text-lg font-display font-semibold text-foreground">Live Preview</h3>
                   </div>
                   
                   {/* Banner Image */}
-                  <div className="relative mb-6 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
+                  <div className="relative mb-4 sm:mb-6 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
                     {formData.bannerImage && formData.bannerImage instanceof File ? (
                       <img src={URL.createObjectURL(formData.bannerImage)} alt="Campaign Banner" className="w-full h-32 object-cover" />
                     ) : (

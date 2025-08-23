@@ -11,7 +11,9 @@ import {
   CreditCard, 
   Bell, 
   HelpCircle, 
-  LogOut 
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface Campaign {
@@ -70,6 +72,7 @@ const BrandDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -248,22 +251,41 @@ const BrandDashboard: React.FC = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   const handleProfileAction = (action: string) => {
     console.log(`Profile action: ${action}`);
     setIsProfileDropdownOpen(false);
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdown and mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsProfileDropdownOpen(false);
+        setIsMobileMenuOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Close mobile menu when screen size changes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) { // md breakpoint
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
@@ -278,23 +300,23 @@ const BrandDashboard: React.FC = () => {
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
-        <div className="px-6 py-4">
+        <div className="px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Header Left */}
-            <div className="flex items-center space-x-8">
-              <h1 className="text-2xl font-display font-bold text-primary hover:scale-105 transition-transform duration-300 cursor-default tracking-tight">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-xl sm:text-2xl font-display font-bold text-primary hover:scale-105 transition-transform duration-300 cursor-default tracking-tight">
                 {APP_NAME}
               </h1>
               
-              {/* Navigation */}
-              <nav className="flex space-x-1">
-                {(['dashboard', 'campaigns', 'applications'] as const).map((tab, index) => (
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex space-x-1">
+                {(['dashboard', 'campaigns', 'applications'] as const).map((tab) => (
                   <button
                     key={tab}
-                    className={`px-4 py-2 rounded-lg font-medium transform hover:scale-105 ${
+                    className={`px-4 py-2 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
                       activeTab === tab
-                        ? 'bg-primary text-primary-foreground shadow-lg transition-all duration-200'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-150 hover:shadow-md'
+                        ? 'bg-primary text-primary-foreground shadow-lg'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:shadow-md'
                     }`}
                     onClick={() => setActiveTab(tab)}
                   >
@@ -304,75 +326,114 @@ const BrandDashboard: React.FC = () => {
               </nav>
             </div>
 
-            {/* Header Right - User Profile */}
-            <div className="relative" ref={dropdownRef}>
-              <div className="flex items-center space-x-3">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email || 'user@example.com'}</p>
-                </div>
-                <button
-                  onClick={toggleProfileDropdown}
-                  className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-primary-foreground font-semibold hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                </button>
-              </div>
+            {/* Header Right */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={toggleMobileMenu}
+                className="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted/50 transition-colors duration-200"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-5 h-5 text-foreground" />
+                ) : (
+                  <Menu className="w-5 h-5 text-foreground" />
+                )}
+              </button>
 
-              {/* Profile Dropdown */}
-              {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-card/95 backdrop-blur-sm border border-border rounded-xl shadow-xl py-2 animate-fadeIn">
-                  <div className="px-4 py-2 border-b border-border">
-                    <p className="font-medium text-foreground">{user?.name || 'User'}</p>
-                    <p className="text-sm text-muted-foreground">{user?.email || 'user@example.com'}</p>
+              {/* User Profile */}
+              <div className="relative" ref={dropdownRef}>
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email || 'user@example.com'}</p>
                   </div>
-                  
-                  {[
-                    { icon: <User className="w-4 h-4" />, label: 'Profile Settings', action: 'profile' },
-                    { icon: <CreditCard className="w-4 h-4" />, label: 'Billing & Plans', action: 'billing' },
-                    { icon: <Bell className="w-4 h-4" />, label: 'Notifications', action: 'notifications' },
-                    { icon: <HelpCircle className="w-4 h-4" />, label: 'Help & Support', action: 'help' },
-                  ].map((item) => (
-                    <button
-                      key={item.action}
-                      className="w-full px-4 py-2 text-left flex items-center space-x-3 hover:bg-muted/50 transition-colors duration-200"
-                      onClick={() => handleProfileAction(item.action)}
-                    >
-                      <span>{item.icon}</span>
-                      <span className="text-sm text-foreground">{item.label}</span>
-                    </button>
-                  ))}
-                  
-                  <div className="border-t border-border mt-2 pt-2">
-                    <button
-                      className="w-full px-4 py-2 text-left flex items-center space-x-3 hover:bg-destructive/10 text-destructive transition-colors duration-200"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span className="text-sm">Sign Out</span>
-                    </button>
-                  </div>
+                  <button
+                    onClick={toggleProfileDropdown}
+                    className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-primary-foreground font-semibold hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </button>
                 </div>
-              )}
+
+                {/* Profile Dropdown */}
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-card/95 backdrop-blur-sm border border-border rounded-xl shadow-xl py-2 animate-dropdown">
+                    <div className="px-4 py-2 border-b border-border">
+                      <p className="font-medium text-foreground">{user?.name || 'User'}</p>
+                      <p className="text-sm text-muted-foreground">{user?.email || 'user@example.com'}</p>
+                    </div>
+                    
+                    {[
+                      { icon: <User className="w-4 h-4" />, label: 'Profile Settings', action: 'profile' },
+                      { icon: <CreditCard className="w-4 h-4" />, label: 'Billing & Plans', action: 'billing' },
+                      { icon: <Bell className="w-4 h-4" />, label: 'Notifications', action: 'notifications' },
+                      { icon: <HelpCircle className="w-4 h-4" />, label: 'Help & Support', action: 'help' },
+                    ].map((item) => (
+                      <button
+                        key={item.action}
+                        className="w-full px-4 py-2 text-left flex items-center space-x-3 hover:bg-muted/50 transition-colors duration-200"
+                        onClick={() => handleProfileAction(item.action)}
+                      >
+                        <span>{item.icon}</span>
+                        <span className="text-sm text-foreground">{item.label}</span>
+                      </button>
+                    ))}
+                    
+                    <div className="border-t border-border mt-2 pt-2">
+                      <button
+                        className="w-full px-4 py-2 text-left flex items-center space-x-3 hover:bg-destructive/10 text-destructive transition-colors duration-200"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-sm">Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Mobile Navigation Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-border pt-4 animate-dropdown">
+              <nav className="flex flex-col space-y-2">
+                {(['dashboard', 'campaigns', 'applications'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    className={`px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 ${
+                      activeTab === tab
+                        ? 'bg-primary text-primary-foreground shadow-lg'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                    onClick={() => {
+                      setActiveTab(tab);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 px-6 py-8">
+      <main className="relative z-10 px-4 sm:px-6 py-6 sm:py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
             Welcome back, {user?.name || 'Brand'}! 👋
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Here's what's happening with your campaigns today.
           </p>
         </div>
 
         {/* Quick Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
           {[
             {
               id: 'create',
@@ -410,26 +471,44 @@ const BrandDashboard: React.FC = () => {
           ].map((stat, index) => (
             <div
               key={stat.id}
-              className={`bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:bg-card/70 group ${
+              className={`bg-card/50 backdrop-blur-sm border border-border rounded-xl p-3 sm:p-4 md:p-6 cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:bg-card/70 group ${
                 hoveredCard === stat.id ? 'ring-2 ring-primary/20' : ''
               }`}
               onMouseEnter={() => setHoveredCard(stat.id)}
               onMouseLeave={() => setHoveredCard(null)}
               onClick={stat.action}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform duration-300`}>
+              {/* Mobile Layout (2x2 grid) */}
+              <div className="md:hidden flex flex-col items-center text-center space-y-2">
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300 [&>svg]:w-4 [&>svg]:h-4`}>
                   {stat.icon}
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                <div>
+                  <p className="text-base sm:text-lg font-bold text-foreground group-hover:text-primary transition-colors duration-300">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-muted-foreground">{stat.title}</p>
-                  <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                  <p className="text-xs text-muted-foreground leading-tight">{stat.title}</p>
+                  <p className="text-xs text-muted-foreground leading-tight">{stat.subtitle}</p>
                 </div>
+                <div className={`w-full h-1 bg-gradient-to-r ${stat.color} rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
               </div>
-              <div className={`w-full h-1 bg-gradient-to-r ${stat.color} rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
+
+              {/* Desktop Layout (horizontal) */}
+              <div className="hidden md:block">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
+                    {stat.icon}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                      {stat.value}
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{stat.title}</p>
+                    <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                  </div>
+                </div>
+                <div className={`w-full h-1 bg-gradient-to-r ${stat.color} rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
+              </div>
             </div>
           ))}
         </div>
@@ -437,11 +516,11 @@ const BrandDashboard: React.FC = () => {
         {/* Content Based on Active Tab */}
         <div>
           {activeTab === 'dashboard' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
               {/* Recent Campaigns */}
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                  <span className="mr-2">🚀</span>
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4 flex items-center">
+                  <span className="mr-2"></span>
                   Recent Campaigns
                 </h3>
                 <div className="space-y-3">
