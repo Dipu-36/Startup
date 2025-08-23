@@ -67,7 +67,7 @@ interface Application {
   campaignName: string;
 }
 
-const BrandDashboard: React.FC = () => {
+const BrandDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
@@ -75,6 +75,7 @@ const BrandDashboard: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -263,8 +264,12 @@ const BrandDashboard: React.FC = () => {
   // Close dropdown and mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Close profile dropdown if clicking outside of it
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsProfileDropdownOpen(false);
+      }
+      // Close mobile menu if clicking outside of it (but not when clicking mobile nav buttons)
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setIsMobileMenuOpen(false);
       }
     };
@@ -309,11 +314,11 @@ const BrandDashboard: React.FC = () => {
               </h1>
               
               {/* Desktop Navigation */}
-              <nav className="hidden md:flex space-x-1">
+              <nav className="hidden md:flex space-x-4">
                 {(['dashboard', 'campaigns', 'applications'] as const).map((tab) => (
                   <button
                     key={tab}
-                    className={`px-4 py-2 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
+                    className={`px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
                       activeTab === tab
                         ? 'bg-primary text-primary-foreground shadow-lg'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:shadow-md'
@@ -396,7 +401,7 @@ const BrandDashboard: React.FC = () => {
 
           {/* Mobile Navigation Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 border-t border-border pt-4 animate-dropdown">
+            <div ref={mobileMenuRef} className="md:hidden mt-4 pb-4 border-t border-border pt-4 animate-dropdown">
               <nav className="flex flex-col space-y-2">
                 {(['dashboard', 'campaigns', 'applications'] as const).map((tab) => (
                   <button
@@ -407,6 +412,7 @@ const BrandDashboard: React.FC = () => {
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     }`}
                     onClick={() => {
+                      console.log(`Mobile tab clicked: ${tab}`);
                       setActiveTab(tab);
                       setIsMobileMenuOpen(false);
                     }}
@@ -422,103 +428,104 @@ const BrandDashboard: React.FC = () => {
 
       {/* Main Content */}
       <main className="relative z-10 px-4 sm:px-6 py-6 sm:py-8">
-        {/* Welcome Section */}
-        <div className="mb-6 sm:mb-8">
-          <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
-            Welcome back, {user?.name || 'Brand'}! 👋
-          </h2>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Here's what's happening with your campaigns today.
-          </p>
-        </div>
-
-        {/* Quick Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
-          {[
-            {
-              id: 'create',
-              icon: <Plus className="w-6 h-6" />,
-              title: 'Create',
-              subtitle: 'Campaign',
-              value: 'New',
-              color: 'from-blue-500 to-blue-600',
-              action: handleCreateCampaign
-            },
-            {
-              id: 'active',
-              icon: <Rocket className="w-6 h-6" />,
-              title: 'Active',
-              subtitle: 'Campaigns',
-              value: campaigns.filter(c => c.status === 'active').length,
-              color: 'from-green-500 to-green-600'
-            },
-            {
-              id: 'pending',
-              icon: <Clock className="w-6 h-6" />,
-              title: 'Pending',
-              subtitle: 'Applications',
-              value: applications.filter(a => a.status === 'pending').length,
-              color: 'from-yellow-500 to-yellow-600'
-            },
-            {
-              id: 'approved',
-              icon: <CheckCircle className="w-6 h-6" />,
-              title: 'Approved',
-              subtitle: 'Applications',
-              value: applications.filter(a => a.status === 'approved').length,
-              color: 'from-purple-500 to-purple-600'
-            }
-          ].map((stat, index) => (
-            <div
-              key={stat.id}
-              className={`bg-card/50 backdrop-blur-sm border border-border rounded-xl p-3 sm:p-4 md:p-6 cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:bg-card/70 group ${
-                hoveredCard === stat.id ? 'ring-2 ring-primary/20' : ''
-              }`}
-              onMouseEnter={() => setHoveredCard(stat.id)}
-              onMouseLeave={() => setHoveredCard(null)}
-              onClick={stat.action}
-            >
-              {/* Mobile Layout (2x2 grid) */}
-              <div className="md:hidden flex flex-col items-center text-center space-y-2">
-                <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300 [&>svg]:w-4 [&>svg]:h-4`}>
-                  {stat.icon}
-                </div>
-                <div>
-                  <p className="text-base sm:text-lg font-bold text-foreground group-hover:text-primary transition-colors duration-300">
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-muted-foreground leading-tight">{stat.title}</p>
-                  <p className="text-xs text-muted-foreground leading-tight">{stat.subtitle}</p>
-                </div>
-                <div className={`w-full h-1 bg-gradient-to-r ${stat.color} rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
-              </div>
-
-              {/* Desktop Layout (horizontal) */}
-              <div className="hidden md:block">
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
-                    {stat.icon}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
-                      {stat.value}
-                    </p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
-                  </div>
-                </div>
-                <div className={`w-full h-1 bg-gradient-to-r ${stat.color} rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
-              </div>
-            </div>
-          ))}
-        </div>
-
         {/* Content Based on Active Tab */}
         <div>
           {activeTab === 'dashboard' && (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
-              {/* Recent Campaigns */}
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+            <>
+              {/* Welcome Section */}
+              <div className="mb-6 sm:mb-8">
+                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
+                  Welcome back, {user?.name || 'Brand'}! 👋
+                </h2>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Here's what's happening with your campaigns today.
+                </p>
+              </div>
+
+              {/* Quick Stats Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+                {[
+                  {
+                    id: 'create',
+                    icon: <Plus className="w-6 h-6" />,
+                    title: 'Create',
+                    subtitle: 'Campaign',
+                    value: 'New',
+                    color: 'from-blue-500 to-blue-600',
+                    action: handleCreateCampaign
+                  },
+                  {
+                    id: 'active',
+                    icon: <Rocket className="w-6 h-6" />,
+                    title: 'Active',
+                    subtitle: 'Campaigns',
+                    value: campaigns.filter(c => c.status === 'active').length,
+                    color: 'from-green-500 to-green-600'
+                  },
+                  {
+                    id: 'pending',
+                    icon: <Clock className="w-6 h-6" />,
+                    title: 'Pending',
+                    subtitle: 'Applications',
+                    value: applications.filter(a => a.status === 'pending').length,
+                    color: 'from-yellow-500 to-yellow-600'
+                  },
+                  {
+                    id: 'approved',
+                    icon: <CheckCircle className="w-6 h-6" />,
+                    title: 'Approved',
+                    subtitle: 'Applications',
+                    value: applications.filter(a => a.status === 'approved').length,
+                    color: 'from-purple-500 to-purple-600'
+                  }
+                ].map((stat, index) => (
+                  <div
+                    key={stat.id}
+                    className={`bg-card/50 backdrop-blur-sm border border-border rounded-xl p-3 sm:p-4 md:p-6 cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:bg-card/70 group ${
+                      hoveredCard === stat.id ? 'ring-2 ring-primary/20' : ''
+                    }`}
+                    onMouseEnter={() => setHoveredCard(stat.id)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                    onClick={stat.action}
+                  >
+                    {/* Mobile Layout (2x2 grid) */}
+                    <div className="md:hidden flex flex-col items-center text-center space-y-2">
+                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300 [&>svg]:w-4 [&>svg]:h-4`}>
+                        {stat.icon}
+                      </div>
+                      <div>
+                        <p className="text-base sm:text-lg font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                          {stat.value}
+                        </p>
+                        <p className="text-xs text-muted-foreground leading-tight">{stat.title}</p>
+                        <p className="text-xs text-muted-foreground leading-tight">{stat.subtitle}</p>
+                      </div>
+                      <div className={`w-full h-1 bg-gradient-to-r ${stat.color} rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
+                    </div>
+
+                    {/* Desktop Layout (horizontal) */}
+                    <div className="hidden md:block">
+                      <div className="flex items-center justify-between mb-3 sm:mb-4">
+                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
+                          {stat.icon}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                            {stat.value}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{stat.title}</p>
+                          <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                        </div>
+                      </div>
+                      <div className={`w-full h-1 bg-gradient-to-r ${stat.color} rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
+                {/* Recent Campaigns */}
+                <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4 flex items-center">
                   <span className="mr-2"></span>
                   Recent Campaigns
@@ -578,10 +585,22 @@ const BrandDashboard: React.FC = () => {
                 </div>
               </div>
             </div>
+            </>
           )}
 
           {activeTab === 'campaigns' && (
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
+            <>
+              {/* Campaigns Header */}
+              <div className="mb-6 sm:mb-8">
+                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
+                  📊 Campaign Management
+                </h2>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Manage all your active and past campaigns.
+                </p>
+              </div>
+
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-foreground">All Campaigns</h3>
                 <button 
@@ -628,10 +647,22 @@ const BrandDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+            </>
           )}
 
           {activeTab === 'applications' && (
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
+            <>
+              {/* Applications Header */}
+              <div className="mb-6 sm:mb-8">
+                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
+                  📝 Creator Applications
+                </h2>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Review and manage applications from content creators.
+                </p>
+              </div>
+
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
               <h3 className="text-lg font-semibold text-foreground mb-6">All Applications</h3>
               <div className="space-y-4">
                 {applications.map((application) => (
@@ -660,6 +691,7 @@ const BrandDashboard: React.FC = () => {
                 ))}
               </div>
             </div>
+            </>
           )}
         </div>
       </main>
