@@ -1,3 +1,0 @@
-/* App minimal reset - keep small and Tailwind-friendly */
-* { box-sizing: border-box; }
-.app-legacy-stub { --app-legacy: 0; }

@@ -1,5 +1,0 @@
-@import '../globals.css';
-/* Tailwind compatibility stub - AuthHeader
-  Small component styles migrated to Tailwind; preserve global import.
-  Keep a tiny non-empty rule to avoid empty-ruleset lint issues. */
-.authheader-legacy-stub { --authheader-legacy: 0; }

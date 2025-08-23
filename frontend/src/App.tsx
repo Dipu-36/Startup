@@ -1,12 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import './styles/App.css';
 import { LandingPage, LoginPage, SignupPage, BrandDashboard, ProtectedRoute, CreateCampaign } from './components';
 
 function App() {
   return (
-    <div className="App">
+    <div className="min-h-screen">
       <AuthProvider>
         <Router>
           <Routes>
