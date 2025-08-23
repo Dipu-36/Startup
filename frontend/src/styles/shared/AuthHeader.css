@@ -1,35 +1,5 @@
-/* Auth Header Component Styles */
 @import '../globals.css';
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
-
-.auth-header {
-  margin-bottom: 30px;
-}
-
-.auth-header-content {
-  text-align: center;
-}
-
-.auth-header-content h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0D0425;
-  margin: 0 0 8px 0;
-  font-family: 'Manrope', sans-serif;
-  letter-spacing: -0.5px;
-}
-
-.auth-header-content p {
-  color: #0D0425;
-  margin: 0;
-  font-size: 14px;
-  font-family: 'Manrope', sans-serif;
-  opacity: 0.7;
-}
-
-/* Responsive Design */
-@media (max-width: 480px) {
-  .auth-header-content h1 {
-    font-size: 24px;
-  }
-}
+/* Tailwind compatibility stub - AuthHeader
+  Small component styles migrated to Tailwind; preserve global import.
+  Keep a tiny non-empty rule to avoid empty-ruleset lint issues. */
+.authheader-legacy-stub { --authheader-legacy: 0; }

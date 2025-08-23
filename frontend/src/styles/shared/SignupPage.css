@@ -2,20 +2,15 @@
 @import '../globals.css';
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
 
-.signup-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f3ff 0%, #e9d5ff 25%, #d8b4fe 50%, #c084fc 75%, #a855f7 90%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  font-family: 'Manrope', sans-serif;
-}
-
 .signup-container {
   width: 100%;
   max-width: 450px;
 }
+/* Tailwind compatibility stub - SignupPage
+  Legacy styles removed. Components should use Tailwind utilities.
+  Preserve the global import and include a tiny non-empty rule to avoid
+  linter/empty-ruleset issues. */
+.signuppage-legacy-stub { --signuppage-legacy: 0; }
 
 .signup-form-wrapper {
   background: rgba(255, 255, 255, 0.9);

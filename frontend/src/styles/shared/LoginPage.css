@@ -2,15 +2,11 @@
 @import '../globals.css';
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
 
-.login-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f3ff 0%, #e9d5ff 25%, #d8b4fe 50%, #c084fc 75%, #a855f7 90%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  font-family: 'Manrope', sans-serif;
-}
+/* Tailwind compatibility stub - LoginPage
+  Legacy styles removed. Components should use Tailwind utilities.
+  Preserve globals import and include a tiny non-empty rule to avoid
+  linter/empty-ruleset issues. */
+.loginpage-legacy-stub { --loginpage-legacy: 0; }
 
 .login-container {
   width: 100%;

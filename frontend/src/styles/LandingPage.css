@@ -136,68 +136,11 @@
   .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
-/* Original Landing Page Styles (preserved for fallback) */
-.landing-page {
-  min-height: 100vh;
-  width: 100%;
-  background: linear-gradient(135deg, #f5f3ff 0%, #e9d5ff 25%, #d8b4fe 50%, #c084fc 75%, #a855f7 90%);
-  position: relative;
-  overflow-x: hidden;
-  overflow-y: auto;
-  font-family: 'Manrope', sans-serif;
-}
-
-/* Navigation */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 60px;
-  position: relative;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.nav-brand h2 {
-  color: #0D0425;
-  font-weight: 700;
-  font-size: 24px;
-  margin: 0;
-  font-family: 'Manrope', sans-serif;
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-}
-
-.nav-links a {
-  color: #0D0425;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 14px;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  padding: 8px 0;
-  border-bottom: 2px solid transparent;
-}
-
-.nav-links a:hover {
-  border-bottom: 2px solid #C645F9;
-  transform: translateY(-2px);
-  color: #C645F9;
-}
-
-.nav-buttons {
-  display: flex;
-  gap: 15px;
-}
-
-.btn {
-  padding: 12px 24px;
+/* The landing page previously had extensive component styles here.
+  Most landing styles have been migrated to Tailwind in components.
+  Preserve the design tokens and utility classes above; provide a
+  minimal non-empty fallback to avoid linter/consumer breakage. */
+.landingpage-legacy-stub { --landingpage-legacy: 0; }
   border: none;
   border-radius: 25px;
   font-weight: 600;
