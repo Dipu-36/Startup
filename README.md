@@ -1,8 +1,8 @@
-# 🚀 SponsorConnect - One Command Setup
+#  SponsorConnect - One Command Setup
 
 **An influencer marketing platform built with Go and React**
 
-## ⚡ Quick Start (Recommended)
+##  Quick Start (Recommended)
 
 1. **Clone the repository**
    ```bash
@@ -22,11 +22,22 @@
    - Generate a secure JWT secret and update `JWT_SECRET` in `.env`
 
 4. **Start the application**
-   ```bash
-   make up
-   ```
+    - You need to go to youur terminal and first build the containers using the command make update
+    - Then to stop the application use the command make stop
+    - Then to restart the container use make Start
 
-That's it! 🎉
+5. **TO DO before deployment**
+    - In backend/handlers/auth_handlers.go file set the http.Secure to true 
+    - Use HTTPS instead of HTTPS
+
+
+## CHANGES THA HAVE BEEN Made
+**The key changes are as follows**
+    - Refactored the codebase to specifc packages and directories for better readability
+    - Added Database abstraction layer
+    - Added XSS protection using bluemonday package and httpOnly cookies
+    - Added CSRF protection using the gorrilla/csrf package
+    - Added documentation to handlers and storage package
 
 ## 🌐 Access Your Application
 
