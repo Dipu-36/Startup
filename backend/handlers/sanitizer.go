@@ -1,7 +1,12 @@
+// package handlers contains all HTTP request handlers for the application's API routes
+// These handlers process requests interact with data storage layer and return appropiate HTTP response.
+
 package handlers
 
 import "github.com/microcosm-cc/bluemonday"
 
+// createSanitizer function sanitizes permissible HTML elements and attributes
+// - this function helps in blocking elements and attributes that might be used in XSS attacks
 func createSanitizer() *bluemonday.Policy {
 
 	p := bluemonday.StrictPolicy()
