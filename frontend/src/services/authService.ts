@@ -102,7 +102,7 @@ class AuthService {
     return response.json();
   }
 
-  async logout(): void {
+    logout(): void {
    // localStorage.removeItem('token');
    // localStorage.removeItem('user');
   }

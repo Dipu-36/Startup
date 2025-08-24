@@ -5,15 +5,25 @@
 .PHONY: up
 up:
 	docker-compose up --build -d
-	@echo "Application is starting up!"
+	@echo "Application has been built and has started!"
 	@echo "Frontend: http://localhost:3000"
 	@echo "Backend:  http://localhost:8080"
 	@echo "Health:   http://localhost:8080/api/health"
-
+#down command is for stopping the containers without tearing them down
+# USE THIS TO STOP CONTAINERS 
 .PHONY: stop 
 stop:
-	@docker compose stop 
-
+	@docker stop sponsorconnect-backend sponsorconnect-frontend
+	@echo "Containers have been stopped"
+#start command is for starting the preexisiting containers
+# USE THIS COMMAND FOR STARTING THE CONTAINERS ONLY IF
+# - No chnges in dependencies of the app has been made
+# - Using this command will save time
+.PHONY: start
+start:
+	@docker start sponsorconnect-backend sponsorconnect-frontend
+	@echo "Starting the containers..."
+#down command is for tearing down and deletng the containers
 .PHONY: down
 down:
 	@docker-compose down
