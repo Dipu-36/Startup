@@ -28,10 +28,10 @@ export interface LoginRequest {
 }
 
 class AuthService {
-  private getAuthHeader(): { Authorization: string } | {} {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  }
+//  private getAuthHeader(): { Authorization: string } | {} {
+  //  const token = localStorage.getItem('token');
+    //return token ? { Authorization: `Bearer ${token}` } : {};
+  //}
 
   async signup(data: SignupRequest): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
@@ -39,6 +39,7 @@ class AuthService {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', //Send cookies with request
       body: JSON.stringify(data),
     });
 
@@ -50,8 +51,8 @@ class AuthService {
     const authResponse: AuthResponse = await response.json();
     
     // Store token in localStorage
-    localStorage.setItem('token', authResponse.token);
-    localStorage.setItem('user', JSON.stringify(authResponse.user));
+   // localStorage.setItem('token', authResponse.token);
+    //localStorage.setItem('user', JSON.stringify(authResponse.user));
     
     return authResponse;
   }
@@ -62,6 +63,7 @@ class AuthService {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', //Send cookies with request
       body: JSON.stringify(data),
     });
 
@@ -73,8 +75,8 @@ class AuthService {
     const authResponse: AuthResponse = await response.json();
     
     // Store token in localStorage
-    localStorage.setItem('token', authResponse.token);
-    localStorage.setItem('user', JSON.stringify(authResponse.user));
+    //localStorage.setItem('token', authResponse.token);
+   // localStorage.setItem('user', JSON.stringify(authResponse.user));
     
     return authResponse;
   }
@@ -84,8 +86,9 @@ class AuthService {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...this.getAuthHeader(),
+       // ...this.getAuthHeader(),
       },
+      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -99,12 +102,12 @@ class AuthService {
     return response.json();
   }
 
-  logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  async logout(): void {
+   // localStorage.removeItem('token');
+   // localStorage.removeItem('user');
   }
 
-  getToken(): string | null {
+ /** getToken(): string | null {
     return localStorage.getItem('token');
   }
 
@@ -115,7 +118,8 @@ class AuthService {
 
   isAuthenticated(): boolean {
     return !!this.getToken();
-  }
+  }*/ 
+
 }
 
 export const authService = new AuthService();
