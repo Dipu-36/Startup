@@ -14,7 +14,9 @@ require (
 require (
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/gorilla/csrf v1.7.3 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
+	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
