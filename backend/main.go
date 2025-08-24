@@ -15,6 +15,13 @@ import (
 	"github.com/rs/cors"
 )
 
+// APIServer represents the main HTTP server instance for the application
+// It encapsulates server configuration routing and dependency management
+// Feilds:
+// - listenaddr: This is the port server listens to
+// - store: the database sotrage interface for data persistence operations
+// - router: the HTTP request router (gorilla/mux) for handling API endpoints
+// - handlers: collection of HTTP handler functions for processing API rquests
 type APIServer struct {
 	listenaddr string
 	store      storage.Storage
@@ -22,6 +29,7 @@ type APIServer struct {
 	handlers   *handlers.Handlers
 }
 
+// NewAPIServer is a constructor function initializes a new APIServer instance.
 func NewAPIServer(port string, db storage.Storage, h *handlers.Handlers) *APIServer {
 	server := &APIServer{
 		listenaddr: port,
@@ -33,6 +41,9 @@ func NewAPIServer(port string, db storage.Storage, h *handlers.Handlers) *APISer
 	return server
 }
 
+// routes configures all the API endpoints and their corresponding handlers
+// this method sets up the routing structure and applies middleware where needed
+// NOTE => Protected routes are routes that use auth.AuthMiddleware for JWT validation
 func (s *APIServer) routes() {
 	api := s.router.PathPrefix("/api").Subrouter()
 
@@ -56,14 +67,25 @@ func (s *APIServer) routes() {
 
 }
 
-// Public routes
+// Run starts the HTTP server and begins listening for incoming requests
+// this method :
+// - configures CORS policies for cross origin requests
+// - applies security middleware
+// - bindss to specific port
+// - handles graceful shitdown on termination signals
+//
+// CORS configuration:
+// - allows request forrm localhost:3000
+// - supports standard HTTP methods
+// - permits all headers
+// - allows credential inclusion (cookies etc)
 func (s *APIServer) Run() {
 	// Setup CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
-		AllowCredentials: true,
+		AllowedHeaders:   []string{"*"}, // Allows all headers
+		AllowCredentials: true,          //Required for httpONly
 	})
 
 	handler := c.Handler(s.router)
@@ -99,13 +121,24 @@ func main() {
 	server.Run()
 
 }
+
+// healthCheck handles server health monitoring requests.
+// This endpoint is used for:
+//   - Load balancer health checks
+//   - Deployment verification
+//   - System monitoring
+//
+// Response includes application name and status information.
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf(`{"status": "OK", "message": "%s"}`, auth.GetAPIMessage())))
 }
 
-// WriteJSON writes JSON response with the given status code, it sets the Content-Type as application-json Content-Type, encodes the provided values to v & returns an error if JSON encoding fails
+// WriteJSON writes JSON response with
+//   - the given status codeit
+//   - it sets the Content-Type as application-json Content-Type,
+//   - encodes the provided values to v & returns an error if JSON encoding fails
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	//sets the content type to
 	w.Header().Set("Content-Type", "application/json")
@@ -122,6 +155,8 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 // This custom type allows handlers to return the errors that will be automatically converts to JSON error responses
 type apiFunc func(http.ResponseWriter, *http.Request) error
 
+// ApiError represents a standardized error response structure
+// this ensures all API errors follow the same JSON format for client consistency.
 type ApiError struct {
 	Error string
 }
