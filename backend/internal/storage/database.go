@@ -1,3 +1,7 @@
+// Package storage defines the structure of the database entites and defines the realtionships between these entites
+// - it also abstracts the Database by creating an interface over which the application interacts
+// - the package uses the DB credentials from the env file and uses it for connection pooling and maintence
+
 package storage
 
 import (
