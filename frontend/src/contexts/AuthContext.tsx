@@ -37,19 +37,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const token = authService.getToken();
-        if (token) {
-          const userData = authService.getUser();
-          if (userData) {
-            setUser(userData);
-          } else {
-            // Token exists but no user data, fetch from server
+          //REMOVED THIS PART...
+          //The browser will try to fetch automatically
             const profile = await authService.getProfile();
-            setUser(profile);
-          }
-        }
+            setUser(profile); 
       } catch (error) {
         console.error('Auth initialization error:', error);
+        
         authService.logout();
       } finally {
         setIsLoading(false);
@@ -63,7 +57,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       setError(null);
+     
       const response = await authService.login({ email, password });
+      // The token is now in httpOnly cookie so we dont store it 
       setUser(response.user);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Login failed');
@@ -78,6 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
       const response = await authService.signup({ email, password, name, userType });
+      
       setUser(response.user);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Signup failed');

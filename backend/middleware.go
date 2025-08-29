@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/Dipu-36/startup/internal/auth"
 )
 
 // Middleware to check user type
 func requireUserType(userType string, next http.HandlerFunc) http.HandlerFunc {
-	return authMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		user, ok := getUserFromContext(r.Context())
+	return auth.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		user, ok := auth.GetUserFromContext(r.Context())
 		if !ok {
 			http.Error(w, "User not found in context", http.StatusInternalServerError)
 			return
@@ -23,9 +25,9 @@ func requireUserType(userType string, next http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-// Example protected handler for brands only
+// protected handler for brands only
 func brandOnlyHandler(w http.ResponseWriter, r *http.Request) {
-	user, _ := getUserFromContext(r.Context())
+	user, _ := auth.GetUserFromContext(r.Context())
 
 	response := map[string]interface{}{
 		"message": "Welcome to the brand dashboard!",
@@ -37,9 +39,9 @@ func brandOnlyHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// Example protected handler for influencers only
+// handler for influencers only
 func influencerOnlyHandler(w http.ResponseWriter, r *http.Request) {
-	user, _ := getUserFromContext(r.Context())
+	user, _ := auth.GetUserFromContext(r.Context())
 
 	response := map[string]interface{}{
 		"message": "Welcome to the influencer dashboard!",
