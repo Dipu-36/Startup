@@ -72,6 +72,24 @@ module.exports = {
         'display': ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         'body': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
+      height: {
+        'screen-dynamic': 'calc(var(--vh, 1vh) * 100)',
+        'screen-dvh': '100dvh',
+        'screen-svh': '100svh',
+        'screen-lvh': '100lvh',
+      },
+      minHeight: {
+        'screen-dynamic': 'calc(var(--vh, 1vh) * 100)',
+        'screen-dvh': '100dvh',
+        'screen-svh': '100svh',
+        'screen-lvh': '100lvh',
+      },
+      maxHeight: {
+        'screen-dynamic': 'calc(var(--vh, 1vh) * 100)',
+        'screen-dvh': '100dvh',
+        'screen-svh': '100svh',
+        'screen-lvh': '100lvh',
+      },
       fontSize: {
         'xs': ['0.75rem', { lineHeight: '1rem' }],
         'sm': ['0.875rem', { lineHeight: '1.25rem' }],
