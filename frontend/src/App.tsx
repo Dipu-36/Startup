@@ -1,7 +1,18 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { LandingPage, LoginPage, SignupPage, BrandDashboard, ProtectedRoute, CreateCampaign } from './components';
+import { 
+  LandingPage, 
+  LoginPage, 
+  SignupPage, 
+  BrandDashboard, 
+  ProtectedRoute, 
+  CreateCampaign,
+  Campaigns,
+  ManageCampaign
+} from './components';
+import GenericDashboardRedirect from './components/GenericDashboardRedirect';
+import CreatorDashboard from './components/creator/CreatorDashboard';
 
 function App() {
   return (

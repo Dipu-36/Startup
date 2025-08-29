@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
-import '../../styles/creator/CreatorNavbar.css';
 
 interface CreatorNavbarProps {
   activeTab?: 'dashboard' | 'campaigns' | 'applications' | 'content';

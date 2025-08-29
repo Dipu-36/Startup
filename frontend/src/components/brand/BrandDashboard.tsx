@@ -166,6 +166,11 @@ const BrandDashboard = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   const handleProfileAction = (action: string) => {
     console.log(`Profile action: ${action}`);
     setIsProfileDropdownOpen(false);

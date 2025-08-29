@@ -3,7 +3,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
 import BrandNavbar from './BrandNavbar';
-import '../../styles/brand/Campaigns.css';
 
 interface Campaign {
   id: string;

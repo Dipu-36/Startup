@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
-import '../../styles/brand/BrandNavbar.css';
 
 interface BrandNavbarProps {
   activeTab?: 'dashboard' | 'campaigns' | 'create-campaign' | 'manage-campaign';
@@ -96,69 +95,86 @@ const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
   }, []);
 
   return (
-    <header className="brand-dashboard-header">
-      <div className="brand-header-left">
-        <h1 className="brand-brand-name">{APP_NAME}</h1>
-        <nav className="brand-main-nav">
-          <button
-            className={`brand-nav-btn ${currentTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => handleNavigation('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button
-            className={`brand-nav-btn ${currentTab === 'campaigns' ? 'active' : ''}`}
-            onClick={() => handleNavigation('campaigns')}
-          >
-            Campaigns
-          </button>
-          <button
-            className={`brand-nav-btn ${currentTab === 'create-campaign' ? 'active' : ''}`}
-            onClick={() => handleNavigation('create-campaign')}
-          >
-            Create Campaign
-          </button>
-        </nav>
-      </div>
-      <div className="brand-header-right">
-        <div className="brand-user-profile">
-          <div className="brand-profile-info">
-            <span className="brand-profile-name">{user?.name || 'User'}</span>
-            <span className="brand-profile-email">{user?.email || 'user@example.com'}</span>
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center space-x-8">
+          <h1 className="text-2xl font-bold text-gray-900">{APP_NAME}</h1>
+          <nav className="flex space-x-1">
+            <button
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                currentTab === 'dashboard' 
+                  ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+              onClick={() => handleNavigation('dashboard')}
+            >
+              Dashboard
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                currentTab === 'campaigns' 
+                  ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+              onClick={() => handleNavigation('campaigns')}
+            >
+              Campaigns
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                currentTab === 'create-campaign' 
+                  ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+              onClick={() => handleNavigation('create-campaign')}
+            >
+              Create Campaign
+            </button>
+          </nav>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="hidden md:flex flex-col items-end">
+            <span className="text-sm font-medium text-gray-900">{user?.name || 'User'}</span>
+            <span className="text-xs text-gray-500">{user?.email || 'user@example.com'}</span>
           </div>
-          <div className="brand-profile-dropdown" ref={dropdownRef}>
-            <div className="profile-avatar" onClick={toggleProfileDropdown}>
+          <div className="relative" ref={dropdownRef}>
+            <div 
+              className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium cursor-pointer hover:bg-blue-700 transition-colors"
+              onClick={toggleProfileDropdown}
+            >
               <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
             </div>
             {isProfileDropdownOpen && (
-              <div className="dropdown-menu">
-                <div className="dropdown-header">
-                  <div className="dropdown-user-info">
-                    <strong>{user?.name || 'User'}</strong>
-                    <span>{user?.email || 'user@example.com'}</span>
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <div className="flex flex-col">
+                    <strong className="text-sm font-medium text-gray-900">{user?.name || 'User'}</strong>
+                    <span className="text-xs text-gray-500">{user?.email || 'user@example.com'}</span>
                   </div>
                 </div>
-                <div className="dropdown-divider"></div>
-                <div className="dropdown-item" onClick={() => handleProfileAction('profile')}>
-                  <span className="dropdown-icon">👤</span>
-                  Profile Settings
+                <div className="py-1">
+                  <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-3" onClick={() => handleProfileAction('profile')}>
+                    <span className="text-lg">👤</span>
+                    <span className="text-sm text-gray-700">Profile Settings</span>
+                  </div>
+                  <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-3" onClick={() => handleProfileAction('billing')}>
+                    <span className="text-lg">💳</span>
+                    <span className="text-sm text-gray-700">Billing & Plans</span>
+                  </div>
+                  <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-3" onClick={() => handleProfileAction('notifications')}>
+                    <span className="text-lg">🔔</span>
+                    <span className="text-sm text-gray-700">Notifications</span>
+                  </div>
+                  <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-3" onClick={() => handleProfileAction('help')}>
+                    <span className="text-lg">❓</span>
+                    <span className="text-sm text-gray-700">Help & Support</span>
+                  </div>
                 </div>
-                <div className="dropdown-item" onClick={() => handleProfileAction('billing')}>
-                  <span className="dropdown-icon">💳</span>
-                  Billing & Plans
-                </div>
-                <div className="dropdown-item" onClick={() => handleProfileAction('notifications')}>
-                  <span className="dropdown-icon">🔔</span>
-                  Notifications
-                </div>
-                <div className="dropdown-item" onClick={() => handleProfileAction('help')}>
-                  <span className="dropdown-icon">❓</span>
-                  Help & Support
-                </div>
-                <div className="dropdown-divider"></div>
-                <div className="dropdown-item logout-item" onClick={() => handleProfileAction('logout')}>
-                  <span className="dropdown-icon">🚪</span>
-                  Sign Out
+                <div className="border-t border-gray-100 py-1">
+                  <div className="px-4 py-2 hover:bg-red-50 cursor-pointer flex items-center space-x-3 text-red-600" onClick={() => handleProfileAction('logout')}>
+                    <span className="text-lg">🚪</span>
+                    <span className="text-sm">Sign Out</span>
+                  </div>
                 </div>
               </div>
             )}

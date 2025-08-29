@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
 import campaignService, { Campaign, Creator, Deliverable, PaymentRecord } from '../../services/campaignService';
 import BrandNavbar from './BrandNavbar';
-import '../../styles/brand/ManageCampaign.css';
 
 const ManageCampaign: React.FC = () => {
   const { user, logout } = useAuth();

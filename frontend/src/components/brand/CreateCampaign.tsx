@@ -8,14 +8,12 @@ import {
   Target, 
   Users, 
   Calendar, 
-  MapPin, 
   Heart, 
   Eye, 
   Globe, 
   DollarSign,
   FileText,
   Image,
-  Link,
   CheckCircle2
 } from 'lucide-react';
 
@@ -246,7 +244,7 @@ const CreateCampaign: React.FC = () => {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [formData, formSubmitted]);
+  }, [formData, formSubmitted, saveDraft]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => {
@@ -384,6 +382,10 @@ const CreateCampaign: React.FC = () => {
         startDate: '',
         endDate: '',
         campaignType: '',
+        budget: '',
+        currency: '',
+
+        // Section 2: Audience Targeting (Optional)
         targetAudience: {
           location: '',
           ageGroup: '',
@@ -419,10 +421,8 @@ const CreateCampaign: React.FC = () => {
         creatorTier: '',
         nicheMatch: false,
         geographicRestrictions: '',
-        contentFormat: [],
-        numberOfPosts: '',
-        contentGuidelines: '',
-        approvalRequired: false,
+
+        // Section 5: Compensation & Deliverables (Optional)
         compensationType: '',
         paymentAmount: '',
         commissionPercentage: '',
@@ -443,7 +443,7 @@ const CreateCampaign: React.FC = () => {
 
         // Section 7: Media & Assets (Optional)
         bannerImage: null,
-        referenceLinks: '',
+        referenceMedia: '',
       });
       
       navigate('/brand/dashboard');
