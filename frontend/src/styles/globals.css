@@ -37,7 +37,7 @@
   --color-bg-white: #ffffff;
   
   /* Typography */
-  --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-primary: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   
   /* Spacing */
   --spacing-xs: 8px;

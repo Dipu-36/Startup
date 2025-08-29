@@ -16,8 +16,21 @@ up:
 dev:
 	@echo "🚀 Starting SponsorConnect in Development Mode..."
 	@echo "📋 Using MongoDB Atlas with hot reload"
+	@echo "🔥 Files will auto-reload when you make changes!"
 	@docker-compose -f docker-compose.dev.yaml up --build
 	@echo "✅ Development environment ready!"
+
+.PHONY: dev-detached
+dev-detached:
+	@echo "🚀 Starting SponsorConnect in Development Mode (background)..."
+	@echo "📋 Using MongoDB Atlas with hot reload"
+	@echo "🔥 Files will auto-reload when you make changes!"
+	@docker-compose -f docker-compose.dev.yaml up --build -d
+	@echo "✅ Development environment ready!"
+	@echo "🌐 Frontend: http://localhost:3000"
+	@echo "🔌 Backend:  http://localhost:8080"
+	@echo "📱 Health:   http://localhost:8080/api/health"
+	@echo "📝 Use 'make dev-logs' to view logs"
 
 .PHONY: down
 down:
@@ -30,8 +43,19 @@ down:
 logs:
 	@docker-compose logs -f
 
+.PHONY: dev-logs
+dev-logs:
+	@docker-compose -f docker-compose.dev.yaml logs -f
+
 .PHONY: restart
 restart: down up
+
+.PHONY: dev-restart
+dev-restart:
+	@echo "🔄 Restarting development environment..."
+	@docker-compose -f docker-compose.dev.yaml down
+	@docker-compose -f docker-compose.dev.yaml up -d
+	@echo "✅ Development environment restarted!"
 
 .PHONY: clean
 clean:
@@ -76,14 +100,22 @@ install-deps:
 help:
 	@echo "🚀 SponsorConnect - Available Commands:"
 	@echo ""
-	@echo "  make up          - Start the application with Docker (RECOMMENDED)"
-	@echo "  make dev         - Start in development mode with hot reload"
-	@echo "  make down        - Stop the application"
-	@echo "  make restart     - Restart the application"
-	@echo "  make logs        - View application logs"
-	@echo "  make status      - Show container status"
-	@echo "  make health      - Check application health"
-	@echo "  make clean       - Clean up Docker containers and images"
+	@echo "  🔥 DEVELOPMENT (with hot reload):"
+	@echo "  make dev              - Start in development mode (logs visible)"
+	@echo "  make dev-detached     - Start in development mode (background)"
+	@echo "  make dev-logs         - View development logs"
+	@echo "  make dev-restart      - Restart development environment"
+	@echo ""
+	@echo "  🚀 PRODUCTION:"
+	@echo "  make up               - Start the application with Docker"
+	@echo "  make down             - Stop the application"
+	@echo "  make restart          - Restart the application"
+	@echo "  make logs             - View application logs"
+	@echo ""
+	@echo "  🔧 UTILITIES:"
+	@echo "  make status           - Show container status"
+	@echo "  make health           - Check application health"
+	@echo "  make clean            - Clean up Docker containers and images"
 	@echo ""
 	@echo "  Local Development (without Docker):"
 	@echo "  make install-deps     - Install dependencies"
