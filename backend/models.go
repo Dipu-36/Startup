@@ -26,6 +26,8 @@ type Campaign struct {
 	StartDate    string             `bson:"startDate" json:"startDate"`
 	EndDate      string             `bson:"endDate" json:"endDate"`
 	CampaignType string             `bson:"campaignType" json:"campaignType"`
+	Budget       string             `bson:"budget" json:"budget"`
+	Currency     string             `bson:"currency" json:"currency"`
 
 	// Target & Requirements
 	TargetAudience struct {
@@ -34,6 +36,12 @@ type Campaign struct {
 		Gender    string `bson:"gender" json:"gender"`
 		Interests string `bson:"interests" json:"interests"`
 	} `bson:"targetAudience" json:"targetAudience"`
+
+	TargetAudienceAge    []string `bson:"targetAudienceAge" json:"targetAudienceAge"`
+	TargetAudienceGender []string `bson:"targetAudienceGender" json:"targetAudienceGender"`
+	TargetAudienceRegion []string `bson:"targetAudienceRegion" json:"targetAudienceRegion"`
+	LanguagePreference   string   `bson:"languagePreference" json:"languagePreference"`
+	CustomRegion         string   `bson:"customRegion" json:"customRegion"`
 
 	Platforms []string `bson:"platforms" json:"platforms"`
 
@@ -44,23 +52,42 @@ type Campaign struct {
 		Languages      []string `bson:"languages" json:"languages"`
 	} `bson:"minRequirements" json:"minRequirements"`
 
+	MinimumFollowers  string `bson:"minimumFollowers" json:"minimumFollowers"`
+	MinimumEngagement string `bson:"minimumEngagement" json:"minimumEngagement"`
+	CreatorTier       string `bson:"creatorTier" json:"creatorTier"`
+
 	NicheMatch             bool   `bson:"nicheMatch" json:"nicheMatch"`
 	GeographicRestrictions string `bson:"geographicRestrictions" json:"geographicRestrictions"`
 
 	// Deliverables
-	ContentFormat     []string `bson:"contentFormat" json:"contentFormat"`
-	NumberOfPosts     string   `bson:"numberOfPosts" json:"numberOfPosts"`
-	ContentGuidelines string   `bson:"contentGuidelines" json:"contentGuidelines"`
-	ApprovalRequired  bool     `bson:"approvalRequired" json:"approvalRequired"`
+	ContentFormat          []string `bson:"contentFormat" json:"contentFormat"`
+	NumberOfPosts          string   `bson:"numberOfPosts" json:"numberOfPosts"`
+	HashtagsToUse          string   `bson:"hashtagsToUse" json:"hashtagsToUse"`
+	MentionsRequired       string   `bson:"mentionsRequired" json:"mentionsRequired"`
+	ContentGuidelines      string   `bson:"contentGuidelines" json:"contentGuidelines"`
+	CreativeApprovalNeeded bool     `bson:"creativeApprovalNeeded" json:"creativeApprovalNeeded"`
+	ApprovalRequired       bool     `bson:"approvalRequired" json:"approvalRequired"`
 
 	// Compensation & Perks
-	CompensationType string `bson:"compensationType" json:"compensationType"`
-	PaymentAmount    string `bson:"paymentAmount" json:"paymentAmount"`
-	ProductDetails   string `bson:"productDetails" json:"productDetails"`
+	CompensationType     string `bson:"compensationType" json:"compensationType"`
+	PaymentAmount        string `bson:"paymentAmount" json:"paymentAmount"`
+	CommissionPercentage string `bson:"commissionPercentage" json:"commissionPercentage"`
+	FreeProductsOffered  string `bson:"freeProductsOffered" json:"freeProductsOffered"`
+	Deliverables         string `bson:"deliverables" json:"deliverables"`
+	PerformanceBonus     bool   `bson:"performanceBonus" json:"performanceBonus"`
+	BonusCriteria        string `bson:"bonusCriteria" json:"bonusCriteria"`
+	ProductDetails       string `bson:"productDetails" json:"productDetails"`
+
+	// Campaign Workflow
+	ApprovalSteps        []string `bson:"approvalSteps" json:"approvalSteps"`
+	DeadlineReminders    bool     `bson:"deadlineReminders" json:"deadlineReminders"`
+	CommunicationChannel string   `bson:"communicationChannel" json:"communicationChannel"`
+	TimeZone             string   `bson:"timeZone" json:"timeZone"`
 
 	// Media & Assets
 	BannerImageURL string `bson:"bannerImageUrl" json:"bannerImageUrl"`
 	ReferenceLinks string `bson:"referenceLinks" json:"referenceLinks"`
+	ReferenceMedia string `bson:"referenceMedia" json:"referenceMedia"`
 
 	// Status and Metadata
 	Status     string    `bson:"status" json:"status"` // "draft", "active", "completed", "cancelled"
@@ -93,6 +120,8 @@ type CampaignRequest struct {
 	StartDate    string `json:"startDate"`
 	EndDate      string `json:"endDate"`
 	CampaignType string `json:"campaignType"`
+	Budget       string `json:"budget"`
+	Currency     string `json:"currency"`
 
 	TargetAudience struct {
 		Location  string `json:"location"`
@@ -100,6 +129,12 @@ type CampaignRequest struct {
 		Gender    string `json:"gender"`
 		Interests string `json:"interests"`
 	} `json:"targetAudience"`
+
+	TargetAudienceAge    []string `json:"targetAudienceAge"`
+	TargetAudienceGender []string `json:"targetAudienceGender"`
+	TargetAudienceRegion []string `json:"targetAudienceRegion"`
+	LanguagePreference   string   `json:"languagePreference"`
+	CustomRegion         string   `json:"customRegion"`
 
 	Platforms []string `json:"platforms"`
 
@@ -110,19 +145,51 @@ type CampaignRequest struct {
 		Languages      []string `json:"languages"`
 	} `json:"minRequirements"`
 
+	MinimumFollowers       string `json:"minimumFollowers"`
+	MinimumEngagement      string `json:"minimumEngagement"`
+	CreatorTier            string `json:"creatorTier"`
 	NicheMatch             bool   `json:"nicheMatch"`
 	GeographicRestrictions string `json:"geographicRestrictions"`
 
-	ContentFormat     []string `json:"contentFormat"`
-	NumberOfPosts     string   `json:"numberOfPosts"`
-	ContentGuidelines string   `json:"contentGuidelines"`
-	ApprovalRequired  bool     `json:"approvalRequired"`
+	ContentFormat          []string `json:"contentFormat"`
+	NumberOfPosts          string   `json:"numberOfPosts"`
+	HashtagsToUse          string   `json:"hashtagsToUse"`
+	MentionsRequired       string   `json:"mentionsRequired"`
+	ContentGuidelines      string   `json:"contentGuidelines"`
+	CreativeApprovalNeeded bool     `json:"creativeApprovalNeeded"`
+	ApprovalRequired       bool     `json:"approvalRequired"`
 
-	CompensationType string `json:"compensationType"`
-	PaymentAmount    string `json:"paymentAmount"`
-	ProductDetails   string `json:"productDetails"`
+	CompensationType     string `json:"compensationType"`
+	PaymentAmount        string `json:"paymentAmount"`
+	CommissionPercentage string `json:"commissionPercentage"`
+	FreeProductsOffered  string `json:"freeProductsOffered"`
+	Deliverables         string `json:"deliverables"`
+	PerformanceBonus     bool   `json:"performanceBonus"`
+	BonusCriteria        string `json:"bonusCriteria"`
+	ProductDetails       string `json:"productDetails"`
+
+	ApprovalSteps        []string `json:"approvalSteps"`
+	DeadlineReminders    bool     `json:"deadlineReminders"`
+	CommunicationChannel string   `json:"communicationChannel"`
+	TimeZone             string   `json:"timeZone"`
 
 	BannerImageURL string `json:"bannerImageUrl"`
 	ReferenceLinks string `json:"referenceLinks"`
+	ReferenceMedia string `json:"referenceMedia"`
 	Status         string `json:"status"`
+}
+
+type Application struct {
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	CampaignID   primitive.ObjectID `bson:"campaignId" json:"campaignId"`
+	CreatorID    primitive.ObjectID `bson:"creatorId" json:"creatorId"`
+	CreatorName  string             `bson:"creatorName" json:"creatorName"`
+	CreatorEmail string             `bson:"creatorEmail" json:"creatorEmail"`
+	Followers    string             `bson:"followers" json:"followers"`
+	Platform     string             `bson:"platform" json:"platform"`
+	Status       string             `bson:"status" json:"status"` // "pending", "approved", "rejected"
+	AppliedDate  time.Time          `bson:"appliedDate" json:"appliedDate"`
+	CampaignName string             `bson:"campaignName" json:"campaignName"`
+	CreatedAt    time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt    time.Time          `bson:"updatedAt" json:"updatedAt"`
 }

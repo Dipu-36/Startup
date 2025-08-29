@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -228,22 +229,47 @@ func createCampaignHandler(w http.ResponseWriter, r *http.Request) {
 		StartDate:    req.StartDate,
 		EndDate:      req.EndDate,
 		CampaignType: req.CampaignType,
+		Budget:       req.Budget,
+		Currency:     req.Currency,
+
+		TargetAudienceAge:    req.TargetAudienceAge,
+		TargetAudienceGender: req.TargetAudienceGender,
+		TargetAudienceRegion: req.TargetAudienceRegion,
+		LanguagePreference:   req.LanguagePreference,
+		CustomRegion:         req.CustomRegion,
 
 		Platforms:              req.Platforms,
+		MinimumFollowers:       req.MinimumFollowers,
+		MinimumEngagement:      req.MinimumEngagement,
+		CreatorTier:            req.CreatorTier,
 		NicheMatch:             req.NicheMatch,
 		GeographicRestrictions: req.GeographicRestrictions,
 
-		ContentFormat:     req.ContentFormat,
-		NumberOfPosts:     req.NumberOfPosts,
-		ContentGuidelines: req.ContentGuidelines,
-		ApprovalRequired:  req.ApprovalRequired,
+		ContentFormat:          req.ContentFormat,
+		NumberOfPosts:          req.NumberOfPosts,
+		HashtagsToUse:          req.HashtagsToUse,
+		MentionsRequired:       req.MentionsRequired,
+		ContentGuidelines:      req.ContentGuidelines,
+		CreativeApprovalNeeded: req.CreativeApprovalNeeded,
+		ApprovalRequired:       req.ApprovalRequired,
 
-		CompensationType: req.CompensationType,
-		PaymentAmount:    req.PaymentAmount,
-		ProductDetails:   req.ProductDetails,
+		CompensationType:     req.CompensationType,
+		PaymentAmount:        req.PaymentAmount,
+		CommissionPercentage: req.CommissionPercentage,
+		FreeProductsOffered:  req.FreeProductsOffered,
+		Deliverables:         req.Deliverables,
+		PerformanceBonus:     req.PerformanceBonus,
+		BonusCriteria:        req.BonusCriteria,
+		ProductDetails:       req.ProductDetails,
+
+		ApprovalSteps:        req.ApprovalSteps,
+		DeadlineReminders:    req.DeadlineReminders,
+		CommunicationChannel: req.CommunicationChannel,
+		TimeZone:             req.TimeZone,
 
 		BannerImageURL: req.BannerImageURL,
 		ReferenceLinks: req.ReferenceLinks,
+		ReferenceMedia: req.ReferenceMedia,
 
 		Status:     req.Status,
 		Applicants: 0,
@@ -333,4 +359,429 @@ func getAllCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(campaigns)
+}
+
+// Get applications for a brand (brand can see applications to their campaigns)
+func getApplicationsForBrandHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get user from context (set by auth middleware)
+	claims, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User context not found", http.StatusInternalServerError)
+		return
+	}
+
+	// Convert user ID from string to ObjectID
+	userObjID, err := primitive.ObjectIDFromHex(claims.UserID)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
+		return
+	}
+
+	// First, get all campaigns for this brand
+	campaignsCollection := database.Collection("campaigns")
+	campaignCursor, err := campaignsCollection.Find(ctx, bson.M{"brandId": userObjID})
+	if err != nil {
+		http.Error(w, "Error fetching brand campaigns", http.StatusInternalServerError)
+		return
+	}
+	defer campaignCursor.Close(ctx)
+
+	var campaigns []Campaign
+	if err = campaignCursor.All(ctx, &campaigns); err != nil {
+		http.Error(w, "Error decoding campaigns", http.StatusInternalServerError)
+		return
+	}
+
+	// Extract campaign IDs
+	var campaignIDs []primitive.ObjectID
+	campaignMap := make(map[primitive.ObjectID]string)
+	for _, campaign := range campaigns {
+		campaignIDs = append(campaignIDs, campaign.ID)
+		campaignMap[campaign.ID] = campaign.Title
+	}
+
+	// Now get all applications for these campaigns
+	applicationsCollection := database.Collection("applications")
+	applicationCursor, err := applicationsCollection.Find(ctx, bson.M{"campaignId": bson.M{"$in": campaignIDs}})
+	if err != nil {
+		http.Error(w, "Error fetching applications", http.StatusInternalServerError)
+		return
+	}
+	defer applicationCursor.Close(ctx)
+
+	var applications []Application
+	if err = applicationCursor.All(ctx, &applications); err != nil {
+		http.Error(w, "Error decoding applications", http.StatusInternalServerError)
+		return
+	}
+
+	// Add campaign names to applications
+	for i := range applications {
+		if campaignName, exists := campaignMap[applications[i].CampaignID]; exists {
+			applications[i].CampaignName = campaignName
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(applications)
+}
+
+// Create a new application (for creators)
+func createApplicationHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get user from context (set by auth middleware)
+	claims, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User context not found", http.StatusInternalServerError)
+		return
+	}
+
+	// Only influencers can create applications
+	if claims.UserType != "influencer" {
+		http.Error(w, "Only influencers can create applications", http.StatusForbidden)
+		return
+	}
+
+	var req struct {
+		CampaignID string `json:"campaignId"`
+		Followers  string `json:"followers"`
+		Platform   string `json:"platform"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Convert campaign ID to ObjectID
+	campaignObjID, err := primitive.ObjectIDFromHex(req.CampaignID)
+	if err != nil {
+		http.Error(w, "Invalid campaign ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get campaign details
+	campaignsCollection := database.Collection("campaigns")
+	var campaign Campaign
+	err = campaignsCollection.FindOne(ctx, bson.M{"_id": campaignObjID}).Decode(&campaign)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "Campaign not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error fetching campaign", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Convert user ID from string to ObjectID
+	userObjID, err := primitive.ObjectIDFromHex(claims.UserID)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user has already applied to this campaign
+	appsCollection := database.Collection("applications")
+	existingCount, err := appsCollection.CountDocuments(ctx, bson.M{
+		"campaignId": campaignObjID,
+		"creatorId":  userObjID,
+	})
+	if err != nil {
+		http.Error(w, "Error checking existing applications", http.StatusInternalServerError)
+		return
+	}
+	if existingCount > 0 {
+		http.Error(w, "You have already applied to this campaign", http.StatusConflict)
+		return
+	}
+
+	// Create application
+	application := Application{
+		ID:           primitive.NewObjectID(),
+		CampaignID:   campaignObjID,
+		CreatorID:    userObjID,
+		CreatorName:  claims.Email, // We'll use email as name for now since we only have claims
+		CreatorEmail: claims.Email,
+		Followers:    req.Followers,
+		Platform:     req.Platform,
+		Status:       "pending",
+		AppliedDate:  time.Now(),
+		CampaignName: campaign.Title,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	applicationsCollection := database.Collection("applications")
+	_, err = applicationsCollection.InsertOne(ctx, application)
+	if err != nil {
+		http.Error(w, "Error creating application", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(application)
+}
+
+// Get applications for a creator (creator can see their own applications)
+func getApplicationsForCreatorHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get user from context (set by auth middleware)
+	claims, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User context not found", http.StatusInternalServerError)
+		return
+	}
+
+	// Only influencers can view their applications
+	if claims.UserType != "influencer" {
+		http.Error(w, "Only influencers can view applications", http.StatusForbidden)
+		return
+	}
+
+	// Convert user ID from string to ObjectID
+	userObjID, err := primitive.ObjectIDFromHex(claims.UserID)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
+		return
+	}
+
+	// Get applications for this creator
+	applicationsCollection := database.Collection("applications")
+	applicationCursor, err := applicationsCollection.Find(ctx, bson.M{"creatorId": userObjID})
+	if err != nil {
+		http.Error(w, "Error fetching applications", http.StatusInternalServerError)
+		return
+	}
+	defer applicationCursor.Close(ctx)
+
+	var applications []Application
+	if err = applicationCursor.All(ctx, &applications); err != nil {
+		http.Error(w, "Error decoding applications", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(applications)
+}
+
+// Get specific campaign handler
+func getCampaignHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	campaignId := vars["campaignId"]
+
+	// Get user from context
+	user, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// Convert campaign ID to ObjectID
+	campaignOID, err := primitive.ObjectIDFromHex(campaignId)
+	if err != nil {
+		http.Error(w, "Invalid campaign ID", http.StatusBadRequest)
+		return
+	}
+
+	// Find the campaign
+	var campaign Campaign
+	campaignCollection := database.Collection("campaigns")
+	err = campaignCollection.FindOne(context.TODO(), bson.M{"_id": campaignOID}).Decode(&campaign)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "Campaign not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error fetching campaign", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Convert user ID string to ObjectID for comparison
+	userObjectID, err := primitive.ObjectIDFromHex(user.UserID)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user is the brand owner of this campaign
+	if user.UserType == "brand" && campaign.BrandID != userObjectID {
+		http.Error(w, "Access denied", http.StatusForbidden)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(campaign)
+}
+
+// Get applications for a specific campaign
+func getCampaignApplicationsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	campaignId := vars["campaignId"]
+
+	// Get user from context
+	user, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// Convert campaign ID to ObjectID
+	campaignOID, err := primitive.ObjectIDFromHex(campaignId)
+	if err != nil {
+		http.Error(w, "Invalid campaign ID", http.StatusBadRequest)
+		return
+	}
+
+	// Check if campaign exists and user has access
+	var campaign Campaign
+	campaignCollection := database.Collection("campaigns")
+	err = campaignCollection.FindOne(context.TODO(), bson.M{"_id": campaignOID}).Decode(&campaign)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "Campaign not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error fetching campaign", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Convert user ID string to ObjectID for comparison
+	userObjectID, err := primitive.ObjectIDFromHex(user.UserID)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user is the brand owner of this campaign
+	if user.UserType == "brand" && campaign.BrandID != userObjectID {
+		http.Error(w, "Access denied", http.StatusForbidden)
+		return
+	}
+
+	// Get applications for this campaign
+	applicationCollection := database.Collection("applications")
+	cursor, err := applicationCollection.Find(context.TODO(), bson.M{"campaignId": campaignOID})
+	if err != nil {
+		http.Error(w, "Error fetching applications", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(context.TODO())
+
+	var applications []Application
+	if err = cursor.All(context.TODO(), &applications); err != nil {
+		http.Error(w, "Error decoding applications", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(applications)
+}
+
+// Update application status handler
+func updateApplicationStatusHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	applicationId := vars["applicationId"]
+
+	// Get user from context
+	user, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// Only brands can update application status
+	if user.UserType != "brand" {
+		http.Error(w, "Only brands can update application status", http.StatusForbidden)
+		return
+	}
+
+	// Parse request body
+	var updateData struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate status
+	validStatuses := []string{"pending", "approved", "rejected", "shortlisted"}
+	isValidStatus := false
+	for _, status := range validStatuses {
+		if updateData.Status == status {
+			isValidStatus = true
+			break
+		}
+	}
+	if !isValidStatus {
+		http.Error(w, "Invalid status", http.StatusBadRequest)
+		return
+	}
+
+	// Convert application ID to ObjectID
+	applicationOID, err := primitive.ObjectIDFromHex(applicationId)
+	if err != nil {
+		http.Error(w, "Invalid application ID", http.StatusBadRequest)
+		return
+	}
+
+	// Find the application
+	var application Application
+	applicationCollection := database.Collection("applications")
+	err = applicationCollection.FindOne(context.TODO(), bson.M{"_id": applicationOID}).Decode(&application)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "Application not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error fetching application", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Get campaign to verify brand ownership
+	var campaign Campaign
+	campaignCollection := database.Collection("campaigns")
+	err = campaignCollection.FindOne(context.TODO(), bson.M{"_id": application.CampaignID}).Decode(&campaign)
+	if err != nil {
+		http.Error(w, "Campaign not found", http.StatusNotFound)
+		return
+	}
+
+	// Convert user ID string to ObjectID for comparison
+	userObjectID, err := primitive.ObjectIDFromHex(user.UserID)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user is the brand owner of this campaign
+	if campaign.BrandID != userObjectID {
+		http.Error(w, "Access denied", http.StatusForbidden)
+		return
+	}
+
+	// Update application status
+	update := bson.M{"$set": bson.M{"status": updateData.Status}}
+	_, err = applicationCollection.UpdateOne(context.TODO(), bson.M{"_id": applicationOID}, update)
+	if err != nil {
+		http.Error(w, "Error updating application status", http.StatusInternalServerError)
+		return
+	}
+
+	// Fetch and return updated application
+	err = applicationCollection.FindOne(context.TODO(), bson.M{"_id": applicationOID}).Decode(&application)
+	if err != nil {
+		http.Error(w, "Error fetching updated application", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(application)
 }

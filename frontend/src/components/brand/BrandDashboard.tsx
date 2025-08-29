@@ -58,6 +58,8 @@ interface Campaign {
 
 interface Application {
   id: string;
+  campaignId?: string;
+  creatorId?: string;
   creatorName: string;
   creatorEmail: string;
   followers: string;
@@ -65,6 +67,8 @@ interface Application {
   status: 'pending' | 'approved' | 'rejected';
   appliedDate: string;
   campaignName: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 const BrandDashboard = () => {
@@ -77,6 +81,7 @@ const BrandDashboard = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -116,133 +121,38 @@ const BrandDashboard = () => {
     fetchCampaigns();
   }, []);
 
-  const [applications] = useState<Application[]>([
-    {
-      id: '1',
-      creatorName: 'Sarah Johnson',
-      creatorEmail: 'sarah@example.com',
-      followers: '50K',
-      platform: 'Instagram',
-      status: 'pending',
-      appliedDate: '2025-08-10',
-      campaignName: 'Summer Fashion Campaign'
-    },
-    {
-      id: '2',
-      creatorName: 'Mike Chen',
-      creatorEmail: 'mike@example.com',
-      followers: '75K',
-      platform: 'TikTok',
-      status: 'pending',
-      appliedDate: '2025-08-09',
-      campaignName: 'Tech Product Launch'
-    },
-    {
-      id: '3',
-      creatorName: 'Emma Rodriguez',
-      creatorEmail: 'emma@example.com',
-      followers: '120K',
-      platform: 'YouTube',
-      status: 'approved',
-      appliedDate: '2025-08-08',
-      campaignName: 'Fitness Equipment Promo'
-    },
-    {
-      id: '4',
-      creatorName: 'Alex Kim',
-      creatorEmail: 'alex@example.com',
-      followers: '85K',
-      platform: 'Instagram',
-      status: 'rejected',
-      appliedDate: '2025-08-07',
-      campaignName: 'Beauty Brand Collaboration'
-    },
-    {
-      id: '5',
-      creatorName: 'Jessica Brown',
-      creatorEmail: 'jessica@example.com',
-      followers: '95K',
-      platform: 'TikTok',
-      status: 'approved',
-      appliedDate: '2025-08-06',
-      campaignName: 'Gaming Gear Showcase'
-    },
-    {
-      id: '6',
-      creatorName: 'David Wilson',
-      creatorEmail: 'david@example.com',
-      followers: '65K',
-      platform: 'YouTube',
-      status: 'pending',
-      appliedDate: '2025-08-05',
-      campaignName: 'Eco-Friendly Products'
-    },
-    {
-      id: '7',
-      creatorName: 'Lisa Martinez',
-      creatorEmail: 'lisa@example.com',
-      followers: '110K',
-      platform: 'Instagram',
-      status: 'pending',
-      appliedDate: '2025-08-04',
-      campaignName: 'Holiday Collection Launch'
-    },
-    {
-      id: '8',
-      creatorName: 'Ryan Taylor',
-      creatorEmail: 'ryan@example.com',
-      followers: '45K',
-      platform: 'TikTok',
-      status: 'approved',
-      appliedDate: '2025-08-03',
-      campaignName: 'Summer Fashion Campaign'
-    },
-    {
-      id: '9',
-      creatorName: 'Sophie Anderson',
-      creatorEmail: 'sophie@example.com',
-      followers: '78K',
-      platform: 'YouTube',
-      status: 'pending',
-      appliedDate: '2025-08-02',
-      campaignName: 'Tech Product Launch'
-    },
-    {
-      id: '10',
-      creatorName: 'Carlos Garcia',
-      creatorEmail: 'carlos@example.com',
-      followers: '92K',
-      platform: 'Instagram',
-      status: 'rejected',
-      appliedDate: '2025-08-01',
-      campaignName: 'Fitness Equipment Promo'
-    },
-    {
-      id: '11',
-      creatorName: 'Maya Patel',
-      creatorEmail: 'maya@example.com',
-      followers: '135K',
-      platform: 'TikTok',
-      status: 'approved',
-      appliedDate: '2025-07-31',
-      campaignName: 'Beauty Brand Collaboration'
-    },
-    {
-      id: '12',
-      creatorName: 'Tom Lewis',
-      creatorEmail: 'tom@example.com',
-      followers: '58K',
-      platform: 'YouTube',
-      status: 'pending',
-      appliedDate: '2025-07-30',
-      campaignName: 'Gaming Gear Showcase'
-    }
-  ]);
+  // Fetch applications from API
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('Please log in to view applications');
+          return;
+        }
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+        const response = await fetch('http://localhost:8080/api/applications', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch applications');
+        }
+
+        const applicationsData = await response.json();
+        setApplications(applicationsData || []);
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+        setError('Failed to load applications');
+      }
+    };
+
+    fetchApplications();
+  }, []);
 
   const handleCreateCampaign = () => {
     navigate('/brand/create-campaign');
@@ -254,6 +164,11 @@ const BrandDashboard = () => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   const handleProfileAction = (action: string) => {

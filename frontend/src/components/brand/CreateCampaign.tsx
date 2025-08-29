@@ -8,19 +8,17 @@ import {
   Target, 
   Users, 
   Calendar, 
-  MapPin, 
   Heart, 
   Eye, 
   Globe, 
   DollarSign,
   FileText,
   Image,
-  Link,
   CheckCircle2
 } from 'lucide-react';
 
 interface CampaignFormData {
-  // Campaign Basics
+  // Section 1: Basic Information (MANDATORY)
   title: string;
   brandName: string;
   description: string;
@@ -28,38 +26,68 @@ interface CampaignFormData {
   startDate: string;
   endDate: string;
   campaignType: string;
+  budget: string;
+  currency: string;
 
-  // Target & Requirements
+  // Section 2: Audience Targeting (Optional)
   targetAudience: {
     location: string;
     ageGroup: string;
     gender: string;
     interests: string;
   };
+  targetAudienceAge: string[];
+  targetAudienceGender: string[];
+  targetAudienceRegion: string[];
+  languagePreference: string;
+  customRegion: string;
+
+  // Section 3: Content Requirements (Optional)
   platforms: string[];
+  contentFormat: string[];
+  numberOfPosts: string;
+  contentDuration: string;
+  hashtagsToUse: string;
+  mentionsRequired: string;
+  contentGuidelines: string;
+  referenceLinks: string;
+  creativeApprovalNeeded: boolean;
+
+  // Section 4: Creator Requirements (Optional)
   minRequirements: {
     followersCount: string;
     engagementRate: string;
     contentStyle: string;
     languages: string[];
   };
+  minimumFollowers: string;
+  minimumEngagement: string;
+  creatorTier: string;
   nicheMatch: boolean;
   geographicRestrictions: string;
 
-  // Deliverables
-  contentFormat: string[];
-  numberOfPosts: string;
-  contentGuidelines: string;
-  approvalRequired: boolean;
-
-  // Compensation & Perks
+  // Section 5: Compensation & Deliverables (Optional)
   compensationType: string;
   paymentAmount: string;
+  commissionPercentage: string;
+  freeProductsOffered: string;
+  deliverables: string;
+  performanceBonus: boolean;
+  bonusCriteria: string;
   productDetails: string;
 
-  // Media & Assets
+  // Section 6: Campaign Workflow (Optional)
+  approvalRequired: boolean;
+  approvalSteps: string[];
+  deadlineReminders: boolean;
+  communicationChannel: string;
+  timeZone: string;
+  campaignPriority: string;
+  postingSchedule: string;
+
+  // Section 7: Media & Assets (Optional)
   bannerImage: File | null;
-  referenceLinks: string;
+  referenceMedia: string;
 }
 
 const CreateCampaign: React.FC = () => {
@@ -68,7 +96,10 @@ const CreateCampaign: React.FC = () => {
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [formData, setFormData] = useState<CampaignFormData>({
+
+  // Initial form data structure
+  const initialFormData: CampaignFormData = {
+    // Section 1: Basic Information (MANDATORY)
     title: '',
     brandName: user?.name || '',
     description: '',
@@ -76,31 +107,71 @@ const CreateCampaign: React.FC = () => {
     startDate: '',
     endDate: '',
     campaignType: '',
+    budget: '',
+    currency: '',
+
+    // Section 2: Audience Targeting (Optional)
     targetAudience: {
       location: '',
       ageGroup: '',
       gender: '',
       interests: '',
     },
+    targetAudienceAge: [],
+    targetAudienceGender: [],
+    targetAudienceRegion: [],
+    languagePreference: '',
+    customRegion: '',
+
+    // Section 3: Content Requirements (Optional)
     platforms: [],
+    contentFormat: [],
+    numberOfPosts: '',
+    contentDuration: '',
+    hashtagsToUse: '',
+    mentionsRequired: '',
+    contentGuidelines: '',
+    referenceLinks: '',
+    creativeApprovalNeeded: false,
+
+    // Section 4: Creator Requirements (Optional)
     minRequirements: {
       followersCount: '',
       engagementRate: '',
       contentStyle: '',
       languages: [],
     },
+    minimumFollowers: '',
+    minimumEngagement: '',
+    creatorTier: '',
     nicheMatch: false,
     geographicRestrictions: '',
-    contentFormat: [],
-    numberOfPosts: '',
-    contentGuidelines: '',
-    approvalRequired: false,
+
+    // Section 5: Compensation & Deliverables (Optional)
     compensationType: '',
     paymentAmount: '',
+    commissionPercentage: '',
+    freeProductsOffered: '',
+    deliverables: '',
+    performanceBonus: false,
+    bonusCriteria: '',
     productDetails: '',
+
+    // Section 6: Campaign Workflow (Optional)
+    approvalRequired: false,
+    approvalSteps: [],
+    deadlineReminders: false,
+    communicationChannel: '',
+    timeZone: '',
+    campaignPriority: '',
+    postingSchedule: '',
+
+    // Section 7: Media & Assets (Optional)
     bannerImage: null,
-    referenceLinks: '',
-  });
+    referenceMedia: '',
+  };
+
+  const [formData, setFormData] = useState<CampaignFormData>(initialFormData);
 
   // Categories
   const categories = [
@@ -173,7 +244,7 @@ const CreateCampaign: React.FC = () => {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [formData, formSubmitted]);
+  }, [formData, formSubmitted, saveDraft]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => {
@@ -216,14 +287,16 @@ const CreateCampaign: React.FC = () => {
     setFormData(prev => ({ ...prev, bannerImage: file }));
   };
 
+  const handleClearDraft = () => {
+    if (window.confirm('Are you sure you want to clear all form data? This action cannot be undone.')) {
+      localStorage.removeItem('campaignDraft');
+      setFormData(initialFormData);
+      alert('Draft cleared successfully!');
+    }
+  };
+
   const handleSubmit = async (isDraft: boolean = false) => {
     try {
-      if (isDraft) {
-        saveDraft();
-        alert('Draft saved successfully!');
-        return;
-      }
-
       setIsSubmitting(true);
 
       // Prepare campaign data for submission
@@ -252,7 +325,7 @@ const CreateCampaign: React.FC = () => {
         
         bannerImageUrl: '', // TODO: Implement image upload
         referenceLinks: formData.referenceLinks,
-        status: 'active'
+        status: isDraft ? 'draft' : 'active'
       };
 
       // Get auth token
@@ -275,14 +348,22 @@ const CreateCampaign: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.text();
-        throw new Error(errorData || 'Failed to create campaign');
+        throw new Error(errorData || `Failed to ${isDraft ? 'save draft' : 'create campaign'}`);
       }
 
       const result = await response.json();
-      console.log('Campaign created:', result);
+      console.log(`Campaign ${isDraft ? 'draft saved' : 'created'}:`, result);
       
       // Set flag to prevent auto-save
       setFormSubmitted(true);
+      
+      if (isDraft) {
+        // Clear local draft since it's now saved to database
+        localStorage.removeItem('campaignDraft');
+        alert('Campaign saved as draft successfully!');
+        setIsSubmitting(false);
+        return;
+      }
       
       // Show loading screen for 2 seconds for dramatic effect
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -293,6 +374,7 @@ const CreateCampaign: React.FC = () => {
       
       // Clear the form and navigate back
       setFormData({
+        // Section 1: Basic Information (MANDATORY)
         title: '',
         brandName: user?.name || '',
         description: '',
@@ -300,30 +382,68 @@ const CreateCampaign: React.FC = () => {
         startDate: '',
         endDate: '',
         campaignType: '',
+        budget: '',
+        currency: '',
+
+        // Section 2: Audience Targeting (Optional)
         targetAudience: {
           location: '',
           ageGroup: '',
           gender: '',
           interests: '',
         },
+        targetAudienceAge: [],
+        targetAudienceGender: [],
+        targetAudienceRegion: [],
+        languagePreference: '',
+        customRegion: '',
+
+        // Section 3: Content Requirements (Optional)
         platforms: [],
+        contentFormat: [],
+        numberOfPosts: '',
+        contentDuration: '',
+        hashtagsToUse: '',
+        mentionsRequired: '',
+        contentGuidelines: '',
+        referenceLinks: '',
+        creativeApprovalNeeded: false,
+
+        // Section 4: Creator Requirements (Optional)
         minRequirements: {
           followersCount: '',
           engagementRate: '',
           contentStyle: '',
           languages: [],
         },
+        minimumFollowers: '',
+        minimumEngagement: '',
+        creatorTier: '',
         nicheMatch: false,
         geographicRestrictions: '',
-        contentFormat: [],
-        numberOfPosts: '',
-        contentGuidelines: '',
-        approvalRequired: false,
+
+        // Section 5: Compensation & Deliverables (Optional)
         compensationType: '',
         paymentAmount: '',
+        commissionPercentage: '',
+        freeProductsOffered: '',
+        deliverables: '',
+        performanceBonus: false,
+        bonusCriteria: '',
         productDetails: '',
+
+        // Section 6: Campaign Workflow (Optional)
+        approvalRequired: false,
+        approvalSteps: [],
+        deadlineReminders: false,
+        communicationChannel: '',
+        timeZone: '',
+        campaignPriority: '',
+        postingSchedule: '',
+
+        // Section 7: Media & Assets (Optional)
         bannerImage: null,
-        referenceLinks: '',
+        referenceMedia: '',
       });
       
       navigate('/brand/dashboard');

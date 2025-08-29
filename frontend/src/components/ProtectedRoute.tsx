@@ -32,7 +32,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check user type if required
   if (requiredUserType && user?.userType !== requiredUserType) {
     // Redirect to appropriate dashboard based on user type
-    const redirectPath = user?.userType === 'brand' ? '/brand/dashboard' : '/influencer/dashboard';
+    const redirectPath = user?.userType === 'brand' ? '/brand/dashboard' : '/creator/dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 

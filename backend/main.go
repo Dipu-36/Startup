@@ -42,6 +42,14 @@ func main() {
 	api.HandleFunc("/campaigns", authMiddleware(createCampaignHandler)).Methods("POST")
 	api.HandleFunc("/campaigns", authMiddleware(getCampaignsHandler)).Methods("GET")
 	api.HandleFunc("/campaigns/all", authMiddleware(getAllCampaignsHandler)).Methods("GET")
+	api.HandleFunc("/campaigns/{campaignId}", authMiddleware(getCampaignHandler)).Methods("GET")
+	api.HandleFunc("/campaigns/{campaignId}/applications", authMiddleware(getCampaignApplicationsHandler)).Methods("GET")
+
+	// Application routes
+	api.HandleFunc("/applications", authMiddleware(getApplicationsForBrandHandler)).Methods("GET")
+	api.HandleFunc("/applications/creator", authMiddleware(getApplicationsForCreatorHandler)).Methods("GET")
+	api.HandleFunc("/applications", authMiddleware(createApplicationHandler)).Methods("POST")
+	api.HandleFunc("/applications/{applicationId}/status", authMiddleware(updateApplicationStatusHandler)).Methods("PUT")
 
 	// Setup CORS
 	c := cors.New(cors.Options{
