@@ -97,6 +97,7 @@ const CreateCampaign = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [lastSavedDataHash, setLastSavedDataHash] = useState<string>('');
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   // Initial form data structure
   const initialFormData: CampaignFormData = {
@@ -539,15 +540,36 @@ const CreateCampaign = () => {
                 <span className="font-medium text-sm">Back</span>
               </button>
               
-              <button 
-                onClick={() => handleSubmit(true)}
-                className="flex items-center space-x-2 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all duration-200 text-sm"
-              >
-                <Save className="w-4 h-4" />
-                <span className="font-medium">Save</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={() => setShowMobilePreview(!showMobilePreview)}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm ${
+                    showMobilePreview 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <Eye className="w-4 h-4" />
+                  <span className="font-medium">Preview</span>
+                </button>
+                
+                <button 
+                  onClick={() => handleSubmit(true)}
+                  className="flex items-center space-x-2 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all duration-200 text-sm"
+                >
+                  <Save className="w-4 h-4" />
+                  <span className="font-medium">Save</span>
+                </button>
+              </div>
             </div>
-            <h1 className="text-lg font-display font-bold text-foreground tracking-tight text-center">Create Campaign</h1>
+            <div className="flex items-center justify-center space-x-2">
+              <h1 className="text-lg font-display font-bold text-foreground tracking-tight text-center">Create Campaign</h1>
+              {showMobilePreview && (
+                <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
+                  Preview Mode
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Desktop Layout (≥ 640px) */}
@@ -564,13 +586,27 @@ const CreateCampaign = () => {
               <h1 className="text-xl lg:text-2xl font-display font-bold text-foreground tracking-tight">Create New Campaign</h1>
             </div>
             
-            <button 
-              onClick={() => handleSubmit(true)}
-              className="flex items-center space-x-2 px-3 lg:px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg"
-            >
-              <Save className="w-4 h-4" />
-              <span className="font-medium text-sm lg:text-base">Save Draft</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => setShowMobilePreview(!showMobilePreview)}
+                className={`lg:hidden flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm ${
+                  showMobilePreview 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <Eye className="w-4 h-4" />
+                <span className="font-medium">Preview</span>
+              </button>
+              
+              <button 
+                onClick={() => handleSubmit(true)}
+                className="flex items-center space-x-2 px-3 lg:px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg"
+              >
+                <Save className="w-4 h-4" />
+                <span className="font-medium text-sm lg:text-base">Save Draft</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -580,7 +616,9 @@ const CreateCampaign = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex gap-8">
             {/* Form Content - Scrollable Left Side */}
-            <div className="flex-1 lg:flex-[2] space-y-8 max-h-screen overflow-y-auto pr-4">
+            <div className={`flex-1 lg:flex-[2] space-y-8 max-h-screen overflow-y-auto pr-4 ${
+              showMobilePreview ? 'hidden lg:block' : 'block'
+            }`}>
               
               {/* Campaign Basics */}
               <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
@@ -1038,10 +1076,23 @@ const CreateCampaign = () => {
               </div>
             </div>
 
-            {/* Live Preview - Sticky Right Side */}
-            <div className="hidden lg:block lg:flex-[1] relative">
+            {/* Live Preview - Sticky Right Side (Desktop) / Full Width (Mobile when toggled) */}
+            <div className={`lg:flex-[1] relative ${
+              showMobilePreview ? 'block w-full' : 'hidden lg:block'
+            }`}>
               <div className="sticky top-24 h-fit max-h-[calc(100vh-7rem)] overflow-y-auto">
                 <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                  {/* Mobile Preview Header */}
+                  <div className={`lg:hidden flex items-center justify-between mb-4 ${showMobilePreview ? 'block' : 'hidden'}`}>
+                    <button
+                      onClick={() => setShowMobilePreview(false)}
+                      className="flex items-center space-x-2 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span className="font-medium text-sm">Back to Form</span>
+                    </button>
+                  </div>
+                  
                   <div className="flex items-center space-x-3 mb-4 sm:mb-6">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                     <h3 className="text-base sm:text-lg font-display font-semibold text-foreground">Live Preview</h3>
