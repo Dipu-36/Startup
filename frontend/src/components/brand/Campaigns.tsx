@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { APP_NAME } from '../../config/appConfig';
 import BrandNavbar from './BrandNavbar';
 
 interface Campaign {
@@ -45,7 +43,6 @@ interface Campaign {
 }
 
 const Campaigns: React.FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   
   // State management
@@ -150,11 +147,6 @@ const Campaigns: React.FC = () => {
       pages.push(i);
     }
     return pages;
-  };
-
-  // Navigation functions
-  const handleCreateCampaign = () => {
-    navigate('/brand/create-campaign');
   };
 
   // Filter and search functions

@@ -1,8 +1,7 @@
 // Component exports for easy importing
 export { default as LandingPage } from './LandingPage';
-export { default as LoginPage } from './LoginPage';
-export { default as SignupPage } from './SignupPage';
 export { default as ProtectedRoute } from './ProtectedRoute';
+export { default as UserTypeSelection } from './UserTypeSelection';
 
 // Brand Components
 export { default as BrandDashboard } from './brand/BrandDashboard';

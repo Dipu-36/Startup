@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useClerk, useUser } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
 
@@ -8,7 +8,8 @@ interface BrandNavbarProps {
 }
 
 const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
-  const { user, logout } = useAuth();
+  const { signOut } = useClerk();
+  const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -55,7 +56,7 @@ const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -134,22 +135,22 @@ const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
         </div>
         <div className="flex items-center space-x-4">
           <div className="hidden md:flex flex-col items-end">
-            <span className="text-sm font-medium text-gray-900">{user?.name || 'User'}</span>
-            <span className="text-xs text-gray-500">{user?.email || 'user@example.com'}</span>
+            <span className="text-sm font-medium text-gray-900">{user?.fullName || user?.firstName || 'User'}</span>
+            <span className="text-xs text-gray-500">{user?.emailAddresses?.[0]?.emailAddress || 'user@example.com'}</span>
           </div>
           <div className="relative" ref={dropdownRef}>
             <div 
               className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium cursor-pointer hover:bg-blue-700 transition-colors"
               onClick={toggleProfileDropdown}
             >
-              <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
+              <span>{user?.fullName ? user.fullName.charAt(0).toUpperCase() : user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}</span>
             </div>
             {isProfileDropdownOpen && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                 <div className="px-4 py-3 border-b border-gray-100">
                   <div className="flex flex-col">
-                    <strong className="text-sm font-medium text-gray-900">{user?.name || 'User'}</strong>
-                    <span className="text-xs text-gray-500">{user?.email || 'user@example.com'}</span>
+                    <strong className="text-sm font-medium text-gray-900">{user?.fullName || user?.firstName || 'User'}</strong>
+                    <span className="text-xs text-gray-500">{user?.emailAddresses?.[0]?.emailAddress || 'user@example.com'}</span>
                   </div>
                 </div>
                 <div className="py-1">

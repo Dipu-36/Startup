@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
 import { 
@@ -72,7 +72,8 @@ interface Application {
 }
 
 const BrandDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -167,7 +168,7 @@ const BrandDashboard = () => {
   };
 
   const handleLogout = () => {
-    logout();
+    signOut();
     navigate('/');
   };
 
@@ -264,14 +265,14 @@ const BrandDashboard = () => {
               <div className="relative" ref={dropdownRef}>
                 <div className="flex items-center space-x-2 sm:space-x-3">
                   <div className="text-right hidden sm:block">
-                    <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email || 'user@example.com'}</p>
+                    <p className="text-sm font-medium text-foreground">{user?.fullName || user?.firstName || 'User'}</p>
+                    <p className="text-xs text-muted-foreground">{user?.primaryEmailAddress?.emailAddress || 'user@example.com'}</p>
                   </div>
                   <button
                     onClick={toggleProfileDropdown}
                     className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-primary-foreground font-semibold hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
-                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    {user?.fullName ? user.fullName.charAt(0).toUpperCase() : user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
                   </button>
                 </div>
 
@@ -279,8 +280,8 @@ const BrandDashboard = () => {
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-card/95 backdrop-blur-sm border border-border rounded-xl shadow-xl py-2 animate-dropdown">
                     <div className="px-4 py-2 border-b border-border">
-                      <p className="font-medium text-foreground">{user?.name || 'User'}</p>
-                      <p className="text-sm text-muted-foreground">{user?.email || 'user@example.com'}</p>
+                      <p className="font-medium text-foreground">{user?.fullName || user?.firstName || 'User'}</p>
+                      <p className="text-sm text-muted-foreground">{user?.primaryEmailAddress?.emailAddress || 'user@example.com'}</p>
                     </div>
                     
                     {[
@@ -350,7 +351,7 @@ const BrandDashboard = () => {
               {/* Welcome Section */}
               <div className="mb-6 sm:mb-8">
                 <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
-                  Welcome back, {user?.name || 'Brand'}! 👋
+                  Welcome back, {user?.fullName || user?.firstName || 'Brand'}! 👋
                 </h2>
                 <p className="text-sm sm:text-base text-muted-foreground">
                   Here's what's happening with your campaigns today.

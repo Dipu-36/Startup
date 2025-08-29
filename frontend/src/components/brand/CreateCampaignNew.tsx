@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -63,14 +63,14 @@ interface CampaignFormData {
 }
 
 const CreateCampaign: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
   const navigate = useNavigate();
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState<CampaignFormData>({
     title: '',
-    brandName: user?.name || '',
+    brandName: user?.fullName || user?.firstName || '',
     description: '',
     category: '',
     startDate: '',
@@ -157,7 +157,7 @@ const CreateCampaign: React.FC = () => {
     if (savedDraft) {
       try {
         const parsedDraft = JSON.parse(savedDraft);
-        setFormData({ ...parsedDraft, brandName: user?.name || parsedDraft.brandName });
+        setFormData({ ...parsedDraft, brandName: user?.fullName || user?.firstName || parsedDraft.brandName });
       } catch (error) {
         console.error('Error loading draft:', error);
       }
@@ -294,7 +294,7 @@ const CreateCampaign: React.FC = () => {
       // Clear the form and navigate back
       setFormData({
         title: '',
-        brandName: user?.name || '',
+        brandName: user?.fullName || user?.firstName || '',
         description: '',
         category: '',
         startDate: '',

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { SignInButton, SignUpButton, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { APP_NAME } from '../config/appConfig';
 import ContinuousCounter from './shared/ContinuousCounter';
@@ -7,14 +8,21 @@ import AnimatedCard from './shared/AnimatedCard';
 import MagicalBackground from './shared/MagicalBackground';
 
 const LandingPage: React.FC = () => {
+  const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      navigate('/dashboard');
+    }
+  }, [isLoaded, isSignedIn, navigate]);
   // Typewriter effect for rotating brand text
-  const brandTexts = [
+  const brandTexts = useMemo(() => [
     'Brands',
     'Beauty Brands',
     'Gaming Companies'
-  ];
+  ], []);
 
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [currentText, setCurrentText] = useState('');
@@ -48,26 +56,14 @@ const LandingPage: React.FC = () => {
     return () => clearTimeout(typewriterTimer);
   }, [currentTextIndex, charIndex, isTyping, brandTexts]);
 
-  const handleLoginClick = () => {
-    navigate('/login');
-  };
-
-  const handleGetStartedClick = () => {
-    navigate('/signup');
-  };
-
-  const handleBookDemo = () => {
-    // For now, navigate to signup
-    navigate('/signup');
-  };
-
-  const handleJoinAsCreator = () => {
-    navigate('/signup?type=creator');
-  };
-
-  const handleJoinAsBrand = () => {
-    navigate('/signup?type=brand');
-  };
+  // Show loading while Clerk is loading
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -81,18 +77,16 @@ const LandingPage: React.FC = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <button 
-                onClick={handleLoginClick}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Sign In
-              </button>
-              <button 
-                onClick={handleGetStartedClick}
-                className="btn-primary animate-pulse-glow"
-              >
-                Get Started
-              </button>
+              <SignInButton mode="modal" fallbackRedirectUrl="/dashboard">
+                <button className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal" fallbackRedirectUrl="/dashboard">
+                <button className="btn-primary animate-pulse-glow">
+                  Get Started
+                </button>
+              </SignUpButton>
             </div>
           </div>
         </div>
@@ -121,21 +115,19 @@ const LandingPage: React.FC = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeIn">
-            <button 
-              onClick={handleJoinAsCreator}
-              className="btn-primary animate-pulse-glow flex items-center justify-center space-x-2"
-            >
-              <span>Join as Creator</span>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-            <button 
-              onClick={handleJoinAsBrand}
-              className="btn-secondary bg-transparent backdrop-blur-sm"
-            >
-              Join as Brand
-            </button>
+            <SignUpButton mode="modal" fallbackRedirectUrl="/dashboard">
+              <button className="btn-primary animate-pulse-glow flex items-center justify-center space-x-2">
+                <span>Join as Creator</span>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </SignUpButton>
+            <SignUpButton mode="modal" fallbackRedirectUrl="/dashboard">
+              <button className="btn-secondary bg-transparent backdrop-blur-sm">
+                Join as Brand
+              </button>
+            </SignUpButton>
           </div>
         </div>
       </section>
@@ -222,15 +214,14 @@ const LandingPage: React.FC = () => {
           <p className="text-xl text-muted-foreground mb-8">
             Join thousands of creators and brands already using AdFluence to build successful partnerships.
           </p>
-          <button 
-            onClick={handleBookDemo}
-            className="btn-primary animate-pulse-glow flex items-center justify-center space-x-2 mx-auto"
-          >
-            <span>Get Started Today</span>
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+          <SignUpButton mode="modal" fallbackRedirectUrl="/dashboard">
+            <button className="btn-primary animate-pulse-glow flex items-center justify-center space-x-2 mx-auto">
+              <span>Get Started Today</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </SignUpButton>
           
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
             <AnimatedCard index={0} className="text-center">

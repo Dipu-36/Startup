@@ -1,12 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { APP_NAME } from '../../config/appConfig';
 import campaignService, { Campaign, Creator, Deliverable, PaymentRecord } from '../../services/campaignService';
 import BrandNavbar from './BrandNavbar';
 
 const ManageCampaign: React.FC = () => {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { campaignId } = useParams<{ campaignId: string }>();
   
@@ -79,10 +76,6 @@ const ManageCampaign: React.FC = () => {
   // Navigation handlers
   const handleBackToCampaigns = () => {
     navigate('/brand/campaigns');
-  };
-
-  const handleBackToDashboard = () => {
-    navigate('/brand/dashboard');
   };
 
   // Campaign action handlers
