@@ -13,7 +13,27 @@ import {
   HelpCircle, 
   LogOut,
   Menu,
-  X
+  X,
+  Users,
+  FileText,
+  Calendar,
+  Star,
+  Eye,
+  MessageSquare,
+  Filter,
+  Search,
+  BarChart3,
+  Activity,
+  Circle,
+  XCircle,
+  Target,
+  DollarSign,
+  TrendingUp,
+  Mail,
+  ExternalLink,
+  ChevronRight,
+  Award,
+  Tag
 } from 'lucide-react';
 
 interface Campaign {
@@ -442,21 +462,27 @@ const BrandDashboard = () => {
                 {/* Recent Campaigns */}
                 <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4 flex items-center">
-                  <span className="mr-2"></span>
+                  <Activity className="w-5 h-5 mr-2 text-primary" />
                   Recent Campaigns
                 </h3>
                 <div className="space-y-3">
                   {campaigns.slice(0, 3).map((campaign) => (
                     <div key={campaign.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors duration-200">
                       <div>
-                        <p className="font-medium text-foreground">{campaign.title}</p>
+                        <p className="font-medium text-foreground flex items-center">
+                          <Target className="w-4 h-4 mr-1" />
+                          {campaign.title}
+                        </p>
                         <p className="text-sm text-muted-foreground">{campaign.category}</p>
                       </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${
                         campaign.status === 'active' ? 'bg-green-100 text-green-800' :
                         campaign.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
+                        {campaign.status === 'active' ? <Activity className="w-3 h-3 mr-1" /> :
+                         campaign.status === 'draft' ? <Circle className="w-3 h-3 mr-1" /> :
+                         <CheckCircle className="w-3 h-3 mr-1" />}
                         {campaign.status}
                       </span>
                     </div>
@@ -478,21 +504,32 @@ const BrandDashboard = () => {
               {/* Recent Applications */}
               <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                  <span className="mr-2">📝</span>
+                  <FileText className="w-5 h-5 mr-2 text-primary" />
                   Recent Applications
                 </h3>
                 <div className="space-y-3">
                   {applications.slice(0, 3).map((application) => (
                     <div key={application.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors duration-200">
                       <div>
-                        <p className="font-medium text-foreground">{application.creatorName}</p>
-                        <p className="text-sm text-muted-foreground">{application.platform} • {application.followers}</p>
+                        <p className="font-medium text-foreground flex items-center">
+                          <User className="w-4 h-4 mr-1" />
+                          {application.creatorName}
+                        </p>
+                        <p className="text-sm text-muted-foreground flex items-center">
+                          <MessageSquare className="w-3 h-3 mr-1" />
+                          {application.platform}
+                          <Users className="w-3 h-3 ml-2 mr-1" />
+                          {application.followers}
+                        </p>
                       </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${
                         application.status === 'approved' ? 'bg-green-100 text-green-800' :
                         application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>
+                        {application.status === 'approved' ? <CheckCircle className="w-3 h-3 mr-1" /> :
+                         application.status === 'pending' ? <Clock className="w-3 h-3 mr-1" /> :
+                         <XCircle className="w-3 h-3 mr-1" />}
                         {application.status}
                       </span>
                     </div>
@@ -507,8 +544,9 @@ const BrandDashboard = () => {
             <>
               {/* Campaigns Header */}
               <div className="mb-6 sm:mb-8">
-                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
-                  📊 Campaign Management
+                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight flex items-center">
+                  <BarChart3 className="w-8 h-8 mr-3 text-primary" />
+                  Campaign Management
                 </h2>
                 <p className="text-sm sm:text-base text-muted-foreground">
                   Manage all your active and past campaigns.
@@ -517,12 +555,16 @@ const BrandDashboard = () => {
 
               <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-foreground">All Campaigns</h3>
+                <h3 className="text-lg font-semibold text-foreground flex items-center">
+                  <Target className="w-5 h-5 mr-2" />
+                  All Campaigns
+                </h3>
                 <button 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 flex items-center space-x-2"
                   onClick={handleCreateCampaign}
                 >
-                  Create Campaign
+                  <Plus className="w-4 h-4" />
+                  <span>Create Campaign</span>
                 </button>
               </div>
               {loading ? (
@@ -532,12 +574,15 @@ const BrandDashboard = () => {
                 </div>
               ) : campaigns.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="text-6xl mb-4">📝</div>
+                  <div className="w-16 h-16 mx-auto mb-4 bg-muted/50 rounded-full flex items-center justify-center">
+                    <Target className="w-8 h-8 text-muted-foreground" />
+                  </div>
                   <p className="text-muted-foreground mb-4">No campaigns found</p>
                   <button 
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg transition-colors duration-200"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto"
                     onClick={handleCreateCampaign}
                   >
+                    <Plus className="w-4 h-4" />
                     Create Your First Campaign
                   </button>
                 </div>
@@ -545,15 +590,28 @@ const BrandDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {campaigns.map((campaign) => (
                     <div key={campaign.id} className="bg-muted/30 border border-border rounded-lg p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
-                      <h4 className="font-semibold text-foreground mb-2">{campaign.title}</h4>
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-semibold text-foreground flex-1">{campaign.title}</h4>
+                        <Calendar className="w-4 h-4 text-muted-foreground ml-2 mt-0.5" />
+                      </div>
                       <p className="text-sm text-muted-foreground mb-3">{campaign.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{campaign.category}</span>
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full flex items-center gap-1">
+                          <Tag className="w-3 h-3" />
+                          {campaign.category}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 ${
                           campaign.status === 'active' ? 'bg-green-100 text-green-800' :
                           campaign.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
+                          {campaign.status === 'active' ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : campaign.status === 'draft' ? (
+                            <Clock className="w-3 h-3" />
+                          ) : (
+                            <XCircle className="w-3 h-3" />
+                          )}
                           {campaign.status}
                         </span>
                       </div>
@@ -569,8 +627,9 @@ const BrandDashboard = () => {
             <>
               {/* Applications Header */}
               <div className="mb-6 sm:mb-8">
-                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
-                  📝 Creator Applications
+                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight flex items-center">
+                  <FileText className="w-8 h-8 mr-3 text-primary" />
+                  Creator Applications
                 </h2>
                 <p className="text-sm sm:text-base text-muted-foreground">
                   Review and manage applications from content creators.
@@ -578,7 +637,10 @@ const BrandDashboard = () => {
               </div>
 
               <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-6">All Applications</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center">
+                <Users className="w-5 h-5 mr-2" />
+                All Applications
+              </h3>
               <div className="space-y-4">
                 {applications.map((application) => (
                   <div key={application.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-all duration-200 hover:scale-[1.02]">
@@ -587,20 +649,37 @@ const BrandDashboard = () => {
                         {application.creatorName.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">{application.creatorName}</p>
-                        <p className="text-sm text-muted-foreground">{application.platform} • {application.followers}</p>
-                        <p className="text-xs text-muted-foreground">{application.campaignName}</p>
+                        <p className="font-medium text-foreground flex items-center">
+                          <User className="w-4 h-4 mr-1" />
+                          {application.creatorName}
+                        </p>
+                        <p className="text-sm text-muted-foreground flex items-center">
+                          <MessageSquare className="w-3 h-3 mr-1" />
+                          {application.platform} 
+                          <Users className="w-3 h-3 ml-2 mr-1" />
+                          {application.followers}
+                        </p>
+                        <p className="text-xs text-muted-foreground flex items-center">
+                          <Target className="w-3 h-3 mr-1" />
+                          {application.campaignName}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center ${
                         application.status === 'approved' ? 'bg-green-100 text-green-800' :
                         application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>
+                        {application.status === 'approved' ? <CheckCircle className="w-3 h-3 mr-1" /> :
+                         application.status === 'pending' ? <Clock className="w-3 h-3 mr-1" /> :
+                         <XCircle className="w-3 h-3 mr-1" />}
                         {application.status}
                       </span>
-                      <p className="text-xs text-muted-foreground mt-1">{application.appliedDate}</p>
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center justify-end">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {application.appliedDate}
+                      </p>
                     </div>
                   </div>
                 ))}

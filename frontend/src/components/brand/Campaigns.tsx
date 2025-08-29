@@ -3,6 +3,27 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
 import BrandNavbar from './BrandNavbar';
+import { 
+  Search, 
+  Filter, 
+  Plus, 
+  Calendar, 
+  Users, 
+  Eye, 
+  Settings, 
+  BarChart3, 
+  Clock, 
+  CheckCircle, 
+  XCircle, 
+  Circle, 
+  ChevronLeft, 
+  ChevronRight,
+  Target,
+  DollarSign,
+  MessageSquare,
+  TrendingUp,
+  Activity
+} from 'lucide-react';
 
 interface Campaign {
   id: string;
@@ -62,12 +83,23 @@ const Campaigns: React.FC = () => {
 
   // Filter options
   const filterOptions = [
-    { key: 'all' as const, label: 'All Campaigns', count: campaigns.length },
-    { key: 'active' as const, label: 'Active', count: campaigns.filter(c => c.status === 'active').length },
-    { key: 'draft' as const, label: 'Draft', count: campaigns.filter(c => c.status === 'draft').length },
-    { key: 'completed' as const, label: 'Completed', count: campaigns.filter(c => c.status === 'completed').length },
-    { key: 'cancelled' as const, label: 'Cancelled', count: campaigns.filter(c => c.status === 'cancelled').length },
+    { key: 'all' as const, label: 'All Campaigns', count: campaigns.length, icon: BarChart3 },
+    { key: 'active' as const, label: 'Active', count: campaigns.filter(c => c.status === 'active').length, icon: Activity },
+    { key: 'draft' as const, label: 'Draft', count: campaigns.filter(c => c.status === 'draft').length, icon: Circle },
+    { key: 'completed' as const, label: 'Completed', count: campaigns.filter(c => c.status === 'completed').length, icon: CheckCircle },
+    { key: 'cancelled' as const, label: 'Cancelled', count: campaigns.filter(c => c.status === 'cancelled').length, icon: XCircle },
   ];
+
+  // Get status icon
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active': return Activity;
+      case 'draft': return Circle;
+      case 'completed': return CheckCircle;
+      case 'cancelled': return XCircle;
+      default: return Circle;
+    }
+  };
 
   // Fetch campaigns from API
   useEffect(() => {
@@ -193,10 +225,7 @@ const Campaigns: React.FC = () => {
         <div className="search-section">
           <div className="search-container">
             <div className="search-bar">
-              <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="M21 21l-4.35-4.35"></path>
-              </svg>
+              <Search className="search-icon" size={20} />
               <input
                 type="text"
                 placeholder="Search campaigns by title, description, or category..."
@@ -229,26 +258,38 @@ const Campaigns: React.FC = () => {
           {/* Sidebar */}
           <aside className="campaigns-sidebar">
             <div className="sidebar-section">
-              <h3 className="sidebar-title">Filter Campaigns</h3>
+              <h3 className="sidebar-title">
+                <Filter size={18} className="inline mr-2" />
+                Filter Campaigns
+              </h3>
               <div className="filter-options">
-                {filterOptions.map((option) => (
-                  <button
-                    key={option.key}
-                    className={`filter-btn ${activeFilter === option.key ? 'active' : ''}`}
-                    onClick={() => setActiveFilter(option.key)}
-                  >
-                    <span className="filter-label">{option.label}</span>
-                    <span className="filter-count">{option.count}</span>
-                  </button>
-                ))}
+                {filterOptions.map((option) => {
+                  const IconComponent = option.icon;
+                  return (
+                    <button
+                      key={option.key}
+                      className={`filter-btn ${activeFilter === option.key ? 'active' : ''}`}
+                      onClick={() => setActiveFilter(option.key)}
+                    >
+                      <div className="filter-btn-content">
+                        <IconComponent size={16} className="filter-icon" />
+                        <span className="filter-label">{option.label}</span>
+                      </div>
+                      <span className="filter-count">{option.count}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div className="sidebar-section">
-              <h3 className="sidebar-title">Quick Actions</h3>
+              <h3 className="sidebar-title">
+                <TrendingUp size={18} className="inline mr-2" />
+                Quick Actions
+              </h3>
               <div className="quick-actions">
                 <button className="action-btn" onClick={() => navigate('/brand/dashboard')}>
-                  <span className="action-icon">📊</span>
+                  <BarChart3 size={16} className="action-icon" />
                   View Dashboard
                 </button>
               </div>
@@ -265,7 +306,9 @@ const Campaigns: React.FC = () => {
 
             {filteredCampaigns.length === 0 && !error ? (
               <div className="empty-state">
-                <div className="empty-icon">📋</div>
+                <div className="empty-icon">
+                  <BarChart3 size={48} className="empty-icon-svg" />
+                </div>
                 <h3>No campaigns found</h3>
                 <p>
                   {searchQuery 
@@ -275,6 +318,15 @@ const Campaigns: React.FC = () => {
                       : `No ${activeFilter} campaigns found.`
                   }
                 </p>
+                {activeFilter === 'all' && !searchQuery && (
+                  <button 
+                    className="action-btn-primary"
+                    onClick={() => navigate('/brand/create-campaign')}
+                  >
+                    <Plus size={16} className="action-icon" />
+                    Create Your First Campaign
+                  </button>
+                )}
               </div>
             ) : (
               <>
@@ -284,13 +336,18 @@ const Campaigns: React.FC = () => {
                     <div className="campaign-header">
                       <h3 className="campaign-title">{campaign.title}</h3>
                       <span className={`campaign-status ${getStatusClass(campaign.status)}`}>
+                        {React.createElement(getStatusIcon(campaign.status), { size: 14, className: "status-icon" })}
                         {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
                       </span>
                     </div>
                     
                     <div className="campaign-meta">
-                      <div className="campaign-category">{campaign.category}</div>
+                      <div className="campaign-category">
+                        <Target size={14} className="inline mr-1" />
+                        {campaign.category}
+                      </div>
                       <div className="campaign-dates">
+                        <Calendar size={14} className="inline mr-1" />
                         {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
                       </div>
                     </div>
@@ -304,9 +361,11 @@ const Campaigns: React.FC = () => {
 
                     <div className="campaign-details">
                       <div className="campaign-platforms">
+                        <MessageSquare size={14} className="inline mr-1" />
                         <strong>Platforms:</strong> {campaign.platforms.join(', ')}
                       </div>
                       <div className="campaign-compensation">
+                        <DollarSign size={14} className="inline mr-1" />
                         <strong>Type:</strong> {campaign.compensationType}
                         {campaign.paymentAmount && (
                           <span className="payment-amount"> - ${campaign.paymentAmount}</span>
@@ -316,10 +375,12 @@ const Campaigns: React.FC = () => {
 
                     <div className="campaign-stats">
                       <div className="stat-item">
+                        <Users size={14} className="stat-icon" />
                         <span className="stat-label">Applicants</span>
                         <span className="stat-value">{campaign.applicants || 0}</span>
                       </div>
                       <div className="stat-item">
+                        <Activity size={14} className="stat-icon" />
                         <span className="stat-label">Posts</span>
                         <span className="stat-value">{campaign.numberOfPosts}</span>
                       </div>
@@ -327,12 +388,14 @@ const Campaigns: React.FC = () => {
 
                     <div className="campaign-actions">
                       <button className="action-btn-secondary">
+                        <Eye size={16} className="action-icon" />
                         View Details
                       </button>
                       <button 
                         className="action-btn-primary"
                         onClick={() => navigate(`/brand/campaigns/${campaign.id}/manage`)}
                       >
+                        <Settings size={16} className="action-icon" />
                         Manage
                       </button>
                     </div>
@@ -348,7 +411,7 @@ const Campaigns: React.FC = () => {
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
                     >
-                      ‹
+                      <ChevronLeft size={16} />
                     </button>
                     
                     {generatePageNumbers().map((page) => (
@@ -366,7 +429,7 @@ const Campaigns: React.FC = () => {
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
                     >
-                      ›
+                      <ChevronRight size={16} />
                     </button>
                   </div>
                 )}
