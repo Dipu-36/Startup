@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -90,12 +90,13 @@ interface CampaignFormData {
   referenceMedia: string;
 }
 
-const CreateCampaign: React.FC = () => {
+const CreateCampaign = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [lastSavedDataHash, setLastSavedDataHash] = useState<string>('');
 
   // Initial form data structure
   const initialFormData: CampaignFormData = {
@@ -216,11 +217,30 @@ const CreateCampaign: React.FC = () => {
   ];
 
   // Save draft to localStorage
-  const saveDraft = () => {
-    localStorage.setItem('campaignDraft', JSON.stringify(formData));
+  const saveDraft = useCallback(() => {
+    // Create a hash of the current form data to check if it has changed
+    const currentDataHash = JSON.stringify(formData);
+    
+    // Don't save if data hasn't changed
+    if (currentDataHash === lastSavedDataHash) {
+      return;
+    }
+    
+    // Don't save if form is essentially empty (only has brand name)
+    const hasMeaningfulData = formData.title.trim() || 
+                             formData.description.trim() || 
+                             formData.category || 
+                             formData.campaignType;
+    
+    if (!hasMeaningfulData) {
+      return;
+    }
+    
+    localStorage.setItem('campaignDraft', currentDataHash);
+    setLastSavedDataHash(currentDataHash);
     setShowSaveNotification(true);
     setTimeout(() => setShowSaveNotification(false), 2000);
-  };
+  }, [formData, lastSavedDataHash]);
 
   // Load draft from localStorage
   useEffect(() => {
@@ -228,22 +248,54 @@ const CreateCampaign: React.FC = () => {
     if (savedDraft) {
       try {
         const parsedDraft = JSON.parse(savedDraft);
-        setFormData({ ...parsedDraft, brandName: user?.name || parsedDraft.brandName });
+        // Ensure all required array fields exist
+        const safeData = {
+          ...initialFormData,
+          ...parsedDraft,
+          brandName: user?.name || parsedDraft.brandName,
+          platforms: parsedDraft.platforms || [],
+          contentFormat: parsedDraft.contentFormat || [],
+          targetAudienceAge: parsedDraft.targetAudienceAge || [],
+          targetAudienceGender: parsedDraft.targetAudienceGender || [],
+          targetAudienceRegion: parsedDraft.targetAudienceRegion || [],
+          approvalSteps: parsedDraft.approvalSteps || [],
+          minRequirements: {
+            ...initialFormData.minRequirements,
+            ...parsedDraft.minRequirements,
+            languages: parsedDraft.minRequirements?.languages || []
+          }
+        };
+        setFormData(safeData);
+        // Set the hash to prevent immediate auto-save notification
+        setLastSavedDataHash(JSON.stringify(safeData));
       } catch (error) {
         console.error('Error loading draft:', error);
+        // Clear corrupted localStorage data
+        localStorage.removeItem('campaignDraft');
       }
     }
   }, [user]);
 
-  // Auto-save every 2 seconds
+  // Auto-save every 30 seconds (increased from 2 seconds)
   useEffect(() => {
     if (formSubmitted) return; // Don't auto-save after form submission
     
     const interval = setInterval(() => {
       saveDraft();
-    }, 2000);
+    }, 30000); // Changed from 2000ms (2s) to 30000ms (30s)
 
     return () => clearInterval(interval);
+  }, [formSubmitted, saveDraft]);
+
+  // Debounced save when user makes changes (after 3 seconds of inactivity)
+  useEffect(() => {
+    if (formSubmitted) return;
+    
+    const debounceTimer = setTimeout(() => {
+      saveDraft();
+    }, 3000); // Save 3 seconds after user stops typing
+
+    return () => clearTimeout(debounceTimer);
   }, [formData, formSubmitted, saveDraft]);
 
   const handleInputChange = (field: string, value: any) => {
@@ -271,7 +323,7 @@ const CreateCampaign: React.FC = () => {
         current = current[keys[i]];
       }
       
-      const array = current[keys[keys.length - 1]] as string[];
+      const array = current[keys[keys.length - 1]] as string[] || [];
       if (checked) {
         current[keys[keys.length - 1]] = [...array, value];
       } else {
@@ -290,7 +342,7 @@ const CreateCampaign: React.FC = () => {
   const handleClearDraft = () => {
     if (window.confirm('Are you sure you want to clear all form data? This action cannot be undone.')) {
       localStorage.removeItem('campaignDraft');
-      setFormData(initialFormData);
+      setFormData({ ...initialFormData, brandName: user?.name || '' });
       alert('Draft cleared successfully!');
     }
   };
@@ -467,14 +519,14 @@ const CreateCampaign: React.FC = () => {
 
       {/* Save notification */}
       {showSaveNotification && (
-        <div className="fixed top-6 right-6 z-50 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-fadeIn">
+        <div className="fixed top-6 right-6 z-[60] bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-fadeIn">
           <CheckCircle2 className="w-5 h-5" />
           <span className="font-medium">Draft saved automatically</span>
         </div>
       )}
       
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur-lg">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-card/95 backdrop-blur-lg">
         <div className="px-4 sm:px-6 py-3 sm:py-4">
           {/* Mobile Layout (< 640px) */}
           <div className="sm:hidden">
@@ -523,12 +575,12 @@ const CreateCampaign: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="relative z-10 px-4 sm:px-6 py-6 sm:py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Form Content - Left Side */}
-            <div className="lg:col-span-2 space-y-8">
+      {/* Main Content with proper spacing for fixed header */}
+      <main className="relative z-10 pt-24 sm:pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex gap-8">
+            {/* Form Content - Scrollable Left Side */}
+            <div className="flex-1 lg:flex-[2] space-y-8 max-h-screen overflow-y-auto pr-4">
               
               {/* Campaign Basics */}
               <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
@@ -572,7 +624,7 @@ const CreateCampaign: React.FC = () => {
                       value={formData.description}
                       onChange={(e) => handleInputChange('description', e.target.value)}
                       placeholder="Describe your campaign goals, expectations, and details..."
-                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 resize-none"
                       rows={4}
                       required
                     />
@@ -717,7 +769,7 @@ const CreateCampaign: React.FC = () => {
                       <label key={platform} className="flex items-center space-x-2 p-3 bg-background border border-border rounded-lg hover:bg-muted/30 transition-all duration-200 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={formData.platforms.includes(platform)}
+                          checked={formData.platforms?.includes(platform) || false}
                           onChange={(e) => handleArrayChange('platforms', platform, e.target.checked)}
                           className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
                         />
@@ -777,7 +829,7 @@ const CreateCampaign: React.FC = () => {
                           <label key={lang} className="flex items-center space-x-2 p-2 bg-background border border-border rounded-lg hover:bg-muted/30 transition-all duration-200 cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={formData.minRequirements.languages.includes(lang)}
+                              checked={formData.minRequirements?.languages?.includes(lang) || false}
                               onChange={(e) => handleArrayChange('minRequirements.languages', lang, e.target.checked)}
                               className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
                             />
@@ -831,7 +883,7 @@ const CreateCampaign: React.FC = () => {
                         <label key={format} className="flex items-center space-x-2 p-3 bg-background border border-border rounded-lg hover:bg-muted/30 transition-all duration-200 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={formData.contentFormat.includes(format)}
+                            checked={formData.contentFormat?.includes(format) || false}
                             onChange={(e) => handleArrayChange('contentFormat', format, e.target.checked)}
                             className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
                           />
@@ -859,7 +911,7 @@ const CreateCampaign: React.FC = () => {
                       value={formData.contentGuidelines}
                       onChange={(e) => handleInputChange('contentGuidelines', e.target.value)}
                       placeholder="Specific hashtags, mentions, tone, do's & don'ts..."
-                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 resize-none"
                       rows={4}
                     />
                   </div>
@@ -920,7 +972,7 @@ const CreateCampaign: React.FC = () => {
                       value={formData.productDetails}
                       onChange={(e) => handleInputChange('productDetails', e.target.value)}
                       placeholder="Describe products/services being offered, event details, etc."
-                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 resize-none"
                       rows={3}
                     />
                   </div>
@@ -966,7 +1018,7 @@ const CreateCampaign: React.FC = () => {
                       value={formData.referenceLinks}
                       onChange={(e) => handleInputChange('referenceLinks', e.target.value)}
                       placeholder="Links to brand kit, style guides, example posts, website..."
-                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 resize-none"
                       rows={3}
                     />
                   </div>
@@ -986,9 +1038,9 @@ const CreateCampaign: React.FC = () => {
               </div>
             </div>
 
-            {/* Live Preview - Right Side */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-24">
+            {/* Live Preview - Sticky Right Side */}
+            <div className="hidden lg:block lg:flex-[1] relative">
+              <div className="sticky top-24 h-fit max-h-[calc(100vh-7rem)] overflow-y-auto">
                 <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center space-x-3 mb-4 sm:mb-6">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
@@ -1120,16 +1172,16 @@ const CreateCampaign: React.FC = () => {
           </div>
         </div>
 
-        {/* Loading Overlay */}
-        {isSubmitting && (
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <div className="bg-card/90 backdrop-blur-sm border border-border rounded-xl p-8 text-center max-w-md mx-4">
-              <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-              <h3 className="text-lg font-display font-semibold text-foreground mb-2">Creating Your Campaign</h3>
-              <p className="text-muted-foreground">Preparing your campaign for influencers...</p>
-            </div>
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-card/90 backdrop-blur-sm border border-border rounded-xl p-8 text-center max-w-md mx-4">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+            <h3 className="text-lg font-display font-semibold text-foreground mb-2">Creating Your Campaign</h3>
+            <p className="text-muted-foreground">Preparing your campaign for influencers...</p>
           </div>
-        )}
+        </div>
+      )}
       </main>
     </div>
   );
