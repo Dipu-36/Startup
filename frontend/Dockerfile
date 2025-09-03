@@ -7,8 +7,19 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+# Copy environment file for build-time variables
+COPY .env* ./
+
 # Copy source code
 COPY . .
+
+# Build arguments for Clerk configuration
+ARG REACT_APP_CLERK_PUBLISHABLE_KEY
+ARG REACT_APP_API_URL
+
+# Set environment variables for build
+ENV REACT_APP_CLERK_PUBLISHABLE_KEY=$REACT_APP_CLERK_PUBLISHABLE_KEY
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
 
 # Build the application
 RUN npm run build
