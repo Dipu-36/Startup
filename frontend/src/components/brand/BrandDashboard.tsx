@@ -372,10 +372,12 @@ const BrandDashboard = () => {
         <div>
               {/* Welcome Section */}
               <div className="mb-6 sm:mb-8">
-                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
-                  Welcome back, {user?.fullName || user?.firstName || 'Brand'}! 👋
+                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight flex items-center">
+                  <Users className="w-8 h-8 mr-3 text-primary" />
+                  Welcome back, {user?.fullName || user?.firstName || 'Brand'}!
                 </h2>
-                <p className="text-sm sm:text-base text-muted-foreground">
+                <p className="text-sm sm:text-base text-muted-foreground flex items-center">
+                  <BarChart3 className="w-4 h-4 mr-2 text-muted-foreground" />
                   Here's what's happening with your campaigns today.
                 </p>
               </div>
@@ -465,7 +467,7 @@ const BrandDashboard = () => {
                 {/* Recent Campaigns */}
                 <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4 flex items-center">
-                  <span className="mr-2">🚀</span>
+                  <Rocket className="w-5 h-5 mr-2 text-primary" />
                   Recent Campaigns
                 </h3>
                 <div className="space-y-3">
@@ -474,20 +476,41 @@ const BrandDashboard = () => {
                          onClick={() => navigate(`/brand/campaigns/manage/${campaign.id}`)}>
                       <div className="flex-1">
                         <p className="font-medium text-foreground mb-1">{campaign.title}</p>
-                        <p className="text-sm text-muted-foreground mb-2">{campaign.category} • {campaign.platforms.join(', ')}</p>
+                        <p className="text-sm text-muted-foreground mb-2 flex items-center">
+                          <Tag className="w-3 h-3 mr-1" />
+                          {campaign.category} • {campaign.platforms.join(', ')}
+                        </p>
                         <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                          <span>💰 {campaign.paymentAmount}</span>
-                          <span>👥 {campaign.applicants} applicants</span>
-                          <span>📅 {new Date(campaign.createdAt).toLocaleDateString()}</span>
+                          <span className="flex items-center">
+                            <DollarSign className="w-3 h-3 mr-1" />
+                            {campaign.paymentAmount}
+                          </span>
+                          <span className="flex items-center">
+                            <Users className="w-3 h-3 mr-1" />
+                            {campaign.applicants} applicants
+                          </span>
+                          <span className="flex items-center">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {new Date(campaign.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
                       <div className="flex flex-col items-end space-y-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
                           campaign.status === 'active' ? 'bg-green-100 text-green-800' :
                           campaign.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
                           campaign.status === 'completed' ? 'bg-purple-100 text-purple-800' :
                           'bg-red-100 text-red-800'
                         }`}>
+                          {campaign.status === 'active' ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : campaign.status === 'draft' ? (
+                            <Clock className="w-3 h-3" />
+                          ) : campaign.status === 'completed' ? (
+                            <Award className="w-3 h-3" />
+                          ) : (
+                            <XCircle className="w-3 h-3" />
+                          )}
                           {campaign.status}
                         </span>
                       </div>
@@ -495,11 +518,15 @@ const BrandDashboard = () => {
                   ))}
                   {campaigns.length === 0 && (
                     <div className="text-center py-8">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-muted/50 rounded-full flex items-center justify-center">
+                        <Rocket className="w-8 h-8 text-muted-foreground" />
+                      </div>
                       <p className="text-muted-foreground mb-4">No campaigns yet</p>
                       <button 
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors duration-200"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto"
                         onClick={handleCreateCampaign}
                       >
+                        <Plus className="w-4 h-4" />
                         Create Your First Campaign
                       </button>
                     </div>
@@ -510,7 +537,7 @@ const BrandDashboard = () => {
               {/* Recent Applications */}
               <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                  <span className="mr-2">📋</span>
+                  <FileText className="w-5 h-5 mr-2 text-primary" />
                   Recent Applications
                 </h3>
                 <div className="space-y-3">
@@ -518,20 +545,42 @@ const BrandDashboard = () => {
                     <div key={application.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors duration-200 cursor-pointer">
                       <div className="flex-1">
                         <p className="font-medium text-foreground mb-1">{application.creatorName}</p>
-                        <p className="text-sm text-muted-foreground mb-2">{application.campaignName}</p>
+                        <p className="text-sm text-muted-foreground mb-2 flex items-center">
+                          <Target className="w-3 h-3 mr-1" />
+                          {application.campaignName}
+                        </p>
                         <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                          <span>📧 {application.creatorEmail}</span>
-                          <span>📱 {application.platform}</span>
-                          <span>👥 {application.followers} followers</span>
-                          <span>📅 {new Date(application.appliedDate).toLocaleDateString()}</span>
+                          <span className="flex items-center">
+                            <Mail className="w-3 h-3 mr-1" />
+                            {application.creatorEmail}
+                          </span>
+                          <span className="flex items-center">
+                            <Activity className="w-3 h-3 mr-1" />
+                            {application.platform}
+                          </span>
+                          <span className="flex items-center">
+                            <Users className="w-3 h-3 mr-1" />
+                            {application.followers} followers
+                          </span>
+                          <span className="flex items-center">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {new Date(application.appliedDate).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
                       <div className="flex flex-col items-end space-y-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
                           application.status === 'approved' ? 'bg-green-100 text-green-800' :
                           application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-red-100 text-red-800'
                         }`}>
+                          {application.status === 'approved' ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : application.status === 'pending' ? (
+                            <Clock className="w-3 h-3" />
+                          ) : (
+                            <XCircle className="w-3 h-3" />
+                          )}
                           {application.status}
                         </span>
                       </div>
@@ -539,11 +588,15 @@ const BrandDashboard = () => {
                   ))}
                   {applications.length === 0 && (
                     <div className="text-center py-8">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-muted/50 rounded-full flex items-center justify-center">
+                        <FileText className="w-8 h-8 text-muted-foreground" />
+                      </div>
                       <p className="text-muted-foreground mb-4">No applications yet</p>
                       <button 
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors duration-200"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto"
                         onClick={() => navigate('/brand/campaigns')}
                       >
+                        <Eye className="w-4 h-4" />
                         View Your Campaigns
                       </button>
                     </div>
