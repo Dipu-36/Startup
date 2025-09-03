@@ -1,26 +1,38 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useClerk, useUser } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+  User, 
+  CreditCard, 
+  Bell, 
+  HelpCircle, 
+  LogOut,
+  Menu,
+  X
+} from 'lucide-react';
 import { APP_NAME } from '../../config/appConfig';
 
 interface BrandNavbarProps {
-  activeTab?: 'dashboard' | 'campaigns' | 'create-campaign' | 'manage-campaign';
+  activeTab?: 'dashboard' | 'campaigns' | 'applications';
 }
 
 const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
-  const { user, logout } = useAuth();
+  const { signOut } = useClerk();
+  const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // Auto-detect active tab based on current route if not provided
   const getCurrentTab = () => {
     if (activeTab) return activeTab;
     
     const path = location.pathname;
-    if (path.includes('/brand/campaigns/create')) return 'create-campaign';
-    if (path.includes('/brand/campaigns/manage')) return 'manage-campaign';
+    if (path.includes('/brand/applications')) return 'applications';
+    if (path.includes('/manage')) return 'campaigns'; // Manage campaign pages highlight campaigns tab
     if (path.includes('/brand/campaigns')) return 'campaigns';
     if (path.includes('/brand/dashboard')) return 'dashboard';
     return 'dashboard';
@@ -30,6 +42,10 @@ const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
 
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const handleProfileAction = (action: string) => {
@@ -55,7 +71,7 @@ const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -63,6 +79,7 @@ const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
   };
 
   const handleNavigation = (tab: string) => {
+    setIsMobileMenuOpen(false); // Close mobile menu when navigating
     switch (tab) {
       case 'dashboard':
         navigate('/brand/dashboard');
@@ -70,12 +87,8 @@ const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
       case 'campaigns':
         navigate('/brand/campaigns');
         break;
-      case 'create-campaign':
-        navigate('/brand/campaigns/create');
-        break;
-      case 'manage-campaign':
-        // This would typically need a campaign ID
-        console.log('Navigate to manage campaign');
+      case 'applications':
+        navigate('/brand/applications');
         break;
     }
   };
@@ -83,8 +96,13 @@ const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Close profile dropdown if clicking outside of it
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsProfileDropdownOpen(false);
+      }
+      // Close mobile menu if clicking outside of it
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -94,92 +112,170 @@ const BrandNavbar: React.FC<BrandNavbarProps> = ({ activeTab }) => {
     };
   }, []);
 
+  // Close mobile menu when screen size changes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) { // md breakpoint
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-      <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center space-x-8">
-          <h1 className="text-2xl font-bold text-gray-900">{APP_NAME}</h1>
-          <nav className="flex space-x-1">
-            <button
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                currentTab === 'dashboard' 
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-              onClick={() => handleNavigation('dashboard')}
-            >
-              Dashboard
-            </button>
-            <button
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                currentTab === 'campaigns' 
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-              onClick={() => handleNavigation('campaigns')}
-            >
-              Campaigns
-            </button>
-            <button
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                currentTab === 'create-campaign' 
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-              onClick={() => handleNavigation('create-campaign')}
-            >
-              Create Campaign
-            </button>
-          </nav>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="hidden md:flex flex-col items-end">
-            <span className="text-sm font-medium text-gray-900">{user?.name || 'User'}</span>
-            <span className="text-xs text-gray-500">{user?.email || 'user@example.com'}</span>
+    <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
+      <div className="px-4 sm:px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Header Left */}
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-primary hover:scale-105 transition-transform duration-300 cursor-default tracking-tight">
+              {APP_NAME}
+            </h1>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex space-x-4">
+              <button
+                onClick={() => handleNavigation('dashboard')}
+                className={`px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
+                  currentTab === 'dashboard'
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:shadow-md'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => handleNavigation('campaigns')}
+                className={`px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
+                  currentTab === 'campaigns'
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:shadow-md'
+                }`}
+              >
+                Campaigns
+              </button>
+              <button
+                onClick={() => handleNavigation('applications')}
+                className={`px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
+                  currentTab === 'applications'
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:shadow-md'
+                }`}
+              >
+                Applications
+              </button>
+            </nav>
           </div>
-          <div className="relative" ref={dropdownRef}>
-            <div 
-              className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium cursor-pointer hover:bg-blue-700 transition-colors"
-              onClick={toggleProfileDropdown}
+
+          {/* Header Right */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleMobileMenu}
+              className="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted/50 transition-colors duration-200"
             >
-              <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
-            </div>
-            {isProfileDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <div className="flex flex-col">
-                    <strong className="text-sm font-medium text-gray-900">{user?.name || 'User'}</strong>
-                    <span className="text-xs text-gray-500">{user?.email || 'user@example.com'}</span>
-                  </div>
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <Menu className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
+
+            {/* User Profile */}
+            <div className="relative" ref={dropdownRef}>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-medium text-foreground">{user?.fullName || user?.firstName || 'User'}</p>
+                  <p className="text-xs text-muted-foreground">{user?.primaryEmailAddress?.emailAddress || 'user@example.com'}</p>
                 </div>
-                <div className="py-1">
-                  <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-3" onClick={() => handleProfileAction('profile')}>
-                    <span className="text-lg">👤</span>
-                    <span className="text-sm text-gray-700">Profile Settings</span>
-                  </div>
-                  <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-3" onClick={() => handleProfileAction('billing')}>
-                    <span className="text-lg">💳</span>
-                    <span className="text-sm text-gray-700">Billing & Plans</span>
-                  </div>
-                  <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-3" onClick={() => handleProfileAction('notifications')}>
-                    <span className="text-lg">🔔</span>
-                    <span className="text-sm text-gray-700">Notifications</span>
-                  </div>
-                  <div className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-3" onClick={() => handleProfileAction('help')}>
-                    <span className="text-lg">❓</span>
-                    <span className="text-sm text-gray-700">Help & Support</span>
-                  </div>
-                </div>
-                <div className="border-t border-gray-100 py-1">
-                  <div className="px-4 py-2 hover:bg-red-50 cursor-pointer flex items-center space-x-3 text-red-600" onClick={() => handleProfileAction('logout')}>
-                    <span className="text-lg">🚪</span>
-                    <span className="text-sm">Sign Out</span>
-                  </div>
-                </div>
+                <button
+                  onClick={toggleProfileDropdown}
+                  className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-primary-foreground font-semibold hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  {user?.fullName ? user.fullName.charAt(0).toUpperCase() : user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
+                </button>
               </div>
-            )}
+
+              {/* Profile Dropdown */}
+              {isProfileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-card/95 backdrop-blur-sm border border-border rounded-xl shadow-xl py-2 animate-dropdown">
+                  <div className="px-4 py-2 border-b border-border">
+                    <p className="font-medium text-foreground">{user?.fullName || user?.firstName || 'User'}</p>
+                    <p className="text-sm text-muted-foreground">{user?.primaryEmailAddress?.emailAddress || 'user@example.com'}</p>
+                  </div>
+                  
+                  {[
+                    { icon: <User className="w-4 h-4" />, label: 'Profile Settings', action: 'profile' },
+                    { icon: <CreditCard className="w-4 h-4" />, label: 'Billing & Plans', action: 'billing' },
+                    { icon: <Bell className="w-4 h-4" />, label: 'Notifications', action: 'notifications' },
+                    { icon: <HelpCircle className="w-4 h-4" />, label: 'Help & Support', action: 'help' },
+                  ].map((item) => (
+                    <button
+                      key={item.action}
+                      className="w-full px-4 py-2 text-left flex items-center space-x-3 hover:bg-muted/50 transition-colors duration-200"
+                      onClick={() => handleProfileAction(item.action)}
+                    >
+                      <span className="text-muted-foreground">{item.icon}</span>
+                      <span className="text-sm text-foreground">{item.label}</span>
+                    </button>
+                  ))}
+                  
+                  <div className="border-t border-border mt-2 pt-2">
+                    <button
+                      className="w-full px-4 py-2 text-left flex items-center space-x-3 hover:bg-destructive/10 text-destructive transition-colors duration-200"
+                      onClick={() => handleProfileAction('logout')}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="text-sm">Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div ref={mobileMenuRef} className="md:hidden mt-4 pb-4 border-t border-border pt-4 animate-dropdown">
+            <nav className="flex flex-col space-y-2">
+              <button
+                onClick={() => handleNavigation('dashboard')}
+                className={`px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 ${
+                  currentTab === 'dashboard'
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => handleNavigation('campaigns')}
+                className={`px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 ${
+                  currentTab === 'campaigns'
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                Campaigns
+              </button>
+              <button
+                onClick={() => handleNavigation('applications')}
+                className={`px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 ${
+                  currentTab === 'applications'
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                Applications
+              </button>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

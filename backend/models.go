@@ -8,17 +8,17 @@ import (
 
 type User struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	ClerkID   string             `bson:"clerkId" json:"clerkId"` // Clerk user ID for linking
 	Email     string             `bson:"email" json:"email"`
-	Password  string             `bson:"password" json:"-"` // Don't include password in JSON responses
 	Name      string             `bson:"name" json:"name"`
-	UserType  string             `bson:"userType" json:"userType"` // "brand" or "influencer"
+	UserType  string             `bson:"userType" json:"userType"` // "brand" or "creator"
 	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 type Campaign struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	BrandID      primitive.ObjectID `bson:"brandId" json:"brandId"`
+	BrandID      string             `bson:"brandId" json:"brandId"` // Now using Clerk ID instead of ObjectID
 	BrandName    string             `bson:"brandName" json:"brandName"`
 	Title        string             `bson:"title" json:"title"`
 	Description  string             `bson:"description" json:"description"`
@@ -96,23 +96,22 @@ type Campaign struct {
 	UpdatedAt  time.Time `bson:"updatedAt" json:"updatedAt"`
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+type Application struct {
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	CampaignID   primitive.ObjectID `bson:"campaignId" json:"campaignId"`
+	CreatorID    string             `bson:"creatorId" json:"creatorId"` // Now using Clerk ID instead of ObjectID
+	CreatorName  string             `bson:"creatorName" json:"creatorName"`
+	CreatorEmail string             `bson:"creatorEmail" json:"creatorEmail"`
+	Followers    string             `bson:"followers" json:"followers"`
+	Platform     string             `bson:"platform" json:"platform"`
+	Status       string             `bson:"status" json:"status"` // "pending", "approved", "rejected"
+	AppliedDate  time.Time          `bson:"appliedDate" json:"appliedDate"`
+	CampaignName string             `bson:"campaignName" json:"campaignName"`
+	CreatedAt    time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt    time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
-type SignupRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	UserType string `json:"userType"`
-}
-
-type AuthResponse struct {
-	Token string `json:"token"`
-	User  User   `json:"user"`
-}
-
+// CampaignRequest represents the request payload for creating a campaign
 type CampaignRequest struct {
 	Title        string `json:"title"`
 	Description  string `json:"description"`
@@ -179,17 +178,10 @@ type CampaignRequest struct {
 	Status         string `json:"status"`
 }
 
-type Application struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	CampaignID   primitive.ObjectID `bson:"campaignId" json:"campaignId"`
-	CreatorID    primitive.ObjectID `bson:"creatorId" json:"creatorId"`
-	CreatorName  string             `bson:"creatorName" json:"creatorName"`
-	CreatorEmail string             `bson:"creatorEmail" json:"creatorEmail"`
-	Followers    string             `bson:"followers" json:"followers"`
-	Platform     string             `bson:"platform" json:"platform"`
-	Status       string             `bson:"status" json:"status"` // "pending", "approved", "rejected"
-	AppliedDate  time.Time          `bson:"appliedDate" json:"appliedDate"`
-	CampaignName string             `bson:"campaignName" json:"campaignName"`
-	CreatedAt    time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt    time.Time          `bson:"updatedAt" json:"updatedAt"`
+// UserProfile represents the user profile response (for Clerk integration)
+type UserProfile struct {
+	ClerkID  string `json:"clerkId"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	UserType string `json:"userType"`
 }

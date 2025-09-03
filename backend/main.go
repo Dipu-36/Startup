@@ -17,6 +17,11 @@ func main() {
 		log.Println("No .env file found, using environment variables")
 	}
 
+	// Initialize Clerk
+	if err := initializeClerk(); err != nil {
+		log.Fatal("Failed to initialize Clerk:", err)
+	}
+
 	// Initialize MongoDB
 	initMongoDB()
 	defer closeMongoDB()
@@ -28,11 +33,10 @@ func main() {
 
 	// Public routes
 	api.HandleFunc("/health", healthCheck).Methods("GET")
-	api.HandleFunc("/auth/signup", signupHandler).Methods("POST")
-	api.HandleFunc("/auth/login", loginHandler).Methods("POST")
 
 	// Protected routes - general
 	api.HandleFunc("/auth/profile", authMiddleware(profileHandler)).Methods("GET")
+	api.HandleFunc("/profile", authMiddleware(createProfileHandler)).Methods("POST")
 
 	// Protected routes - user type specific
 	api.HandleFunc("/brand/dashboard", requireUserType("brand", brandOnlyHandler)).Methods("GET")
@@ -47,8 +51,8 @@ func main() {
 
 	// Application routes
 	api.HandleFunc("/applications", authMiddleware(getApplicationsForBrandHandler)).Methods("GET")
-	api.HandleFunc("/applications/creator", authMiddleware(getApplicationsForCreatorHandler)).Methods("GET")
-	api.HandleFunc("/applications", authMiddleware(createApplicationHandler)).Methods("POST")
+	api.HandleFunc("/applications/creator", authMiddleware(getCreatorApplicationsHandler)).Methods("GET")
+	api.HandleFunc("/campaigns/{campaignId}/apply", authMiddleware(applyCampaignHandler)).Methods("POST")
 	api.HandleFunc("/applications/{applicationId}/status", authMiddleware(updateApplicationStatusHandler)).Methods("PUT")
 
 	// Setup CORS

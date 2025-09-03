@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useClerk, useUser } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
 
@@ -8,7 +8,8 @@ interface CreatorNavbarProps {
 }
 
 const CreatorNavbar: React.FC<CreatorNavbarProps> = ({ activeTab }) => {
-  const { user, logout } = useAuth();
+  const { signOut } = useClerk();
+  const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -55,7 +56,7 @@ const CreatorNavbar: React.FC<CreatorNavbarProps> = ({ activeTab }) => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -127,19 +128,19 @@ const CreatorNavbar: React.FC<CreatorNavbarProps> = ({ activeTab }) => {
       <div className="creator-header-right">
         <div className="creator-user-profile">
           <div className="creator-profile-info">
-            <span className="creator-profile-name">{user?.name || 'creator1'}</span>
-            <span className="creator-profile-email">{user?.email || 'creator1@gmail.com'}</span>
+            <span className="creator-profile-name">{user?.fullName || user?.firstName || 'creator1'}</span>
+            <span className="creator-profile-email">{user?.emailAddresses?.[0]?.emailAddress || 'creator1@gmail.com'}</span>
           </div>
           <div className="creator-profile-dropdown" ref={dropdownRef}>
             <div className="creator-profile-avatar" onClick={toggleProfileDropdown}>
-              <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'C'}</span>
+              <span>{user?.fullName ? user.fullName.charAt(0).toUpperCase() : user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'C'}</span>
             </div>
             {isProfileDropdownOpen && (
               <div className="creator-dropdown-menu">
                 <div className="creator-dropdown-header">
                   <div className="creator-dropdown-user-info">
-                    <strong>{user?.name || 'creator1'}</strong>
-                    <span>{user?.email || 'creator1@gmail.com'}</span>
+                    <strong>{user?.fullName || user?.firstName || 'creator1'}</strong>
+                    <span>{user?.emailAddresses?.[0]?.emailAddress || 'creator1@gmail.com'}</span>
                   </div>
                 </div>
                 <div className="creator-dropdown-divider"></div>

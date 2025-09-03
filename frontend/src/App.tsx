@@ -1,15 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { ClerkProvider } from '@clerk/clerk-react';
+import { CLERK_PUBLISHABLE_KEY, clerkAppearance } from './config/clerk';
 import { 
   LandingPage, 
-  LoginPage, 
-  SignupPage, 
   BrandDashboard, 
   ProtectedRoute, 
   CreateCampaign,
   Campaigns,
-  ManageCampaign
+  ManageCampaign,
+  Applications,
+  UserTypeSelection
 } from './components';
 import GenericDashboardRedirect from './components/GenericDashboardRedirect';
 import CreatorDashboard from './components/creator/CreatorDashboard';
@@ -17,12 +18,20 @@ import CreatorDashboard from './components/creator/CreatorDashboard';
 function App() {
   return (
     <div className="min-h-screen">
-      <AuthProvider>
+      <ClerkProvider 
+        publishableKey={CLERK_PUBLISHABLE_KEY}
+        appearance={clerkAppearance}
+      >
         <Router>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
+            
+            {/* User Type Selection - for new users */}
+            <Route path="/select-user-type" element={
+              <ProtectedRoute>
+                <UserTypeSelection />
+              </ProtectedRoute>
+            } />
             
             {/* Generic dashboard - redirects based on user type */}
             <Route path="/dashboard" element={
@@ -38,10 +47,10 @@ function App() {
               </ProtectedRoute>
             } />
 
-            {/* Create Campaign - only for brand users */}
-            <Route path="/brand/create-campaign" element={
+            {/* Applications - only for brand users */}
+            <Route path="/brand/applications" element={
               <ProtectedRoute requiredUserType="brand">
-                <CreateCampaign />
+                <Applications />
               </ProtectedRoute>
             } />
 
@@ -67,7 +76,7 @@ function App() {
             } />
           </Routes>
         </Router>
-      </AuthProvider>
+      </ClerkProvider>
     </div>
   );
 }

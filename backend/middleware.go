@@ -3,34 +3,36 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/clerk/clerk-sdk-go/v2"
 )
 
-// Middleware to check user type
-func requireUserType(userType string, next http.HandlerFunc) http.HandlerFunc {
-	return authMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		user, ok := getUserFromContext(r.Context())
-		if !ok {
-			http.Error(w, "User not found in context", http.StatusInternalServerError)
-			return
-		}
+// Helper function to get email from Clerk user
+func getEmailFromClerkUser(user *clerk.User) string {
+	if len(user.EmailAddresses) > 0 {
+		return user.EmailAddresses[0].EmailAddress
+	}
+	return ""
+}
 
-		if user.UserType != userType {
-			http.Error(w, "Access denied: insufficient permissions", http.StatusForbidden)
-			return
-		}
-
-		next(w, r)
-	})
+// Helper function to get user type from Clerk user
+func getUserTypeFromClerkUser(user *clerk.User) string {
+	userType, _ := getUserTypeFromMetadata(user)
+	return userType
 }
 
 // Example protected handler for brands only
 func brandOnlyHandler(w http.ResponseWriter, r *http.Request) {
-	user, _ := getUserFromContext(r.Context())
+	user, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
 
 	response := map[string]interface{}{
 		"message": "Welcome to the brand dashboard!",
-		"user":    user.Email,
-		"type":    user.UserType,
+		"user":    getEmailFromClerkUser(user),
+		"type":    getUserTypeFromClerkUser(user),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -39,12 +41,16 @@ func brandOnlyHandler(w http.ResponseWriter, r *http.Request) {
 
 // Example protected handler for influencers only
 func influencerOnlyHandler(w http.ResponseWriter, r *http.Request) {
-	user, _ := getUserFromContext(r.Context())
+	user, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
 
 	response := map[string]interface{}{
 		"message": "Welcome to the influencer dashboard!",
-		"user":    user.Email,
-		"type":    user.UserType,
+		"user":    getEmailFromClerkUser(user),
+		"type":    getUserTypeFromClerkUser(user),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

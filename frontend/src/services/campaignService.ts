@@ -1,5 +1,7 @@
 // Campaign service for API calls
-const API_BASE_URL = 'http://localhost:8080/api';
+import { getAuthHeadersWithToken } from '../utils/auth';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 export interface Campaign {
   id: string;
@@ -106,23 +108,25 @@ export interface PaymentRecord {
 }
 
 class CampaignService {
-  private getAuthHeader(): { Authorization: string } | {} {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  }
-
-  async getCampaign(campaignId: string): Promise<Campaign> {
+  async getCampaign(campaignId: string, token?: string): Promise<Campaign> {
     const response = await fetch(`${API_BASE_URL}/campaigns/${campaignId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...this.getAuthHeader(),
+        ...getAuthHeadersWithToken(token),
       },
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(error || 'Failed to fetch campaign');
+      
+      if (response.status === 503) {
+        throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
+      } else if (response.status === 401) {
+        throw new Error('Your session has expired. Please log in again.');
+      } else {
+        throw new Error(error || 'Failed to fetch campaign');
+      }
     }
 
     const campaignData = await response.json();
@@ -136,12 +140,12 @@ class CampaignService {
     };
   }
 
-  async getCampaignApplications(campaignId: string): Promise<Creator[]> {
+  async getCampaignApplications(campaignId: string, token?: string): Promise<Creator[]> {
     const response = await fetch(`${API_BASE_URL}/campaigns/${campaignId}/applications`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...this.getAuthHeader(),
+        ...getAuthHeadersWithToken(token),
       },
     });
 
@@ -173,12 +177,12 @@ class CampaignService {
     }));
   }
 
-  async updateApplicationStatus(applicationId: string, status: 'pending' | 'approved' | 'rejected' | 'shortlisted'): Promise<Creator> {
+  async updateApplicationStatus(applicationId: string, status: 'pending' | 'approved' | 'rejected' | 'shortlisted', token?: string): Promise<Creator> {
     const response = await fetch(`${API_BASE_URL}/applications/${applicationId}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        ...this.getAuthHeader(),
+        ...getAuthHeadersWithToken(token),
       },
       body: JSON.stringify({ status }),
     });
@@ -209,7 +213,7 @@ class CampaignService {
   }
 
   // Mock methods for deliverables and payments (to be implemented later)
-  async getCampaignDeliverables(campaignId: string): Promise<Deliverable[]> {
+  async getCampaignDeliverables(campaignId: string, token?: string): Promise<Deliverable[]> {
     // TODO: Implement when deliverables API is ready
     return [
       {
@@ -232,7 +236,7 @@ class CampaignService {
     ];
   }
 
-  async getCampaignPayments(campaignId: string): Promise<PaymentRecord[]> {
+  async getCampaignPayments(campaignId: string, token?: string): Promise<PaymentRecord[]> {
     // TODO: Implement when payments API is ready
     return [
       {
@@ -246,12 +250,12 @@ class CampaignService {
     ];
   }
 
-  async publishCampaign(campaignId: string): Promise<Campaign> {
+  async publishCampaign(campaignId: string, token?: string): Promise<Campaign> {
     const response = await fetch(`${API_BASE_URL}/campaigns/${campaignId}/publish`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        ...this.getAuthHeader(),
+        ...getAuthHeadersWithToken(token),
       },
     });
 

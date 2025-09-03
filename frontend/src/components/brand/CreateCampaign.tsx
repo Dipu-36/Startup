@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -90,8 +90,9 @@ interface CampaignFormData {
   referenceMedia: string;
 }
 
-const CreateCampaign = () => {
-  const { user } = useAuth();
+const CreateCampaign: React.FC = () => {
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const navigate = useNavigate();
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,7 +104,7 @@ const CreateCampaign = () => {
   const initialFormData: CampaignFormData = {
     // Section 1: Basic Information (MANDATORY)
     title: '',
-    brandName: user?.name || '',
+    brandName: user?.fullName || user?.firstName || '',
     description: '',
     category: '',
     startDate: '',
@@ -219,29 +220,10 @@ const CreateCampaign = () => {
 
   // Save draft to localStorage
   const saveDraft = useCallback(() => {
-    // Create a hash of the current form data to check if it has changed
-    const currentDataHash = JSON.stringify(formData);
-    
-    // Don't save if data hasn't changed
-    if (currentDataHash === lastSavedDataHash) {
-      return;
-    }
-    
-    // Don't save if form is essentially empty (only has brand name)
-    const hasMeaningfulData = formData.title.trim() || 
-                             formData.description.trim() || 
-                             formData.category || 
-                             formData.campaignType;
-    
-    if (!hasMeaningfulData) {
-      return;
-    }
-    
-    localStorage.setItem('campaignDraft', currentDataHash);
-    setLastSavedDataHash(currentDataHash);
+    localStorage.setItem('campaignDraft', JSON.stringify(formData));
     setShowSaveNotification(true);
     setTimeout(() => setShowSaveNotification(false), 2000);
-  }, [formData, lastSavedDataHash]);
+  }, [formData]);
 
   // Load draft from localStorage
   useEffect(() => {
@@ -249,26 +231,7 @@ const CreateCampaign = () => {
     if (savedDraft) {
       try {
         const parsedDraft = JSON.parse(savedDraft);
-        // Ensure all required array fields exist
-        const safeData = {
-          ...initialFormData,
-          ...parsedDraft,
-          brandName: user?.name || parsedDraft.brandName,
-          platforms: parsedDraft.platforms || [],
-          contentFormat: parsedDraft.contentFormat || [],
-          targetAudienceAge: parsedDraft.targetAudienceAge || [],
-          targetAudienceGender: parsedDraft.targetAudienceGender || [],
-          targetAudienceRegion: parsedDraft.targetAudienceRegion || [],
-          approvalSteps: parsedDraft.approvalSteps || [],
-          minRequirements: {
-            ...initialFormData.minRequirements,
-            ...parsedDraft.minRequirements,
-            languages: parsedDraft.minRequirements?.languages || []
-          }
-        };
-        setFormData(safeData);
-        // Set the hash to prevent immediate auto-save notification
-        setLastSavedDataHash(JSON.stringify(safeData));
+        setFormData({ ...parsedDraft, brandName: user?.fullName || user?.firstName || parsedDraft.brandName });
       } catch (error) {
         console.error('Error loading draft:', error);
         
@@ -340,14 +303,6 @@ const CreateCampaign = () => {
     setFormData(prev => ({ ...prev, bannerImage: file }));
   };
 
-  const handleClearDraft = () => {
-    if (window.confirm('Are you sure you want to clear all form data? This action cannot be undone.')) {
-      localStorage.removeItem('campaignDraft');
-      setFormData({ ...initialFormData, brandName: user?.name || '' });
-      alert('Draft cleared successfully!');
-    }
-  };
-
   const handleSubmit = async (isDraft: boolean = false) => {
     try {
       setIsSubmitting(true);
@@ -382,10 +337,10 @@ const CreateCampaign = () => {
       };
 
       // Get auth token
-      const token = localStorage.getItem('token');
+      const token = await getToken();
       if (!token) {
         alert('Please log in to create a campaign');
-        navigate('/login');
+        navigate('/');
         return;
       }
 
@@ -429,7 +384,7 @@ const CreateCampaign = () => {
       setFormData({
         // Section 1: Basic Information (MANDATORY)
         title: '',
-        brandName: user?.name || '',
+        brandName: user?.fullName || user?.firstName || '',
         description: '',
         category: '',
         startDate: '',

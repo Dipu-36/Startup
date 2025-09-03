@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
-import { APP_NAME } from '../../config/appConfig';
 import CreatorNavbar from './CreatorNavbar';
 
 interface Campaign {
@@ -60,13 +59,16 @@ interface Application {
 }
 
 const CreatorDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useUser();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications' | 'content'>('dashboard');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper variables for user data
+  const userName = user?.fullName || user?.firstName || 'Creator';
+  const userEmail = user?.primaryEmailAddress?.emailAddress || 'creator@example.com';
 
   // Fetch campaigns from API
   useEffect(() => {
@@ -133,8 +135,8 @@ const CreatorDashboard: React.FC = () => {
               id: '1',
               campaignId: '1',
               creatorId: user?.id || '',
-              creatorName: user?.name || 'Creator',
-              creatorEmail: user?.email || 'creator@example.com',
+              creatorName: userName,
+              creatorEmail: userEmail,
               followers: '10.5K',
               platform: 'Instagram',
               status: 'pending',
@@ -145,8 +147,8 @@ const CreatorDashboard: React.FC = () => {
               id: '2',
               campaignId: '2',
               creatorId: user?.id || '',
-              creatorName: user?.name || 'Creator',
-              creatorEmail: user?.email || 'creator@example.com',
+              creatorName: userName,
+              creatorEmail: userEmail,
               followers: '25.3K',
               platform: 'YouTube',
               status: 'approved',
@@ -157,8 +159,8 @@ const CreatorDashboard: React.FC = () => {
               id: '3',
               campaignId: '3',
               creatorId: user?.id || '',
-              creatorName: user?.name || 'Creator',
-              creatorEmail: user?.email || 'creator@example.com',
+              creatorName: userName,
+              creatorEmail: userEmail,
               followers: '8.7K',
               platform: 'TikTok',
               status: 'rejected',
@@ -176,8 +178,8 @@ const CreatorDashboard: React.FC = () => {
             id: '1',
             campaignId: '1',
             creatorId: user?.id || '',
-            creatorName: user?.name || 'Creator',
-            creatorEmail: user?.email || 'creator@example.com',
+            creatorName: userName,
+            creatorEmail: userEmail,
             followers: '10.5K',
             platform: 'Instagram',
             status: 'pending',
@@ -188,8 +190,8 @@ const CreatorDashboard: React.FC = () => {
             id: '2',
             campaignId: '2',
             creatorId: user?.id || '',
-            creatorName: user?.name || 'Creator',
-            creatorEmail: user?.email || 'creator@example.com',
+            creatorName: userName,
+            creatorEmail: userEmail,
             followers: '25.3K',
             platform: 'YouTube',
             status: 'approved',
@@ -200,8 +202,8 @@ const CreatorDashboard: React.FC = () => {
             id: '3',
             campaignId: '3',
             creatorId: user?.id || '',
-            creatorName: user?.name || 'Creator',
-            creatorEmail: user?.email || 'creator@example.com',
+            creatorName: userName,
+            creatorEmail: userEmail,
             followers: '8.7K',
             platform: 'TikTok',
             status: 'rejected',
@@ -214,12 +216,7 @@ const CreatorDashboard: React.FC = () => {
     };
 
     fetchApplications();
-  }, [user]);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  }, [user, userEmail, userName]);
 
   const handleBrowseCampaigns = () => {
     navigate('/creator/campaigns');
@@ -285,7 +282,7 @@ const CreatorDashboard: React.FC = () => {
         <div className="creator-dashboard-content">
           {/* Welcome Section */}
           <div className="creator-welcome-section">
-            <h2>Welcome back, {user?.name || 'creator1'}!</h2>
+            <h2>Welcome back, {userName}!</h2>
           </div>
 
           {/* Quick Stats - Single Row */}
