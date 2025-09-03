@@ -76,7 +76,6 @@ const BrandDashboard = () => {
   const { signOut } = useClerk();
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
@@ -120,16 +119,10 @@ const BrandDashboard = () => {
       }
     };
 
-    fetchCampaigns();
-  }, []);
-
-  // Fetch applications from API
-  useEffect(() => {
     const fetchApplications = async () => {
       try {
         const token = await getToken();
         if (!token) {
-          setError('Please log in to view applications');
           return;
         }
 
@@ -141,23 +134,22 @@ const BrandDashboard = () => {
           },
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch applications');
+        if (response.ok) {
+          const applicationsData = await response.json();
+          setApplications(applicationsData || []);
         }
-
-        const applicationsData = await response.json();
-        setApplications(applicationsData || []);
       } catch (error) {
         console.error('Error fetching applications:', error);
-        setError('Failed to load applications');
+        // Don't set error for applications as it's not critical
       }
     };
 
+    fetchCampaigns();
     fetchApplications();
   }, []);
 
   const handleCreateCampaign = () => {
-    navigate('/brand/create-campaign');
+    navigate('/brand/applications');
   };
 
   const toggleProfileDropdown = () => {
@@ -232,19 +224,23 @@ const BrandDashboard = () => {
               
               {/* Desktop Navigation */}
               <nav className="hidden md:flex space-x-4">
-                {(['dashboard', 'campaigns', 'applications'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    className={`px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
-                      activeTab === tab
-                        ? 'bg-primary text-primary-foreground shadow-lg'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:shadow-md'
-                    }`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                ))}
+                <button
+                  className="px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 bg-primary text-primary-foreground shadow-lg"
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => navigate('/brand/campaigns')}
+                  className="px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:shadow-md"
+                >
+                  Campaigns
+                </button>
+                <button
+                  onClick={() => navigate('/brand/applications')}
+                  className="px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:shadow-md"
+                >
+                  Applications
+                </button>
               </nav>
             </div>
 
@@ -320,23 +316,30 @@ const BrandDashboard = () => {
           {isMobileMenuOpen && (
             <div ref={mobileMenuRef} className="md:hidden mt-4 pb-4 border-t border-border pt-4 animate-dropdown">
               <nav className="flex flex-col space-y-2">
-                {(['dashboard', 'campaigns', 'applications'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    className={`px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 ${
-                      activeTab === tab
-                        ? 'bg-primary text-primary-foreground shadow-lg'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                    }`}
-                    onClick={() => {
-                      console.log(`Mobile tab clicked: ${tab}`);
-                      setActiveTab(tab);
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                ))}
+                <button
+                  className="px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 bg-primary text-primary-foreground shadow-lg"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/brand/campaigns');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                >
+                  Campaigns
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/brand/applications');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="px-4 py-3 rounded-lg font-medium text-left transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                >
+                  Applications
+                </button>
               </nav>
             </div>
           )}
@@ -345,10 +348,8 @@ const BrandDashboard = () => {
 
       {/* Main Content */}
       <main className="relative z-10 px-4 sm:px-6 py-6 sm:py-8">
-        {/* Content Based on Active Tab */}
+        {/* Dashboard Content */}
         <div>
-          {activeTab === 'dashboard' && (
-            <>
               {/* Welcome Section */}
               <div className="mb-6 sm:mb-8">
                 <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
@@ -382,17 +383,17 @@ const BrandDashboard = () => {
                   {
                     id: 'pending',
                     icon: <Clock className="w-6 h-6" />,
-                    title: 'Pending',
-                    subtitle: 'Applications',
-                    value: applications.filter(a => a.status === 'pending').length,
+                    title: 'Draft',
+                    subtitle: 'Campaigns',
+                    value: campaigns.filter(c => c.status === 'draft').length,
                     color: 'from-yellow-500 to-yellow-600'
                   },
                   {
                     id: 'approved',
                     icon: <CheckCircle className="w-6 h-6" />,
-                    title: 'Approved',
-                    subtitle: 'Applications',
-                    value: applications.filter(a => a.status === 'approved').length,
+                    title: 'Completed',
+                    subtitle: 'Campaigns',
+                    value: campaigns.filter(c => c.status === 'completed').length,
                     color: 'from-purple-500 to-purple-600'
                   }
                 ].map((stat, index) => (
@@ -444,23 +445,32 @@ const BrandDashboard = () => {
                 {/* Recent Campaigns */}
                 <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4 flex items-center">
-                  <span className="mr-2"></span>
+                  <span className="mr-2">🚀</span>
                   Recent Campaigns
                 </h3>
                 <div className="space-y-3">
                   {campaigns.slice(0, 3).map((campaign) => (
-                    <div key={campaign.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors duration-200">
-                      <div>
-                        <p className="font-medium text-foreground">{campaign.title}</p>
-                        <p className="text-sm text-muted-foreground">{campaign.category}</p>
+                    <div key={campaign.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors duration-200 cursor-pointer"
+                         onClick={() => navigate(`/brand/campaigns/manage/${campaign.id}`)}>
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground mb-1">{campaign.title}</p>
+                        <p className="text-sm text-muted-foreground mb-2">{campaign.category} • {campaign.platforms.join(', ')}</p>
+                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span>💰 {campaign.paymentAmount}</span>
+                          <span>👥 {campaign.applicants} applicants</span>
+                          <span>📅 {new Date(campaign.createdAt).toLocaleDateString()}</span>
+                        </div>
                       </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        campaign.status === 'active' ? 'bg-green-100 text-green-800' :
-                        campaign.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {campaign.status}
-                      </span>
+                      <div className="flex flex-col items-end space-y-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                          campaign.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                          campaign.status === 'completed' ? 'bg-purple-100 text-purple-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {campaign.status}
+                        </span>
+                      </div>
                     </div>
                   ))}
                   {campaigns.length === 0 && (
@@ -480,136 +490,47 @@ const BrandDashboard = () => {
               {/* Recent Applications */}
               <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                  <span className="mr-2">📝</span>
+                  <span className="mr-2">📋</span>
                   Recent Applications
                 </h3>
                 <div className="space-y-3">
                   {applications.slice(0, 3).map((application) => (
-                    <div key={application.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors duration-200">
-                      <div>
-                        <p className="font-medium text-foreground">{application.creatorName}</p>
-                        <p className="text-sm text-muted-foreground">{application.platform} • {application.followers}</p>
+                    <div key={application.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors duration-200 cursor-pointer">
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground mb-1">{application.creatorName}</p>
+                        <p className="text-sm text-muted-foreground mb-2">{application.campaignName}</p>
+                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span>📧 {application.creatorEmail}</span>
+                          <span>📱 {application.platform}</span>
+                          <span>👥 {application.followers} followers</span>
+                          <span>📅 {new Date(application.appliedDate).toLocaleDateString()}</span>
+                        </div>
                       </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        application.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {application.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            </>
-          )}
-
-          {activeTab === 'campaigns' && (
-            <>
-              {/* Campaigns Header */}
-              <div className="mb-6 sm:mb-8">
-                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
-                  📊 Campaign Management
-                </h2>
-                <p className="text-sm sm:text-base text-muted-foreground">
-                  Manage all your active and past campaigns.
-                </p>
-              </div>
-
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-foreground">All Campaigns</h3>
-                <button 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105"
-                  onClick={handleCreateCampaign}
-                >
-                  Create Campaign
-                </button>
-              </div>
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Loading campaigns...</p>
-                </div>
-              ) : campaigns.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">📝</div>
-                  <p className="text-muted-foreground mb-4">No campaigns found</p>
-                  <button 
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg transition-colors duration-200"
-                    onClick={handleCreateCampaign}
-                  >
-                    Create Your First Campaign
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {campaigns.map((campaign) => (
-                    <div key={campaign.id} className="bg-muted/30 border border-border rounded-lg p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
-                      <h4 className="font-semibold text-foreground mb-2">{campaign.title}</h4>
-                      <p className="text-sm text-muted-foreground mb-3">{campaign.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{campaign.category}</span>
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          campaign.status === 'active' ? 'bg-green-100 text-green-800' :
-                          campaign.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
+                      <div className="flex flex-col items-end space-y-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
                         }`}>
-                          {campaign.status}
+                          {application.status}
                         </span>
                       </div>
                     </div>
                   ))}
+                  {applications.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground mb-4">No applications yet</p>
+                      <button 
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors duration-200"
+                        onClick={() => navigate('/brand/campaigns')}
+                      >
+                        View Your Campaigns
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            </>
-          )}
-
-          {activeTab === 'applications' && (
-            <>
-              {/* Applications Header */}
-              <div className="mb-6 sm:mb-8">
-                <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2 tracking-tight">
-                  📝 Creator Applications
-                </h2>
-                <p className="text-sm sm:text-base text-muted-foreground">
-                  Review and manage applications from content creators.
-                </p>
-              </div>
-
-              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-6">All Applications</h3>
-              <div className="space-y-4">
-                {applications.map((application) => (
-                  <div key={application.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-all duration-200 hover:scale-[1.02]">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-primary-foreground font-semibold">
-                        {application.creatorName.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{application.creatorName}</p>
-                        <p className="text-sm text-muted-foreground">{application.platform} • {application.followers}</p>
-                        <p className="text-xs text-muted-foreground">{application.campaignName}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        application.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {application.status}
-                      </span>
-                      <p className="text-xs text-muted-foreground mt-1">{application.appliedDate}</p>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
-            </>
-          )}
         </div>
       </main>
     </div>

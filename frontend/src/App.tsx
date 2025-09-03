@@ -9,6 +9,7 @@ import {
   CreateCampaign,
   Campaigns,
   ManageCampaign,
+  Applications,
   UserTypeSelection
 } from './components';
 import GenericDashboardRedirect from './components/GenericDashboardRedirect';
@@ -46,10 +47,10 @@ function App() {
               </ProtectedRoute>
             } />
 
-            {/* Create Campaign - only for brand users */}
-            <Route path="/brand/create-campaign" element={
+            {/* Applications - only for brand users */}
+            <Route path="/brand/applications" element={
               <ProtectedRoute requiredUserType="brand">
-                <CreateCampaign />
+                <Applications />
               </ProtectedRoute>
             } />
 

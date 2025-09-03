@@ -1,9 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import campaignService, { Campaign, Creator, Deliverable, PaymentRecord } from '../../services/campaignService';
 import BrandNavbar from './BrandNavbar';
+import { 
+  ArrowLeft,
+  Play,
+  Pause,
+  Square,
+  Edit,
+  Search,
+  Filter,
+  MessageSquare,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Star,
+  RotateCcw,
+  DollarSign,
+  Users,
+  FileText,
+  TrendingUp
+} from 'lucide-react';
 
 const ManageCampaign: React.FC = () => {
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const navigate = useNavigate();
   const { campaignId } = useParams<{ campaignId: string }>();
   
@@ -30,46 +52,64 @@ const ManageCampaign: React.FC = () => {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   
   // Load campaign data from API
-  useEffect(() => {
-    const loadCampaignData = async () => {
-      if (!campaignId) {
-        setError('Campaign ID is required');
+  // Load campaign data function
+  const loadCampaignData = async () => {
+    if (!campaignId) {
+      setError('Campaign ID is required');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const token = await getToken();
+      if (!token) {
+        setError('Please log in to view campaign');
         setLoading(false);
         return;
       }
+      
+      // Fetch real campaign data
+      const campaignData = await campaignService.getCampaign(campaignId, token);
+      setCampaign(campaignData);
 
-      try {
-        setLoading(true);
-        
-        // Fetch real campaign data
-        const campaignData = await campaignService.getCampaign(campaignId);
-        setCampaign(campaignData);
+      // Fetch real applications data
+      const applicationsData = await campaignService.getCampaignApplications(campaignId, token);
+      setApplications(Array.isArray(applicationsData) ? applicationsData : []);
+      
+      // Filter approved creators
+      const safeApplicationsData = Array.isArray(applicationsData) ? applicationsData : [];
+      const approvedCreatorsData = safeApplicationsData.filter((app: Creator) => app.status === 'approved');
+      setApprovedCreators(approvedCreatorsData);
 
-        // Fetch real applications data
-        const applicationsData = await campaignService.getCampaignApplications(campaignId);
-        setApplications(Array.isArray(applicationsData) ? applicationsData : []);
-        
-        // Filter approved creators
-        const safeApplicationsData = Array.isArray(applicationsData) ? applicationsData : [];
-        const approvedCreatorsData = safeApplicationsData.filter((app: Creator) => app.status === 'approved');
-        setApprovedCreators(approvedCreatorsData);
+      // Fetch deliverables (using mock data for now)
+      const deliverablesData = await campaignService.getCampaignDeliverables(campaignId, token);
+      setDeliverables(Array.isArray(deliverablesData) ? deliverablesData : []);
 
-        // Fetch deliverables (using mock data for now)
-        const deliverablesData = await campaignService.getCampaignDeliverables(campaignId);
-        setDeliverables(Array.isArray(deliverablesData) ? deliverablesData : []);
-
-        // Fetch payments (using mock data for now)
-        const paymentsData = await campaignService.getCampaignPayments(campaignId);
-        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading campaign data:', error);
+      // Fetch payments (using mock data for now)
+      const paymentsData = await campaignService.getCampaignPayments(campaignId, token);
+      setPayments(Array.isArray(paymentsData) ? paymentsData : []);
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading campaign data:', error);
+      
+      // Handle authentication service timeout
+      if (error instanceof Error && 
+          (error.message.includes('Authentication service temporarily unavailable') ||
+           error.message.includes('503'))) {
+        setError('Authentication service is temporarily unavailable. Please try refreshing the page in a few moments.');
+      } else if (error instanceof Error && error.message.includes('401')) {
+        setError('Your session has expired. Please log in again.');
+      } else {
         setError(error instanceof Error ? error.message : 'Failed to load campaign data');
-        setLoading(false);
       }
-    };
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadCampaignData();
   }, [campaignId]);
 
@@ -96,7 +136,13 @@ const ManageCampaign: React.FC = () => {
     
     try {
       setLoading(true);
-      const updatedCampaign = await campaignService.publishCampaign(campaignId);
+      const token = await getToken();
+      if (!token) {
+        setError('Please log in to publish campaign');
+        return;
+      }
+      
+      const updatedCampaign = await campaignService.publishCampaign(campaignId, token);
       setCampaign(updatedCampaign);
       setSuccessMessage('Campaign published successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -122,6 +168,13 @@ const ManageCampaign: React.FC = () => {
       // Set loading state for this specific application
       setUpdatingApplicationId(application.applicationId);
 
+      // Get token for authenticated API call
+      const token = await getToken();
+      if (!token) {
+        setError('Please log in to update application status');
+        return;
+      }
+
       // Use the actual application ID from the application data
       const applicationId = application.applicationId;
 
@@ -132,7 +185,7 @@ const ManageCampaign: React.FC = () => {
                        'pending';
 
       // Call API to update status
-      await campaignService.updateApplicationStatus(applicationId, apiStatus);
+      await campaignService.updateApplicationStatus(applicationId, apiStatus, token);
 
       // Update local state after successful API call
       setApplications(prev =>
@@ -232,10 +285,15 @@ const ManageCampaign: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="manage-campaign-page">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading campaign...</p>
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        <BrandNavbar activeTab="campaigns" />
+        <div className="relative z-10 px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading campaign...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -243,13 +301,22 @@ const ManageCampaign: React.FC = () => {
 
   if (error || !campaign) {
     return (
-      <div className="manage-campaign-page">
-        <div className="error-container">
-          <h2>Campaign Not Found</h2>
-          <p>{error || 'The requested campaign could not be found.'}</p>
-          <button onClick={handleBackToCampaigns} className="back-btn">
-            Back to Campaigns
-          </button>
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        <BrandNavbar activeTab="campaigns" />
+        <div className="relative z-10 px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-4">Campaign Not Found</h2>
+              <p className="text-muted-foreground mb-6">{error || 'The requested campaign could not be found.'}</p>
+              <button 
+                onClick={handleBackToCampaigns} 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2 mx-auto"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Campaigns</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -265,568 +332,497 @@ const ManageCampaign: React.FC = () => {
     }
   };
 
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'draft': return 'bg-yellow-100 text-yellow-800';
+      case 'completed': return 'bg-purple-100 text-purple-800';
+      case 'paused': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
-    <div className="manage-campaign-page">
-      <BrandNavbar activeTab="manage-campaign" />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-secondary/3 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-accent/3 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}}></div>
+      </div>
+
+      <BrandNavbar activeTab="campaigns" />
 
       {/* Notifications */}
       {successMessage && (
-        <div className="notification success">
-          <span className="notification-icon">✅</span>
-          {successMessage}
+        <div className="fixed top-20 right-4 z-50 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg animate-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="w-5 h-5" />
+            <span>{successMessage}</span>
+          </div>
         </div>
       )}
       {error && (
-        <div className="notification error">
-          <span className="notification-icon">❌</span>
-          {error}
-        </div>
-      )}
-
-      {/* Campaign Summary Section */}
-      <div className="manage-campaign-summary">
-        <div className="summary-header">
-          <div className="manage-campaign-info">
-            <h2 className="manage-campaign-title">{campaign.title}</h2>
-            <div className="manage-campaign-meta">
-              <span className={`manage-campaign-status ${getStatusClass(campaign.status)}`}>
-                {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-              </span>
-              <span className="manage-campaign-dates">
-                {new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}
-              </span>
-              <span className="manage-campaign-category">{campaign.category}</span>
+        <div className="fixed top-20 right-4 z-50 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-lg animate-in slide-in-from-top-2 duration-300 max-w-md">
+          <div className="flex items-start space-x-2">
+            <XCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <span className="block text-sm">{error}</span>
+              {(error.includes('Authentication service temporarily unavailable') || 
+                error.includes('service timeout')) && (
+                <button 
+                  onClick={() => {
+                    setError('');
+                    loadCampaignData();
+                  }}
+                  className="mt-2 text-xs bg-red-100 hover:bg-red-200 text-red-800 px-2 py-1 rounded transition-colors duration-200"
+                >
+                  Try Again
+                </button>
+              )}
             </div>
-          </div>
-          <div className="manage-campaign-actions">
-            {campaign.status === 'active' && (
-              <>
-                <button className="manage-campaign-action-btn manage-campaign-action-btn-secondary" onClick={handlePauseCampaign}>
-                  Pause Campaign
-                </button>
-                <button className="manage-campaign-action-btn manage-campaign-action-btn-secondary" onClick={handleEndCampaign}>
-                  End Campaign
-                </button>
-              </>
-            )}
-            {campaign.status === 'draft' && (
-              <button className="manage-campaign-action-btn manage-campaign-action-btn-primary publish-campaign" onClick={handlePublishCampaign}>
-                Publish Campaign
-              </button>
-            )}
-            <button className="manage-campaign-action-btn manage-campaign-action-btn-primary" onClick={handleEditCampaign}>
-              Edit Campaign
+            <button 
+              onClick={() => setError('')}
+              className="text-red-600 hover:text-red-800 transition-colors duration-200"
+            >
+              <XCircle className="w-4 h-4" />
             </button>
           </div>
         </div>
+      )}
 
-        {/* Quick Stats */}
-        <div className="quick-stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">👥</div>
-            <div className="stat-content">
-              <span className="stat-number">{campaign.applicantsCount}</span>
-              <span className="stat-label">Total Applicants</span>
-            </div>
+      {/* Main Content */}
+      <main className="relative z-10 px-4 sm:px-6 py-8 sm:py-12">
+        {/* Campaign Header */}
+        <div className="mb-8 sm:mb-12">
+          <div className="flex items-center justify-between mb-8">
+            <button 
+              onClick={handleBackToCampaigns}
+              className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-all duration-200 group"
+            >
+              <div className="p-2 rounded-xl bg-muted/50 group-hover:bg-muted transition-colors duration-200">
+                <ArrowLeft className="w-4 h-4" />
+              </div>
+              <span className="font-medium">Back to Campaigns</span>
+            </button>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon">✅</div>
-            <div className="stat-content">
-              <span className="stat-number">{campaign.approvedCreators}</span>
-              <span className="stat-label">Approved Creators</span>
+
+          <div className="bg-gradient-to-r from-card/60 to-card/40 backdrop-blur-md border border-border/50 rounded-2xl p-6 mb-6 shadow-lg">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+              <div className="mb-4 lg:mb-0">
+                <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3">{campaign.title}</h1>
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <span className={`px-4 py-2 rounded-full text-sm font-semibold shadow-sm ${getStatusBadgeClass(campaign.status)}`}>
+                    {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                  </span>
+                  <span className="flex items-center space-x-2 text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg">
+                    <Clock className="w-4 h-4" />
+                    <span>{new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}</span>
+                  </span>
+                  <span className="px-3 py-2 bg-primary/10 text-primary rounded-lg font-medium">{campaign.category}</span>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-3">
+                {campaign.status === 'active' && (
+                  <>
+                    <button 
+                      className="px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                      onClick={handlePauseCampaign}
+                    >
+                      <Pause className="w-4 h-4" />
+                      <span>Pause</span>
+                    </button>
+                    <button 
+                      className="px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                      onClick={handleEndCampaign}
+                    >
+                      <Square className="w-4 h-4" />
+                      <span>End</span>
+                    </button>
+                  </>
+                )}
+                {campaign.status === 'draft' && (
+                  <button 
+                    className="px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    onClick={handlePublishCampaign}
+                  >
+                    <Play className="w-4 h-4" />
+                    <span>Publish Campaign</span>
+                  </button>
+                )}
+                <button 
+                  className="px-5 py-2.5 bg-gradient-to-r from-muted to-muted/80 hover:from-muted/90 hover:to-muted text-foreground rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  onClick={handleEditCampaign}
+                >
+                  <Edit className="w-4 h-4" />
+                  <span>Edit</span>
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">📋</div>
-            <div className="stat-content">
-              <span className="stat-number">{campaign.deliverablesCount}</span>
-              <span className="stat-label">Deliverables</span>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">💰</div>
-            <div className="stat-content">
-              <span className="stat-number">${(campaign.usedBudget || 0).toLocaleString()}</span>
-              <span className="stat-label">Budget Used</span>
-              <div className="budget-bar">
-                <div 
-                  className="budget-progress" 
-                  style={{ width: `${((campaign.usedBudget || 0) / (campaign.budget || 1)) * 100}%` }}
-                ></div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-3xl font-bold text-blue-600 mb-1">{campaign.applicantsCount}</p>
+                    <p className="text-sm font-medium text-blue-700/80">Total Applicants</p>
+                  </div>
+                  <div className="p-3 bg-blue-500/10 rounded-2xl">
+                    <Users className="w-8 h-8 text-blue-500" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100/50 border border-green-200/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-3xl font-bold text-green-600 mb-1">{campaign.approvedCreators}</p>
+                    <p className="text-sm font-medium text-green-700/80">Approved Creators</p>
+                  </div>
+                  <div className="p-3 bg-green-500/10 rounded-2xl">
+                    <CheckCircle className="w-8 h-8 text-green-500" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-3xl font-bold text-purple-600 mb-1">{campaign.deliverablesCount}</p>
+                    <p className="text-sm font-medium text-purple-700/80">Deliverables</p>
+                  </div>
+                  <div className="p-3 bg-purple-500/10 rounded-2xl">
+                    <FileText className="w-8 h-8 text-purple-500" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 border border-yellow-200/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-3xl font-bold text-yellow-600 mb-1">${(campaign.usedBudget || 0).toLocaleString()}</p>
+                    <p className="text-sm font-medium text-yellow-700/80">Budget Used</p>
+                    <div className="w-full bg-yellow-200/50 rounded-full h-2.5 mt-3">
+                      <div 
+                        className="bg-gradient-to-r from-yellow-500 to-yellow-600 h-2.5 rounded-full transition-all duration-500 shadow-sm"
+                        style={{ width: `${Math.min(((campaign.usedBudget || 0) / (campaign.budget || 1)) * 100, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-yellow-500/10 rounded-2xl">
+                    <DollarSign className="w-8 h-8 text-yellow-500" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content with Tabs */}
-      <div className="main-content">
-        <div className="content-wrapper">
+        {/* Tabs Section */}
+        <div className="bg-gradient-to-r from-card/60 to-card/40 backdrop-blur-md border border-border/50 rounded-2xl overflow-hidden shadow-lg">
           {/* Tab Navigation */}
-          <div className="tab-navigation">
-            <button 
-              className={`tab-btn ${activeTab === 'applications' ? 'active' : ''}`}
-              onClick={() => setActiveTab('applications')}
-            >
-              Applications ({applications.filter(app => app.status === 'pending').length})
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'creators' ? 'active' : ''}`}
-              onClick={() => setActiveTab('creators')}
-            >
-              Approved Creators ({approvedCreators.length})
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'content' ? 'active' : ''}`}
-              onClick={() => setActiveTab('content')}
-            >
-              Content & Deadlines
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'budget' ? 'active' : ''}`}
-              onClick={() => setActiveTab('budget')}
-            >
-              Budget & Payments
-            </button>
+          <div className="border-b border-border/50 bg-gradient-to-r from-muted/30 to-muted/20">
+            <nav className="flex space-x-0">
+              <button 
+                className={`px-6 py-5 text-sm font-semibold transition-all duration-300 border-b-3 flex items-center space-x-2 ${
+                  activeTab === 'applications' 
+                    ? 'border-primary text-primary bg-primary/5 shadow-sm' 
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                }`}
+                onClick={() => setActiveTab('applications')}
+              >
+                <Users className="w-4 h-4" />
+                <span>Applications ({applications.filter(app => app.status === 'pending').length})</span>
+              </button>
+              <button 
+                className={`px-6 py-5 text-sm font-semibold transition-all duration-300 border-b-3 flex items-center space-x-2 ${
+                  activeTab === 'creators' 
+                    ? 'border-primary text-primary bg-primary/5 shadow-sm' 
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                }`}
+                onClick={() => setActiveTab('creators')}
+              >
+                <CheckCircle className="w-4 h-4" />
+                <span>Approved Creators ({approvedCreators.length})</span>
+              </button>
+              <button 
+                className={`px-6 py-5 text-sm font-semibold transition-all duration-300 border-b-3 flex items-center space-x-2 ${
+                  activeTab === 'content' 
+                    ? 'border-primary text-primary bg-primary/5 shadow-sm' 
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                }`}
+                onClick={() => setActiveTab('content')}
+              >
+                <FileText className="w-4 h-4" />
+                <span>Content & Deadlines</span>
+              </button>
+              <button 
+                className={`px-6 py-5 text-sm font-semibold transition-all duration-300 border-b-3 flex items-center space-x-2 ${
+                  activeTab === 'budget' 
+                    ? 'border-primary text-primary bg-primary/5 shadow-sm' 
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                }`}
+                onClick={() => setActiveTab('budget')}
+              >
+                <DollarSign className="w-4 h-4" />
+                <span>Budget & Payments</span>
+              </button>
+            </nav>
           </div>
 
           {/* Tab Content */}
-          <div className="tab-content">
+          <div className="p-8">
             {/* Draft Campaign Banner - Show only for draft campaigns */}
             {campaign.status === 'draft' ? (
-              <div className="manage-campaign-draft-banner">
-                <div className="manage-campaign-draft-banner-content">
-                  <div className="manage-campaign-draft-banner-icon">📝</div>
-                  <div className="manage-campaign-draft-banner-text">
-                    <h3>Campaign is in Draft</h3>
-                    <p>This campaign is not yet published. Publish it to start receiving applications from creators.</p>
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200/50 rounded-2xl p-8 text-center shadow-lg">
+                <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
+                  <div className="p-4 bg-yellow-100 rounded-2xl">
+                    <FileText className="w-12 h-12 text-yellow-600" />
                   </div>
-                  <button className="manage-campaign-draft-banner-btn" onClick={handlePublishCampaign}>
-                    Publish Campaign
+                  <div className="text-center md:text-left flex-1">
+                    <h3 className="text-2xl font-bold text-yellow-800 mb-2">Campaign is in Draft</h3>
+                    <p className="text-yellow-700 text-lg">This campaign is not yet published. Publish it to start receiving applications from creators.</p>
+                  </div>
+                  <button 
+                    className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground px-8 py-4 rounded-2xl transition-all duration-300 flex items-center space-x-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                    onClick={handlePublishCampaign}
+                  >
+                    <Play className="w-5 h-5" />
+                    <span className="font-semibold">Publish Campaign</span>
                   </button>
                 </div>
               </div>
             ) : (
               <>
-                {/* Show normal tab content only for non-draft campaigns */}
+                {/* Applications Tab */}
                 {activeTab === 'applications' && (
-              <div className="applications-tab">
-                <div className="tab-header">
-                  <div className="search-filter-container">
-                    <div className="search-bar">
-                      <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="M21 21l-4.35-4.35"></path>
-                      </svg>
-                      <input
-                        type="text"
-                        placeholder="Search applicants..."
-                        value={applicationSearch}
-                        onChange={(e) => setApplicationSearch(e.target.value)}
-                        className="search-input"
-                      />
+                  <div className="space-y-8">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                        <input
+                          type="text"
+                          placeholder="Search applicants by name, platform, or niche..."
+                          value={applicationSearch}
+                          onChange={(e) => setApplicationSearch(e.target.value)}
+                          className="w-full pl-12 pr-4 py-3 bg-background border-2 border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-base"
+                        />
+                      </div>
+                      <select 
+                        value={applicationFilter} 
+                        onChange={(e) => setApplicationFilter(e.target.value as any)}
+                        className="px-4 py-3 bg-background border-2 border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-base font-medium"
+                      >
+                        <option value="all">All Applications</option>
+                        <option value="pending">Pending</option>
+                        <option value="shortlisted">Shortlisted</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
                     </div>
-                    <select 
-                      value={applicationFilter} 
-                      onChange={(e) => setApplicationFilter(e.target.value as any)}
-                      className="filter-select"
-                    >
-                      <option value="all">All Applications</option>
-                      <option value="pending">Pending</option>
-                      <option value="shortlisted">Shortlisted</option>
-                      <option value="approved">Approved</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
-                  </div>
-                </div>
 
-                <div className="applications-grid">
-                  {Array.isArray(filteredApplications) && filteredApplications.map((applicant) => (
-                    <div key={applicant.id} className="applicant-card">
-                      <div className="applicant-header">
-                        <div className="applicant-avatar">
-                          {applicant.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="applicant-info">
-                          <h4 className="applicant-name">{applicant.name}</h4>
-                          <p className="applicant-email">{applicant.email}</p>
-                        </div>
-                        <span className={`applicant-status ${applicant.status}`}>
-                          {applicant.status}
-                        </span>
-                      </div>
-                      
-                      <div className="applicant-stats">
-                        <div className="stat-row">
-                          <span className="stat-label">Platform:</span>
-                          <span className="stat-value">{applicant.platform}</span>
-                        </div>
-                        <div className="stat-row">
-                          <span className="stat-label">Followers:</span>
-                          <span className="stat-value">{applicant.followers.toLocaleString()}</span>
-                        </div>
-                        <div className="stat-row">
-                          <span className="stat-label">Engagement:</span>
-                          <span className="stat-value">{applicant.engagementRate}%</span>
-                        </div>
-                        <div className="stat-row">
-                          <span className="stat-label">Niche:</span>
-                          <span className="stat-value">{applicant.niche}</span>
-                        </div>
-                        <div className="stat-row">
-                          <span className="stat-label">Applied:</span>
-                          <span className="stat-value">{new Date(applicant.applicationDate).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-
-                      {applicant.status === 'pending' && (
-                        <div className="applicant-actions">
-                          <button 
-                            className="action-btn-modern approve"
-                            onClick={() => handleApplicationAction(applicant.id, 'approve')}
-                            disabled={updatingApplicationId === applicant.applicationId}
-                            title="Approve Application"
-                          >
-                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✓'}</span>
-                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Approve'}</span>
-                          </button>
-                          <button 
-                            className="action-btn-modern shortlist"
-                            onClick={() => handleApplicationAction(applicant.id, 'shortlist')}
-                            disabled={updatingApplicationId === applicant.applicationId}
-                            title="Add to Shortlist"
-                          >
-                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '⭐'}</span>
-                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Shortlist'}</span>
-                          </button>
-                          <button 
-                            className="action-btn-modern reject"
-                            onClick={() => handleApplicationAction(applicant.id, 'reject')}
-                            disabled={updatingApplicationId === applicant.applicationId}
-                            title="Reject Application"
-                          >
-                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✗'}</span>
-                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Reject'}</span>
-                          </button>
-                        </div>
-                      )}
-
-                      {applicant.status === 'shortlisted' && (
-                        <div className="applicant-actions">
-                          <button 
-                            className="action-btn-modern approve primary"
-                            onClick={() => handleApplicationAction(applicant.id, 'approve')}
-                            disabled={updatingApplicationId === applicant.applicationId}
-                            title="Approve Shortlisted Candidate"
-                          >
-                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✓'}</span>
-                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Approve'}</span>
-                          </button>
-                          <button 
-                            className="action-btn-modern neutral"
-                            onClick={() => handleApplicationAction(applicant.id, 'pending')}
-                            disabled={updatingApplicationId === applicant.applicationId}
-                            title="Move Back to Pending"
-                          >
-                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '↶'}</span>
-                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Pending'}</span>
-                          </button>
-                          <button 
-                            className="action-btn-modern reject"
-                            onClick={() => handleApplicationAction(applicant.id, 'reject')}
-                            disabled={updatingApplicationId === applicant.applicationId}
-                            title="Reject Candidate"
-                          >
-                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✗'}</span>
-                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Reject'}</span>
-                          </button>
-                        </div>
-                      )}
-
-                      {applicant.status === 'approved' && (
-                        <div className="applicant-actions">
-                            <button 
-                            className="action-btn-modern reject"
-                            onClick={() => handleApplicationAction(applicant.id, 'reject')}
-                            disabled={updatingApplicationId === applicant.applicationId}
-                            title="Reject Candidate"
-                          >
-                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '✗'}</span>
-                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Reject'}</span>
-                          </button>
-                          <button 
-                            className="action-btn-modern message"
-                            onClick={() => console.log('Send message to', applicant.name)}
-                            title="Send Message"
-                          >
-                            <span className="btn-icon">💬</span>
-                            <span className="btn-text">Message</span>
-                          </button>
-                        </div>
-                      )}
-
-                      {applicant.status === 'rejected' && (
-                        <div className="applicant-actions">
-                          <div className="status-badge-modern rejected">
-                            <span className="badge-icon">✗</span>
-                            <span className="badge-text">Rejected</span>
-                          </div>
-                          <button 
-                            className="action-btn-modern neutral"
-                            onClick={() => handleApplicationAction(applicant.id, 'pending')}
-                            disabled={updatingApplicationId === applicant.applicationId}
-                            title="Reconsider Application"
-                          >
-                            <span className="btn-icon">{updatingApplicationId === applicant.applicationId ? '⏳' : '↶'}</span>
-                            <span className="btn-text">{updatingApplicationId === applicant.applicationId ? 'Processing...' : 'Reconsider'}</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'creators' && (
-              <div className="creators-tab">
-                <div className="creators-grid">
-                  {Array.isArray(approvedCreators) && approvedCreators.map((creator) => (
-                    <div key={creator.id} className="creator-card">
-                      <div className="creator-header">
-                        <div className="creator-avatar">
-                          {creator.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="creator-info">
-                          <h4 className="creator-name">{creator.name}</h4>
-                          <p className="creator-platform">{creator.platform} • {creator.followers.toLocaleString()} followers</p>
-                        </div>
-                        <button className="message-btn">
-                          💬 Message
-                        </button>
-                      </div>
-                      
-                      <div className="deliverables-status">
-                        <h5>Assigned Deliverables</h5>
-                        {(Array.isArray(deliverables) ? deliverables : [])
-                          .filter(d => d.creatorId === creator.id)
-                          .map((deliverable) => (
-                            <div key={deliverable.id} className="deliverable-item">
-                              <span className="deliverable-type">{deliverable.type}</span>
-                              <span className={`deliverable-status ${deliverable.status}`}>
-                                {deliverable.status.replace('_', ' ')}
+                    <div className="grid gap-4">
+                      {Array.isArray(filteredApplications) && filteredApplications.map((applicant) => (
+                        <div key={applicant.id} className="bg-muted/30 border border-border rounded-lg p-6 hover:bg-muted/50 transition-colors duration-200">
+                          <div className="flex flex-col lg:flex-row lg:items-center justify-between">
+                            <div className="flex items-start space-x-4 mb-4 lg:mb-0">
+                              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-primary-foreground font-semibold">
+                                {applicant.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-lg font-semibold text-foreground">{applicant.name}</h4>
+                                <p className="text-muted-foreground">{applicant.email}</p>
+                                <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
+                                  <span>📱 {applicant.platform}</span>
+                                  <span>👥 {applicant.followers.toLocaleString()} followers</span>
+                                  <span>📈 {applicant.engagementRate}% engagement</span>
+                                  <span>🎯 {applicant.niche}</span>
+                                  <span>📅 Applied {new Date(applicant.applicationDate).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-3">
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                applicant.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                applicant.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                applicant.status === 'shortlisted' ? 'bg-blue-100 text-blue-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {applicant.status}
                               </span>
-                              <span className="deliverable-due">Due: {new Date(deliverable.dueDate).toLocaleDateString()}</span>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                              
+                              {applicant.status === 'pending' && (
+                                <div className="flex space-x-2">
+                                  <button 
+                                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 flex items-center space-x-1 text-sm"
+                                    onClick={() => handleApplicationAction(applicant.id, 'approve')}
+                                    disabled={updatingApplicationId === applicant.applicationId}
+                                  >
+                                    {updatingApplicationId === applicant.applicationId ? (
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                    ) : (
+                                      <CheckCircle className="w-3 h-3" />
+                                    )}
+                                    <span>Approve</span>
+                                  </button>
+                                  <button 
+                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 flex items-center space-x-1 text-sm"
+                                    onClick={() => handleApplicationAction(applicant.id, 'shortlist')}
+                                    disabled={updatingApplicationId === applicant.applicationId}
+                                  >
+                                    {updatingApplicationId === applicant.applicationId ? (
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                    ) : (
+                                      <Star className="w-3 h-3" />
+                                    )}
+                                    <span>Shortlist</span>
+                                  </button>
+                                  <button 
+                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 flex items-center space-x-1 text-sm"
+                                    onClick={() => handleApplicationAction(applicant.id, 'reject')}
+                                    disabled={updatingApplicationId === applicant.applicationId}
+                                  >
+                                    {updatingApplicationId === applicant.applicationId ? (
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                    ) : (
+                                      <XCircle className="w-3 h-3" />
+                                    )}
+                                    <span>Reject</span>
+                                  </button>
+                                </div>
+                              )}
 
-            {activeTab === 'content' && (
-              <div className="content-tab">
-                <div className="timeline-view">
-                  <h3>Content Timeline</h3>
-                  <div className="timeline-list">
-                    {Array.isArray(deliverables) && deliverables.map((deliverable) => (
-                      <div key={deliverable.id} className="timeline-item">
-                        <div className="timeline-marker"></div>
-                        <div className="timeline-content">
-                          <div className="timeline-header">
-                            <h4>{deliverable.type}</h4>
-                            <span className={`timeline-status ${deliverable.status}`}>
-                              {deliverable.status.replace('_', ' ')}
-                            </span>
-                          </div>
-                          <p className="timeline-creator">By {deliverable.creatorName}</p>
-                          <p className="timeline-due">Due: {new Date(deliverable.dueDate).toLocaleDateString()}</p>
-                          {deliverable.submissionDate && (
-                            <p className="timeline-submitted">
-                              Submitted: {new Date(deliverable.submissionDate).toLocaleDateString()}
-                            </p>
-                          )}
-                          <div className="timeline-actions">
-                            {deliverable.status === 'submitted' && (
-                              <>
+                              {applicant.status === 'shortlisted' && (
+                                <div className="flex space-x-2">
+                                  <button 
+                                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 flex items-center space-x-1 text-sm"
+                                    onClick={() => handleApplicationAction(applicant.id, 'approve')}
+                                    disabled={updatingApplicationId === applicant.applicationId}
+                                  >
+                                    {updatingApplicationId === applicant.applicationId ? (
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                    ) : (
+                                      <CheckCircle className="w-3 h-3" />
+                                    )}
+                                    <span>Approve</span>
+                                  </button>
+                                  <button 
+                                    className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 flex items-center space-x-1 text-sm"
+                                    onClick={() => handleApplicationAction(applicant.id, 'pending')}
+                                    disabled={updatingApplicationId === applicant.applicationId}
+                                  >
+                                    {updatingApplicationId === applicant.applicationId ? (
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                    ) : (
+                                      <RotateCcw className="w-3 h-3" />
+                                    )}
+                                    <span>Pending</span>
+                                  </button>
+                                  <button 
+                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 flex items-center space-x-1 text-sm"
+                                    onClick={() => handleApplicationAction(applicant.id, 'reject')}
+                                    disabled={updatingApplicationId === applicant.applicationId}
+                                  >
+                                    {updatingApplicationId === applicant.applicationId ? (
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                    ) : (
+                                      <XCircle className="w-3 h-3" />
+                                    )}
+                                    <span>Reject</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              {applicant.status === 'approved' && (
+                                <div className="flex space-x-2">
+                                  <button 
+                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 flex items-center space-x-1 text-sm"
+                                    onClick={() => console.log('Send message to', applicant.name)}
+                                  >
+                                    <MessageSquare className="w-3 h-3" />
+                                    <span>Message</span>
+                                  </button>
+                                  <button 
+                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 flex items-center space-x-1 text-sm"
+                                    onClick={() => handleApplicationAction(applicant.id, 'reject')}
+                                    disabled={updatingApplicationId === applicant.applicationId}
+                                  >
+                                    {updatingApplicationId === applicant.applicationId ? (
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                    ) : (
+                                      <XCircle className="w-3 h-3" />
+                                    )}
+                                    <span>Reject</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              {applicant.status === 'rejected' && (
                                 <button 
-                                  className="action-btn-modern approve"
-                                  title="Approve Submission"
+                                  className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded-lg transition-colors duration-200 flex items-center space-x-1 text-sm"
+                                  onClick={() => handleApplicationAction(applicant.id, 'pending')}
+                                  disabled={updatingApplicationId === applicant.applicationId}
                                 >
-                                  <span className="btn-icon">✓</span>
-                                  <span className="btn-text">Approve</span>
+                                  {updatingApplicationId === applicant.applicationId ? (
+                                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                  ) : (
+                                    <RotateCcw className="w-3 h-3" />
+                                  )}
+                                  <span>Reconsider</span>
                                 </button>
-                                <button 
-                                  className="action-btn-modern revision"
-                                  title="Request Revision"
-                                >
-                                  <span className="btn-icon">↻</span>
-                                  <span className="btn-text">Revision</span>
-                                </button>
-                              </>
-                            )}
-                            {deliverable.status === 'pending' && (
-                              <div className="timeline-status-info">
-                                <span className="info-text">Awaiting submission</span>
-                              </div>
-                            )}
-                            {deliverable.status === 'approved' && (
-                              <div className="status-badge-modern approved">
-                                <span className="badge-icon">✓</span>
-                                <span className="badge-text">Approved</span>
-                              </div>
-                            )}
-                            {deliverable.status === 'revision_needed' && (
-                              <div className="status-badge-modern revision-needed">
-                                <span className="badge-icon">↻</span>
-                                <span className="badge-text">Revision Needed</span>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            {activeTab === 'budget' && (
-              <div className="budget-tab">
-                <div className="budget-overview">
-                  <div className="budget-summary">
-                    <div className="budget-card">
-                      <h3>Total Budget</h3>
-                      <span className="budget-amount">${(campaign.budget || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="budget-card">
-                      <h3>Used Budget</h3>
-                      <span className="budget-amount used">${(campaign.usedBudget || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="budget-card">
-                      <h3>Remaining</h3>
-                      <span className="budget-amount remaining">${((campaign.budget || 0) - (campaign.usedBudget || 0)).toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="payments-section">
-                  <h3>Creator Payments</h3>
-                  <div className="payments-list">
-                    {Array.isArray(payments) && payments.map((payment) => (
-                      <div key={payment.id} className="payment-item">
-                        <div className="payment-info">
-                          <h4>{payment.creatorName}</h4>
-                          <p className="payment-amount">${payment.amount.toLocaleString()}</p>
-                          <p className="payment-due">Due: {new Date(payment.dueDate).toLocaleDateString()}</p>
-                        </div>
-                        <div className="payment-status">
-                          {payment.status === 'pending' && (
-                            <>
-                              <div className="status-badge-modern pending">
-                                <span className="badge-icon">⏳</span>
-                                <span className="badge-text">Pending</span>
-                              </div>
-                              <button 
-                                className="action-btn-modern payment"
-                                title="Mark Payment as Paid"
-                              >
-                                <span className="btn-icon">💰</span>
-                                <span className="btn-text">Mark Paid</span>
-                              </button>
-                            </>
-                          )}
-                          {payment.status === 'paid' && (
-                            <div className="status-badge-modern paid">
-                              <span className="badge-icon">✓</span>
-                              <span className="badge-text">Paid</span>
-                            </div>
-                          )}
-                          {payment.status === 'processing' && (
-                            <div className="status-badge-modern processing">
-                              <span className="badge-icon">⚡</span>
-                              <span className="badge-text">Processing</span>
-                            </div>
-                          )}
-                        </div>
+                {/* Other tabs content would go here */}
+                {activeTab === 'creators' && (
+                  <div className="text-center py-16">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-3xl p-12 max-w-md mx-auto">
+                      <div className="p-4 bg-blue-100 rounded-2xl w-fit mx-auto mb-6">
+                        <Users className="w-16 h-16 text-blue-500" />
                       </div>
-                    ))}
+                      <h3 className="text-2xl font-bold text-blue-800 mb-3">Approved Creators</h3>
+                      <p className="text-blue-600 text-lg">Manage your approved creators and track their deliverables here.</p>
+                      <p className="text-blue-500 text-sm mt-2">Coming soon...</p>
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
+
+                {activeTab === 'content' && (
+                  <div className="text-center py-16">
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-3xl p-12 max-w-md mx-auto">
+                      <div className="p-4 bg-purple-100 rounded-2xl w-fit mx-auto mb-6">
+                        <FileText className="w-16 h-16 text-purple-500" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-purple-800 mb-3">Content & Deliverables</h3>
+                      <p className="text-purple-600 text-lg">Track content submissions and manage deadlines.</p>
+                      <p className="text-purple-500 text-sm mt-2">Coming soon...</p>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'budget' && (
+                  <div className="text-center py-16">
+                    <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-3xl p-12 max-w-md mx-auto">
+                      <div className="p-4 bg-yellow-100 rounded-2xl w-fit mx-auto mb-6">
+                        <DollarSign className="w-16 h-16 text-yellow-500" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-yellow-800 mb-3">Budget & Payments</h3>
+                      <p className="text-yellow-600 text-lg">Manage payments and track budget utilization.</p>
+                      <p className="text-yellow-500 text-sm mt-2">Coming soon...</p>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
         </div>
-
-        {/* Sidebar */}
-        <div className="sidebar">
-          <div className="manage-sidebar-section notifications-section">
-            <h3>Notifications</h3>
-            <div className="notifications-container">
-              <div className="notification-item">
-                <span className="notification-icon">🔔</span>
-                <div className="notification-content">
-                  <p>3 new applications received</p>
-                  <span className="notification-time">2 hours ago</span>
-                </div>
-              </div>
-              <div className="notification-item">
-                <span className="notification-icon">📋</span>
-                <div className="notification-content">
-                  <p>Emma Davis submitted content</p>
-                  <span className="notification-time">5 hours ago</span>
-                </div>
-              </div>
-              <div className="notification-item">
-                <span className="notification-icon">👍</span>
-                <div className="notification-content">
-                  <p>Mike Chen's content approved</p>
-                  <span className="notification-time">1 day ago</span>
-                </div>
-              </div>
-              <div className="notification-item">
-                <span className="notification-icon">💰</span>
-                <div className="notification-content">
-                  <p>Payment processed for Sarah Johnson</p>
-                  <span className="notification-time">2 days ago</span>
-                </div>
-              </div>
-              <div className="notification-item">
-                <span className="notification-icon">📸</span>
-                <div className="notification-content">
-                  <p>New submission from Alex Rodriguez</p>
-                  <span className="notification-time">3 days ago</span>
-                </div>
-              </div>
-              <div className="notification-item">
-                <span className="notification-icon">⏰</span>
-                <div className="notification-content">
-                  <p>Deadline reminder: Instagram posts due tomorrow</p>
-                  <span className="notification-time">3 days ago</span>
-                </div>
-              </div>
-              <div className="notification-item">
-                <span className="notification-icon">✉️</span>
-                <div className="notification-content">
-                  <p>Message from campaign manager</p>
-                  <span className="notification-time">4 days ago</span>
-                </div>
-              </div>
-              <div className="notification-item">
-                <span className="notification-icon">📊</span>
-                <div className="notification-content">
-                  <p>Weekly performance report available</p>
-                  <span className="notification-time">1 week ago</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 };

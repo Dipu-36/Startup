@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/jwt"
@@ -60,11 +61,19 @@ func initializeClerk() error {
 
 // verifyJWT verifies a Clerk JWT token and returns the session claims
 func verifyJWT(tokenString string) (*clerk.SessionClaims, error) {
+	// Create a context with timeout for JWT verification
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	// Verify the JWT token using Clerk's built-in verification
-	claims, err := jwt.Verify(context.Background(), &jwt.VerifyParams{
+	claims, err := jwt.Verify(ctx, &jwt.VerifyParams{
 		Token: tokenString,
 	})
 	if err != nil {
+		// Check if it's a timeout error
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, fmt.Errorf("failed to verify JWT: request timeout while fetching Clerk JWKS keys")
+		}
 		return nil, fmt.Errorf("failed to verify JWT: %w", err)
 	}
 
@@ -106,6 +115,15 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		claims, err := verifyJWT(tokenString)
 		if err != nil {
 			println("authMiddleware: JWT verification failed:", err.Error())
+
+			// Check if it's a network timeout error with Clerk
+			if strings.Contains(err.Error(), "context deadline exceeded") ||
+				strings.Contains(err.Error(), "request timeout") {
+				println("authMiddleware: Clerk service timeout detected")
+				http.Error(w, "Authentication service temporarily unavailable. Please try again in a few moments.", http.StatusServiceUnavailable)
+				return
+			}
+
 			http.Error(w, fmt.Sprintf("Invalid token: %v", err), http.StatusUnauthorized)
 			return
 		}

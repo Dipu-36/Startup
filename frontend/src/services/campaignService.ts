@@ -119,7 +119,14 @@ class CampaignService {
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(error || 'Failed to fetch campaign');
+      
+      if (response.status === 503) {
+        throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
+      } else if (response.status === 401) {
+        throw new Error('Your session has expired. Please log in again.');
+      } else {
+        throw new Error(error || 'Failed to fetch campaign');
+      }
     }
 
     const campaignData = await response.json();

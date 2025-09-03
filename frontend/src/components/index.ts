@@ -8,3 +8,4 @@ export { default as BrandDashboard } from './brand/BrandDashboard';
 export { default as CreateCampaign } from './brand/CreateCampaign';
 export { default as Campaigns } from './brand/Campaigns';
 export { default as ManageCampaign } from './brand/ManageCampaign';
+export { default as Applications } from './brand/Applications';

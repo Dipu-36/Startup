@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
+import { 
+  Search, 
+  Plus, 
+  Filter, 
+  Calendar, 
+  Users, 
+  Eye,
+  MoreHorizontal,
+  FolderOpen,
+  Play,
+  FileText,
+  CheckCircle,
+  XCircle,
+  BarChart3
+} from 'lucide-react';
 import BrandNavbar from './BrandNavbar';
 
 interface Campaign {
@@ -44,6 +60,7 @@ interface Campaign {
 
 const Campaigns: React.FC = () => {
   const navigate = useNavigate();
+  const { getToken } = useAuth();
   
   // State management
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -52,25 +69,62 @@ const Campaigns: React.FC = () => {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'draft' | 'completed' | 'cancelled'>('all');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  console.log('Campaigns component rendered, campaigns:', campaigns.length);
+  console.log('Loading:', loading, 'Error:', error);
+  console.log('Sidebar collapsed:', sidebarCollapsed);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
 
-  // Filter options
+  // Filter options with icons
   const filterOptions = [
-    { key: 'all' as const, label: 'All Campaigns', count: campaigns.length },
-    { key: 'active' as const, label: 'Active', count: campaigns.filter(c => c.status === 'active').length },
-    { key: 'draft' as const, label: 'Draft', count: campaigns.filter(c => c.status === 'draft').length },
-    { key: 'completed' as const, label: 'Completed', count: campaigns.filter(c => c.status === 'completed').length },
-    { key: 'cancelled' as const, label: 'Cancelled', count: campaigns.filter(c => c.status === 'cancelled').length },
+    { 
+      key: 'all' as const, 
+      label: 'All Campaigns', 
+      icon: FolderOpen,
+      count: campaigns.length,
+      color: 'text-blue-600'
+    },
+    { 
+      key: 'active' as const, 
+      label: 'Active', 
+      icon: Play,
+      count: campaigns.filter(c => c.status === 'active').length,
+      color: 'text-green-600'
+    },
+    { 
+      key: 'draft' as const, 
+      label: 'Draft', 
+      icon: FileText,
+      count: campaigns.filter(c => c.status === 'draft').length,
+      color: 'text-yellow-600'
+    },
+    { 
+      key: 'completed' as const, 
+      label: 'Completed', 
+      icon: CheckCircle,
+      count: campaigns.filter(c => c.status === 'completed').length,
+      color: 'text-purple-600'
+    },
+    { 
+      key: 'cancelled' as const, 
+      label: 'Cancelled', 
+      icon: XCircle,
+      count: campaigns.filter(c => c.status === 'cancelled').length,
+      color: 'text-red-600'
+    },
   ];
+
+  console.log('Filter options:', filterOptions);
 
   // Fetch campaigns from API
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = await getToken();
         if (!token) {
           setError('Please log in to view campaigns');
           setLoading(false);
@@ -176,197 +230,245 @@ const Campaigns: React.FC = () => {
   }
 
   return (
-    <div className="campaigns-page">
+    <div className="min-h-screen bg-gray-50">
       <BrandNavbar activeTab="campaigns" />
-
-      {/* Main Content */}
-      <main className="campaigns-main">
-        {/* Search Bar */}
-        <div className="search-section">
-          <div className="search-container">
-            <div className="search-bar">
-              <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="M21 21l-4.35-4.35"></path>
-              </svg>
-              <input
-                type="text"
-                placeholder="Search campaigns by title, description, or category..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-              {searchQuery && (
-                <button 
-                  className="clear-search"
-                  onClick={() => setSearchQuery('')}
-                >
-                  ✕
-                </button>
+      
+      <div className="flex">
+        {/* Left Sidebar */}
+        <div className={`bg-white border-r border-gray-200 transition-all duration-300 ${
+          sidebarCollapsed ? 'w-16' : 'w-72'
+        }`}>
+          <div className="p-4">
+            {/* Sidebar Header */}
+            <div className="flex items-center justify-between mb-6">
+              {!sidebarCollapsed && (
+                <h2 className="text-lg font-semibold text-gray-900">Campaigns</h2>
               )}
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <BarChart3 className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
-            <div className="pagination-container">
-              <span className="pagination-info">
-                {filteredCampaigns.length > 0 
-                  ? `Showing ${startIndex + 1}-${Math.min(endIndex, filteredCampaigns.length)} of ${filteredCampaigns.length} campaigns`
-                  : 'No campaigns found'
-                }
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Two Column Layout */}
-        <div className="campaigns-content">
-          {/* Sidebar */}
-          <aside className="campaigns-sidebar">
-            <div className="sidebar-section">
-              <h3 className="sidebar-title">Filter Campaigns</h3>
-              <div className="filter-options">
-                {filterOptions.map((option) => (
+            {/* Filter Options */}
+            <nav className="space-y-2">
+              {filterOptions.map((option) => {
+                const IconComponent = option.icon;
+                const isActive = activeFilter === option.key;
+                
+                return (
                   <button
                     key={option.key}
-                    className={`filter-btn ${activeFilter === option.key ? 'active' : ''}`}
                     onClick={() => setActiveFilter(option.key)}
+                    className={`w-full flex items-center px-3 py-2 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-blue-50 border border-blue-200 text-blue-700'
+                        : 'hover:bg-gray-50 text-gray-700'
+                    }`}
                   >
-                    <span className="filter-label">{option.label}</span>
-                    <span className="filter-count">{option.count}</span>
+                    <IconComponent className={`w-5 h-5 ${isActive ? 'text-blue-600' : option.color} ${
+                      sidebarCollapsed ? '' : 'mr-3'
+                    }`} />
+                    {!sidebarCollapsed && (
+                      <>
+                        <span className="flex-1 text-left font-medium">{option.label}</span>
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          isActive
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {option.count}
+                        </span>
+                      </>
+                    )}
                   </button>
-                ))}
+                );
+              })}
+            </nav>
+
+            {/* View Applications Button */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <button
+                onClick={() => navigate('/brand/applications')}
+                className={`w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
+                  sidebarCollapsed ? 'px-3' : ''
+                }`}
+              >
+                <FileText className="w-5 h-5" />
+                {!sidebarCollapsed && <span className="ml-2 font-medium">View Applications</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1">
+          <div className="p-6">
+            {/* Header with Search */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {filterOptions.find(f => f.key === activeFilter)?.label || 'Campaigns'}
+                  </h1>
+                  <p className="text-gray-600 mt-1">
+                    Manage and track your marketing campaigns
+                  </p>
+                </div>
+              </div>
+              
+              {/* Search Bar */}
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search campaigns..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
               </div>
             </div>
 
-            <div className="sidebar-section">
-              <h3 className="sidebar-title">Quick Actions</h3>
-              <div className="quick-actions">
-                <button className="action-btn" onClick={() => navigate('/brand/dashboard')}>
-                  <span className="action-icon">📊</span>
-                  View Dashboard
-                </button>
-              </div>
-            </div>
-          </aside>
-
-          {/* Main Content Area */}
-          <div className="campaigns-list">
+            {/* Error State */}
             {error && (
-              <div className="error-message">
-                <p>{error}</p>
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600">{error}</p>
               </div>
             )}
 
-            {filteredCampaigns.length === 0 && !error ? (
-              <div className="empty-state">
-                <div className="empty-icon">📋</div>
-                <h3>No campaigns found</h3>
-                <p>
+            {/* Campaigns Grid */}
+            {filteredCampaigns.length === 0 ? (
+              <div className="text-center py-12">
+                <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns found</h3>
+                <p className="text-gray-500 mb-6">
                   {searchQuery 
-                    ? `No campaigns match "${searchQuery}". Try adjusting your search.`
-                    : activeFilter === 'all' 
-                      ? "You haven't created any campaigns yet."
-                      : `No ${activeFilter} campaigns found.`
+                    ? `No campaigns match "${searchQuery}"`
+                    : `You don't have any ${activeFilter === 'all' ? '' : activeFilter} campaigns yet.`
                   }
                 </p>
+                {activeFilter === 'all' && (
+                  <button
+                    onClick={() => navigate('/brand/applications')}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <FileText className="w-5 h-5 mr-2" />
+                    View Applications
+                  </button>
+                )}
               </div>
             ) : (
-              <>
-                <div className="campaigns-grid">
-                  {currentCampaigns.map((campaign) => (
-                  <div key={campaign.id} className="campaign-card">
-                    <div className="campaign-header">
-                      <h3 className="campaign-title">{campaign.title}</h3>
-                      <span className={`campaign-status ${getStatusClass(campaign.status)}`}>
-                        {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-                      </span>
-                    </div>
-                    
-                    <div className="campaign-meta">
-                      <div className="campaign-category">{campaign.category}</div>
-                      <div className="campaign-dates">
-                        {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {currentCampaigns.map((campaign) => (
+                  <div
+                    key={campaign.id}
+                    className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/brand/campaigns/${campaign.id}/manage`)}
+                  >
+                    {/* Campaign Card Content */}
+                    <div className="p-6">
+                      {/* Campaign Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
+                            {campaign.title}
+                          </h3>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            campaign.status === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : campaign.status === 'draft'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : campaign.status === 'completed'
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                          </span>
+                        </div>
+                        <button className="p-1 hover:bg-gray-100 rounded-full">
+                          <MoreHorizontal className="w-4 h-4 text-gray-400" />
+                        </button>
                       </div>
-                    </div>
 
-                    <p className="campaign-description">
-                      {campaign.description.length > 120 
-                        ? `${campaign.description.substring(0, 120)}...` 
-                        : campaign.description
-                      }
-                    </p>
+                      {/* Campaign Description */}
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                        {campaign.description}
+                      </p>
 
-                    <div className="campaign-details">
-                      <div className="campaign-platforms">
-                        <strong>Platforms:</strong> {campaign.platforms.join(', ')}
+                      {/* Campaign Meta */}
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          <span>{new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Users className="w-4 h-4 mr-2" />
+                          <span>{campaign.applicants} applicants</span>
+                        </div>
                       </div>
-                      <div className="campaign-compensation">
-                        <strong>Type:</strong> {campaign.compensationType}
-                        {campaign.paymentAmount && (
-                          <span className="payment-amount"> - ${campaign.paymentAmount}</span>
-                        )}
-                      </div>
-                    </div>
 
-                    <div className="campaign-stats">
-                      <div className="stat-item">
-                        <span className="stat-label">Applicants</span>
-                        <span className="stat-value">{campaign.applicants || 0}</span>
+                      {/* Campaign Actions */}
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <span className="text-sm font-medium text-gray-900">
+                          {campaign.compensationType === 'paid' ? `$${campaign.paymentAmount}` : 'Product Only'}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/brand/campaigns/${campaign.id}/manage`);
+                          }}
+                          className="flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Details
+                        </button>
                       </div>
-                      <div className="stat-item">
-                        <span className="stat-label">Posts</span>
-                        <span className="stat-value">{campaign.numberOfPosts}</span>
-                      </div>
-                    </div>
-
-                    <div className="campaign-actions">
-                      <button className="action-btn-secondary">
-                        View Details
-                      </button>
-                      <button 
-                        className="action-btn-primary"
-                        onClick={() => navigate(`/brand/campaigns/${campaign.id}/manage`)}
-                      >
-                        Manage
-                      </button>
                     </div>
                   </div>
                 ))}
-                </div>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
                 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="pagination-container">
-                    <button 
-                      className="pagination-btn"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      ‹
-                    </button>
-                    
-                    {generatePageNumbers().map((page) => (
-                      <button
-                        key={page}
-                        className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
-                        onClick={() => handlePageChange(page)}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                    
-                    <button 
-                      className="pagination-btn"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      ›
-                    </button>
-                  </div>
-                )}
-              </>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 border text-sm rounded-md ${
+                      currentPage === page
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'border-gray-300 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
