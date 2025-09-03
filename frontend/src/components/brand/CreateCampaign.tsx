@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -92,6 +92,7 @@ interface CampaignFormData {
 
 const CreateCampaign: React.FC = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const navigate = useNavigate();
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -321,10 +322,10 @@ const CreateCampaign: React.FC = () => {
       };
 
       // Get auth token
-      const token = localStorage.getItem('token');
+      const token = await getToken();
       if (!token) {
         alert('Please log in to create a campaign');
-        navigate('/login');
+        navigate('/');
         return;
       }
 

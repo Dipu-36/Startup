@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { APP_NAME } from '../../config/appConfig';
 import { 
@@ -74,6 +74,7 @@ interface Application {
 const BrandDashboard = () => {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { getToken } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'applications'>('dashboard');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -91,7 +92,7 @@ const BrandDashboard = () => {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
+        const token = await getToken();
         if (!token) {
           setError('Please log in to view campaigns');
           return;
@@ -126,7 +127,7 @@ const BrandDashboard = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = await getToken();
         if (!token) {
           setError('Please log in to view applications');
           return;
