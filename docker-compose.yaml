@@ -22,6 +22,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:80"
+    env_file:
+      - ./frontend/.env  # Load Clerk and other environment variables
     environment:
       - REACT_APP_API_URL=http://backend:8080/api
     depends_on:
