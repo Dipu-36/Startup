@@ -54,6 +54,13 @@ function App() {
               </ProtectedRoute>
             } />
 
+            {/* Create Campaign - only for brand users */}
+            <Route path="/brand/create-campaign" element={
+              <ProtectedRoute requiredUserType="brand">
+                <CreateCampaign />
+              </ProtectedRoute>
+            } />
+
             {/* Campaigns Page - only for brand users */}
             <Route path="/brand/campaigns" element={
               <ProtectedRoute requiredUserType="brand">
