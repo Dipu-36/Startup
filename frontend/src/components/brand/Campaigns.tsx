@@ -298,16 +298,16 @@ const Campaigns: React.FC = () => {
               })}
             </nav>
 
-            {/* View Applications Button */}
+            {/* Create Campaign Button */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <button
-                onClick={() => navigate('/brand/applications')}
+                onClick={() => navigate('/brand/create-campaign')}
                 className={`w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
                   sidebarCollapsed ? 'px-3' : ''
                 }`}
               >
-                <FileText className="w-5 h-5" />
-                {!sidebarCollapsed && <span className="ml-2 font-medium">View Applications</span>}
+                <Plus className="w-5 h-5" />
+                {!sidebarCollapsed && <span className="ml-2 font-medium">Create Campaign</span>}
               </button>
             </div>
           </div>
@@ -362,11 +362,11 @@ const Campaigns: React.FC = () => {
                 </p>
                 {activeFilter === 'all' && (
                   <button
-                    onClick={() => navigate('/brand/applications')}
+                    onClick={() => navigate('/brand/create-campaign')}
                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    <FileText className="w-5 h-5 mr-2" />
-                    View Applications
+                    <Plus className="w-5 h-5 mr-2" />
+                    Create Your First Campaign
                   </button>
                 )}
               </div>

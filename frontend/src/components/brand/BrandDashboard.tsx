@@ -169,7 +169,7 @@ const BrandDashboard = () => {
   }, []);
 
   const handleCreateCampaign = () => {
-    navigate('/brand/applications');
+    navigate('/brand/create-campaign');
   };
 
   const toggleProfileDropdown = () => {
