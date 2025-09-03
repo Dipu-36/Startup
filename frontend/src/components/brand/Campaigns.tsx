@@ -14,23 +14,11 @@ import {
   FileText,
   CheckCircle,
   XCircle,
-  BarChart3
-} from 'lucide-react';
-import BrandNavbar from './BrandNavbar';
-import { 
-  Search, 
-  Filter, 
-  Plus, 
-  Calendar, 
-  Users, 
-  Eye, 
-  Settings, 
-  BarChart3, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Circle, 
-  ChevronLeft, 
+  BarChart3,
+  Settings,
+  Clock,
+  Circle,
+  ChevronLeft,
   ChevronRight,
   Target,
   DollarSign,
@@ -38,6 +26,7 @@ import {
   TrendingUp,
   Activity
 } from 'lucide-react';
+import BrandNavbar from './BrandNavbar';
 
 interface Campaign {
   id: string;
