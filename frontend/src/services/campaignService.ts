@@ -71,6 +71,19 @@ export interface Campaign {
   applicants?: number;
 }
 
+export interface Application {
+  id: string;
+  campaignId: string;
+  creatorId: string;
+  creatorName: string;
+  creatorEmail: string;
+  followers: string;
+  platform: string;
+  status: 'pending' | 'approved' | 'rejected';
+  appliedDate: string;
+  campaignName: string;
+}
+
 export interface Creator {
   id: string; // This will be the creatorId for display purposes
   applicationId: string; // This is the actual application ID for API calls
@@ -108,6 +121,134 @@ export interface PaymentRecord {
 }
 
 class CampaignService {
+  // Get all active campaigns for browsing (for creators)
+  async getAllCampaigns(token?: string): Promise<Campaign[]> {
+    const response = await fetch(`${API_BASE_URL}/campaigns/all`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeadersWithToken(token),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      
+      if (response.status === 503) {
+        throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
+      } else if (response.status === 401) {
+        throw new Error('Your session has expired. Please log in again.');
+      } else {
+        throw new Error(error || 'Failed to fetch campaigns');
+      }
+    }
+
+    const campaignsData = await response.json();
+    
+    // Ensure campaigns is an array, fallback to empty array if null/undefined
+    const campaignsArray = Array.isArray(campaignsData) ? campaignsData : [];
+    
+    // Ensure array fields are arrays for each campaign
+    return campaignsArray.map(campaign => ({
+      ...campaign,
+      platforms: Array.isArray(campaign.platforms) ? campaign.platforms : [],
+      contentFormat: Array.isArray(campaign.contentFormat) ? campaign.contentFormat : [],
+      languages: Array.isArray(campaign.languages) ? campaign.languages : [],
+    }));
+  }
+
+  // Get campaigns for a brand (for brand dashboard)
+  async getBrandCampaigns(token?: string): Promise<Campaign[]> {
+    const response = await fetch(`${API_BASE_URL}/campaigns`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeadersWithToken(token),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      
+      if (response.status === 503) {
+        throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
+      } else if (response.status === 401) {
+        throw new Error('Your session has expired. Please log in again.');
+      } else {
+        throw new Error(error || 'Failed to fetch campaigns');
+      }
+    }
+
+    const campaignsData = await response.json();
+    
+    // Ensure campaigns is an array, fallback to empty array if null/undefined
+    const campaignsArray = Array.isArray(campaignsData) ? campaignsData : [];
+    
+    // Ensure array fields are arrays for each campaign
+    return campaignsArray.map(campaign => ({
+      ...campaign,
+      platforms: Array.isArray(campaign.platforms) ? campaign.platforms : [],
+      contentFormat: Array.isArray(campaign.contentFormat) ? campaign.contentFormat : [],
+      languages: Array.isArray(campaign.languages) ? campaign.languages : [],
+    }));
+  }
+
+  // Apply to a campaign (for creators)
+  async applyCampaign(campaignId: string, applicationData: { followers: string; platform: string }, token?: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/campaigns/${campaignId}/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeadersWithToken(token),
+      },
+      body: JSON.stringify(applicationData),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      
+      if (response.status === 503) {
+        throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
+      } else if (response.status === 401) {
+        throw new Error('Your session has expired. Please log in again.');
+      } else if (response.status === 409) {
+        throw new Error('You have already applied to this campaign.');
+      } else {
+        throw new Error(error || 'Failed to apply to campaign');
+      }
+    }
+
+    return await response.json();
+  }
+
+  // Get creator's applications
+  async getCreatorApplications(token?: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/applications/creator`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeadersWithToken(token),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      
+      if (response.status === 503) {
+        throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
+      } else if (response.status === 401) {
+        throw new Error('Your session has expired. Please log in again.');
+      } else {
+        throw new Error(error || 'Failed to fetch applications');
+      }
+    }
+
+    const applicationsData = await response.json();
+    
+    // Ensure applications is an array, fallback to empty array if null/undefined
+    return Array.isArray(applicationsData) ? applicationsData : [];
+  }
+
   async getCampaign(campaignId: string, token?: string): Promise<Campaign> {
     const response = await fetch(`${API_BASE_URL}/campaigns/${campaignId}`, {
       method: 'GET',
@@ -273,6 +414,22 @@ class CampaignService {
       contentFormat: Array.isArray(campaignData.contentFormat) ? campaignData.contentFormat : [],
       languages: Array.isArray(campaignData.languages) ? campaignData.languages : [],
     };
+  }
+
+  async applyToCampaign(campaignId: string, applicationData?: { followers?: string, platform?: string }, token?: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/campaigns/${campaignId}/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeadersWithToken(token),
+      },
+      body: JSON.stringify(applicationData || { followers: '', platform: '' }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to apply to campaign');
+    }
   }
 }
 

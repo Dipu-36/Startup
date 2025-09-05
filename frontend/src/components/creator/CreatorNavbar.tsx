@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useClerk, useUser } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X, User, Palette, DollarSign, HelpCircle, LogOut } from 'lucide-react';
 import { APP_NAME } from '../../config/appConfig';
 
 interface CreatorNavbarProps {
@@ -13,7 +14,9 @@ const CreatorNavbar: React.FC<CreatorNavbarProps> = ({ activeTab }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // Auto-detect active tab based on current route if not provided
   const getCurrentTab = () => {
@@ -31,6 +34,10 @@ const CreatorNavbar: React.FC<CreatorNavbarProps> = ({ activeTab }) => {
 
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const handleProfileAction = (action: string) => {
@@ -64,6 +71,7 @@ const CreatorNavbar: React.FC<CreatorNavbarProps> = ({ activeTab }) => {
   };
 
   const handleNavigation = (tab: string) => {
+    setIsMobileMenuOpen(false);
     switch (tab) {
       case 'dashboard':
         navigate('/creator/dashboard');
@@ -80,11 +88,14 @@ const CreatorNavbar: React.FC<CreatorNavbarProps> = ({ activeTab }) => {
     }
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdown and mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsProfileDropdownOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -94,81 +105,205 @@ const CreatorNavbar: React.FC<CreatorNavbarProps> = ({ activeTab }) => {
     };
   }, []);
 
+  // Close mobile menu when screen size changes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   return (
-    <header className="creator-dashboard-header">
-      <div className="creator-header-left">
-        <h1 className="creator-brand-name">{APP_NAME}</h1>
-        <nav className="creator-main-nav">
-          <button
-            className={`creator-nav-btn ${currentTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => handleNavigation('dashboard')}
-          >
-            Dashboard
-          </button>
-          <button
-            className={`creator-nav-btn ${currentTab === 'campaigns' ? 'active' : ''}`}
-            onClick={() => handleNavigation('campaigns')}
-          >
-            Campaigns
-          </button>
-          <button
-            className={`creator-nav-btn ${currentTab === 'applications' ? 'active' : ''}`}
-            onClick={() => handleNavigation('applications')}
-          >
-            Applications
-          </button>
-          <button
-            className={`creator-nav-btn ${currentTab === 'content' ? 'active' : ''}`}
-            onClick={() => handleNavigation('content')}
-          >
-            Content
-          </button>
-        </nav>
-      </div>
-      <div className="creator-header-right">
-        <div className="creator-user-profile">
-          <div className="creator-profile-info">
-            <span className="creator-profile-name">{user?.fullName || user?.firstName || 'creator1'}</span>
-            <span className="creator-profile-email">{user?.emailAddresses?.[0]?.emailAddress || 'creator1@gmail.com'}</span>
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-lg">
+      <div className="px-4 sm:px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Header Left */}
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 cursor-default tracking-tight">
+              {APP_NAME}
+            </h1>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex space-x-4">
+              <button
+                onClick={() => handleNavigation('dashboard')}
+                className={`px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
+                  currentTab === 'dashboard'
+                    ? 'bg-gradient-to-r from-purple-600 to-teal-600 text-white shadow-lg'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 hover:shadow-md'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => handleNavigation('campaigns')}
+                className={`px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
+                  currentTab === 'campaigns'
+                    ? 'bg-gradient-to-r from-purple-600 to-teal-600 text-white shadow-lg'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 hover:shadow-md'
+                }`}
+              >
+                Campaigns
+              </button>
+              <button
+                onClick={() => handleNavigation('applications')}
+                className={`px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
+                  currentTab === 'applications'
+                    ? 'bg-gradient-to-r from-purple-600 to-teal-600 text-white shadow-lg'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 hover:shadow-md'
+                }`}
+              >
+                Applications
+              </button>
+              <button
+                onClick={() => handleNavigation('content')}
+                className={`px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-200 ${
+                  currentTab === 'content'
+                    ? 'bg-gradient-to-r from-purple-600 to-teal-600 text-white shadow-lg'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 hover:shadow-md'
+                }`}
+              >
+                Content
+              </button>
+            </nav>
           </div>
-          <div className="creator-profile-dropdown" ref={dropdownRef}>
-            <div className="creator-profile-avatar" onClick={toggleProfileDropdown}>
-              <span>{user?.fullName ? user.fullName.charAt(0).toUpperCase() : user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'C'}</span>
-            </div>
-            {isProfileDropdownOpen && (
-              <div className="creator-dropdown-menu">
-                <div className="creator-dropdown-header">
-                  <div className="creator-dropdown-user-info">
-                    <strong>{user?.fullName || user?.firstName || 'creator1'}</strong>
-                    <span>{user?.emailAddresses?.[0]?.emailAddress || 'creator1@gmail.com'}</span>
+
+          {/* Header Right */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleMobileMenu}
+              className="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100/50 transition-colors duration-200"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5 text-gray-900" />
+              ) : (
+                <Menu className="w-5 h-5 text-gray-900" />
+              )}
+            </button>
+
+            {/* User Profile */}
+            <div className="relative" ref={dropdownRef}>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-medium text-gray-900">{user?.fullName || user?.firstName || 'Creator'}</p>
+                  <p className="text-xs text-gray-600">{user?.primaryEmailAddress?.emailAddress || 'creator@example.com'}</p>
+                </div>
+                <button
+                  onClick={toggleProfileDropdown}
+                  className="w-10 h-10 bg-gradient-to-br from-purple-600 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  {user?.fullName ? user.fullName.charAt(0).toUpperCase() : user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'C'}
+                </button>
+              </div>
+
+              {/* Profile Dropdown */}
+              {isProfileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-xl py-2 animate-in slide-in-from-top-5 duration-200">
+                  <div className="px-4 py-2 border-b border-gray-200">
+                    <p className="font-medium text-gray-900">{user?.fullName || user?.firstName || 'Creator'}</p>
+                    <p className="text-sm text-gray-600">{user?.primaryEmailAddress?.emailAddress || 'creator@example.com'}</p>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={() => handleProfileAction('profile')}
+                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200"
+                    >
+                      <User className="w-4 h-4 mr-3" />
+                      Profile Settings
+                    </button>
+                    <button
+                      onClick={() => handleProfileAction('portfolio')}
+                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200"
+                    >
+                      <Palette className="w-4 h-4 mr-3" />
+                      Portfolio
+                    </button>
+                    <button
+                      onClick={() => handleProfileAction('earnings')}
+                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200"
+                    >
+                      <DollarSign className="w-4 h-4 mr-3" />
+                      Earnings
+                    </button>
+                    <button
+                      onClick={() => handleProfileAction('help')}
+                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors duration-200"
+                    >
+                      <HelpCircle className="w-4 h-4 mr-3" />
+                      Help & Support
+                    </button>
+                  </div>
+                  <div className="border-t border-gray-200 mt-1 pt-1">
+                    <button
+                      onClick={() => handleProfileAction('logout')}
+                      className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+                    >
+                      <LogOut className="w-4 h-4 mr-3" />
+                      Sign Out
+                    </button>
                   </div>
                 </div>
-                <div className="creator-dropdown-divider"></div>
-                <div className="creator-dropdown-item" onClick={() => handleProfileAction('profile')}>
-                  <span className="creator-dropdown-icon">👤</span>
-                  Profile Settings
-                </div>
-                <div className="creator-dropdown-item" onClick={() => handleProfileAction('portfolio')}>
-                  <span className="creator-dropdown-icon">🎨</span>
-                  Portfolio
-                </div>
-                <div className="creator-dropdown-item" onClick={() => handleProfileAction('earnings')}>
-                  <span className="creator-dropdown-icon">💰</span>
-                  Earnings
-                </div>
-                <div className="creator-dropdown-item" onClick={() => handleProfileAction('help')}>
-                  <span className="creator-dropdown-icon">❓</span>
-                  Help & Support
-                </div>
-                <div className="creator-dropdown-divider"></div>
-                <div className="creator-dropdown-item creator-logout-item" onClick={() => handleProfileAction('logout')}>
-                  <span className="creator-dropdown-icon">🚪</span>
-                  Sign Out
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden mt-4 pb-4" ref={mobileMenuRef}>
+            <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-lg animate-in slide-in-from-top-5 duration-200">
+              <nav className="space-y-2">
+                <button
+                  onClick={() => handleNavigation('dashboard')}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    currentTab === 'dashboard'
+                      ? 'bg-gradient-to-r from-purple-600 to-teal-600 text-white'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
+                  }`}
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => handleNavigation('campaigns')}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    currentTab === 'campaigns'
+                      ? 'bg-gradient-to-r from-purple-600 to-teal-600 text-white'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
+                  }`}
+                >
+                  Campaigns
+                </button>
+                <button
+                  onClick={() => handleNavigation('applications')}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    currentTab === 'applications'
+                      ? 'bg-gradient-to-r from-purple-600 to-teal-600 text-white'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
+                  }`}
+                >
+                  Applications
+                </button>
+                <button
+                  onClick={() => handleNavigation('content')}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    currentTab === 'content'
+                      ? 'bg-gradient-to-r from-purple-600 to-teal-600 text-white'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
+                  }`}
+                >
+                  Content
+                </button>
+              </nav>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

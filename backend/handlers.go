@@ -342,9 +342,20 @@ func getApplicationsForBrandHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Add campaign names to applications
+	// Add campaign names to applications and populate creator info from database
+	usersCollection := database.Collection("users")
 	for i := range applications {
 		applications[i].CampaignName = campaignMap[applications[i].CampaignID]
+
+		// If creator info is missing, fetch from database
+		if applications[i].CreatorName == "" || applications[i].CreatorName == "Unknown User" || applications[i].CreatorEmail == "" {
+			var creator User
+			err := usersCollection.FindOne(ctx, bson.M{"clerkId": applications[i].CreatorID}).Decode(&creator)
+			if err == nil {
+				applications[i].CreatorName = creator.Name
+				applications[i].CreatorEmail = creator.Email
+			}
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -532,6 +543,19 @@ func applyCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	// Get user's Clerk ID
 	userID := getUserIDFromClerkUser(user)
 
+	// Get user details from database
+	usersCollection := database.Collection("users")
+	var dbUser User
+	err = usersCollection.FindOne(ctx, bson.M{"clerkId": userID}).Decode(&dbUser)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "User profile not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error fetching user profile", http.StatusInternalServerError)
+		}
+		return
+	}
+
 	// Check if user has already applied to this campaign
 	appsCollection := database.Collection("applications")
 	existingCount, err := appsCollection.CountDocuments(ctx, bson.M{
@@ -552,8 +576,8 @@ func applyCampaignHandler(w http.ResponseWriter, r *http.Request) {
 		ID:           primitive.NewObjectID(),
 		CampaignID:   campaignObjID,
 		CreatorID:    userID,
-		CreatorName:  getNameFromClerkUser(user), // Get name from Clerk user
-		CreatorEmail: getEmailFromClerkUser(user),
+		CreatorName:  dbUser.Name,  // Get name from database
+		CreatorEmail: dbUser.Email, // Get email from database
 		Followers:    req.Followers,
 		Platform:     req.Platform,
 		Status:       "pending",

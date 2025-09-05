@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func main() {
@@ -33,6 +37,8 @@ func main() {
 
 	// Public routes
 	api.HandleFunc("/health", healthCheck).Methods("GET")
+	api.HandleFunc("/debug/applications", debugApplicationsHandler).Methods("GET") // Temporary debug endpoint
+	api.HandleFunc("/debug/campaigns", debugCampaignsHandler).Methods("GET")       // Temporary debug endpoint
 
 	// Protected routes - general
 	api.HandleFunc("/auth/profile", authMiddleware(profileHandler)).Methods("GET")
@@ -78,4 +84,56 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf(`{"status": "OK", "message": "%s"}`, GetAPIMessage())))
+}
+
+// Temporary debug handler to check applications in database
+func debugApplicationsHandler(w http.ResponseWriter, r *http.Request) {
+	collection := database.Collection("applications")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		http.Error(w, "Error fetching applications", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var applications []Application
+	if err = cursor.All(ctx, &applications); err != nil {
+		http.Error(w, "Error decoding applications", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"count":        len(applications),
+		"applications": applications,
+	})
+}
+
+// Temporary debug handler to check campaigns in database
+func debugCampaignsHandler(w http.ResponseWriter, r *http.Request) {
+	collection := database.Collection("campaigns")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		http.Error(w, "Error fetching campaigns", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var campaigns []Campaign
+	if err = cursor.All(ctx, &campaigns); err != nil {
+		http.Error(w, "Error decoding campaigns", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"count":     len(campaigns),
+		"campaigns": campaigns,
+	})
 }

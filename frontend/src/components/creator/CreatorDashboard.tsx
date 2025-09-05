@@ -1,358 +1,223 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Zap, Clock, DollarSign, Users, TrendingUp, Calendar, MapPin, Target, Eye } from 'lucide-react';
 import CreatorNavbar from './CreatorNavbar';
+import campaignService, { Campaign, Application } from '../../services/campaignService';
 
-interface Campaign {
-  id: string;
-  brandId: string;
-  brandName: string;
-  title: string;
-  description: string;
-  category: string;
-  startDate: string;
-  endDate: string;
-  campaignType: string;
-  targetAudience: {
-    location: string;
-    ageGroup: string;
-    gender: string;
-    interests: string;
-  };
-  platforms: string[];
-  minRequirements: {
-    followersCount: string;
-    engagementRate: string;
-    contentStyle: string;
-    languages: string[];
-  };
-  nicheMatch: boolean;
-  geographicRestrictions: string;
-  contentFormat: string[];
-  numberOfPosts: string;
-  contentGuidelines: string;
-  approvalRequired: boolean;
-  compensationType: string;
-  paymentAmount: string;
-  productDetails: string;
-  bannerImageUrl: string;
-  referenceLinks: string;
-  status: 'draft' | 'active' | 'completed' | 'cancelled';
-  applicants: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Application {
-  id: string;
-  campaignId?: string;
-  creatorId?: string;
-  creatorName: string;
-  creatorEmail: string;
-  followers: string;
-  platform: string;
-  status: 'pending' | 'approved' | 'rejected';
-  appliedDate: string;
-  campaignName: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-const CreatorDashboard: React.FC = () => {
+const CreatorDashboard = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const navigate = useNavigate();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [availableCampaigns, setAvailableCampaigns] = useState<Campaign[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper variables for user data
-  const userName = user?.fullName || user?.firstName || 'Creator';
-  const userEmail = user?.primaryEmailAddress?.emailAddress || 'creator@example.com';
+  const userName = user?.firstName || user?.fullName || 'Creator';
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress || '';
 
-  // Fetch campaigns from API
   useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setError('Please log in to view campaigns');
-          return;
-        }
+    fetchData();
+  }, [user, getToken]);
 
-        const response = await fetch('http://localhost:8080/api/campaigns/all', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Get the authentication token
+      const token = await getToken();
+      
+      // Fetch campaigns and applications in parallel
+      const [campaignsData, applicationsData] = await Promise.all([
+        campaignService.getAllCampaigns(token || undefined),
+        campaignService.getCreatorApplications(token || undefined)
+      ]);
+      
+      setAvailableCampaigns(campaignsData);
+      setApplications(applicationsData);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Failed to load data. Please try again later.');
+      
+      // Set empty arrays on error
+      setAvailableCampaigns([]);
+      setApplications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch campaigns');
-        }
-
-        const campaignsData = await response.json();
-        setCampaigns(campaignsData || []);
-      } catch (error) {
-        console.error('Error fetching campaigns:', error);
-        setError('Failed to load campaigns');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCampaigns();
-  }, []);
-
-  // Fetch applications from API
-  useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.log('No token found, using mock data');
-          return;
-        }
-
-        const response = await fetch('http://localhost:8080/api/applications/creator', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const applicationsData = await response.json();
-          setApplications(applicationsData || []);
-        } else {
-          console.log('Failed to fetch applications, using mock data');
-          // Fall back to mock data if API fails
-          const mockApplications: Application[] = [
-            {
-              id: '1',
-              campaignId: '1',
-              creatorId: user?.id || '',
-              creatorName: userName,
-              creatorEmail: userEmail,
-              followers: '10.5K',
-              platform: 'Instagram',
-              status: 'pending',
-              appliedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-              campaignName: 'Summer Fashion Collection 2025'
-            },
-            {
-              id: '2',
-              campaignId: '2',
-              creatorId: user?.id || '',
-              creatorName: userName,
-              creatorEmail: userEmail,
-              followers: '25.3K',
-              platform: 'YouTube',
-              status: 'approved',
-              appliedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-              campaignName: 'Tech Gadget Review Campaign'
-            },
-            {
-              id: '3',
-              campaignId: '3',
-              creatorId: user?.id || '',
-              creatorName: userName,
-              creatorEmail: userEmail,
-              followers: '8.7K',
-              platform: 'TikTok',
-              status: 'rejected',
-              appliedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-              campaignName: 'Fitness Equipment Promotion'
-            }
-          ];
-          setApplications(mockApplications);
-        }
-      } catch (error) {
-        console.error('Error fetching applications:', error);
-        // Fall back to mock data on error
-        const mockApplications: Application[] = [
-          {
-            id: '1',
-            campaignId: '1',
-            creatorId: user?.id || '',
-            creatorName: userName,
-            creatorEmail: userEmail,
-            followers: '10.5K',
-            platform: 'Instagram',
-            status: 'pending',
-            appliedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            campaignName: 'Summer Fashion Collection 2025'
-          },
-          {
-            id: '2',
-            campaignId: '2',
-            creatorId: user?.id || '',
-            creatorName: userName,
-            creatorEmail: userEmail,
-            followers: '25.3K',
-            platform: 'YouTube',
-            status: 'approved',
-            appliedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-            campaignName: 'Tech Gadget Review Campaign'
-          },
-          {
-            id: '3',
-            campaignId: '3',
-            creatorId: user?.id || '',
-            creatorName: userName,
-            creatorEmail: userEmail,
-            followers: '8.7K',
-            platform: 'TikTok',
-            status: 'rejected',
-            appliedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-            campaignName: 'Fitness Equipment Promotion'
-          }
-        ];
-        setApplications(mockApplications);
-      }
-    };
-
-    fetchApplications();
-  }, [user, userEmail, userName]);
-
-  const handleBrowseCampaigns = () => {
-    navigate('/creator/campaigns');
+  // Filter campaigns to exclude ones the user has already applied to
+  const getFilteredCampaigns = () => {
+    const appliedCampaignIds = applications.map(app => app.campaignId);
+    return availableCampaigns.filter(campaign => !appliedCampaignIds.includes(campaign.id));
   };
 
   const handleApplyToCampaign = async (campaignId: string) => {
     try {
-      // Check if already applied to this campaign
-      const hasApplied = applications.some(app => app.campaignId === campaignId);
-      if (hasApplied) {
-        alert('You have already applied to this campaign!');
-        return;
-      }
-
-      const token = localStorage.getItem('token');
-      if (!token) {
+      if (!user?.id) {
         alert('Please log in to apply to campaigns');
         return;
       }
 
-      const response = await fetch('http://localhost:8080/api/applications', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          campaignId: campaignId,
-          followers: '10.5K', // You might want to get this from user profile
-          platform: 'Instagram' // You might want to get this from user profile
-        }),
-      });
-
-      if (response.ok) {
-        const newApplication = await response.json();
-        alert('Application submitted successfully!');
-        // Refresh applications list
-        setApplications(prev => [newApplication, ...prev]);
-      } else if (response.status === 409) {
-        // Handle duplicate application error from backend
-        alert('You have already applied to this campaign!');
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        alert(`Failed to submit application: ${errorData.message || 'Unknown error'}`);
-      }
+      const token = await getToken();
+      await campaignService.applyToCampaign(campaignId, undefined, token || undefined);
+      alert('Application submitted successfully!');
+      
+      // Refresh applications to update the filtered campaign list
+      const updatedApplications = await campaignService.getCreatorApplications(token || undefined);
+      setApplications(updatedApplications);
     } catch (error) {
       console.error('Error applying to campaign:', error);
       alert('Failed to submit application. Please try again.');
     }
   };
 
-  // Filter out campaigns that the creator has already applied to
-  const availableCampaigns = campaigns.filter(campaign => 
-    !applications.some(app => app.campaignId === campaign.id)
-  );
+  const handleBrowseCampaigns = () => {
+    // For now, we'll scroll to the campaigns section
+    // In the future, this could navigate to a dedicated campaigns page
+    const campaignsSection = document.getElementById('campaigns-section');
+    if (campaignsSection) {
+      campaignsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
-    <div className="creator-dashboard">
+    <div className="min-h-screen bg-gray-50">
       <CreatorNavbar activeTab="dashboard" />
-
-      {/* Main Content */}
-      <main className="creator-dashboard-main">
-        <div className="creator-dashboard-content">
-          {/* Welcome Section */}
-          <div className="creator-welcome-section">
-            <h2>Welcome back, {userName}!</h2>
+      
+      <main className="px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <div className="flex items-center mb-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-teal-600 rounded-lg flex items-center justify-center mr-3">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome back, {userName}!
+            </h1>
           </div>
+          <p className="text-gray-600 flex items-center">
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Here's what's happening with your campaigns today.
+          </p>
+        </div>
 
-          {/* Quick Stats - Single Row */}
-          <div className="creator-quick-stats">
-            <div className="creator-stat-card" onClick={handleBrowseCampaigns}>
-              <div className="creator-stat-icon">🔎</div>
-              <div className="creator-stat-info">
-                <span className="creator-stat-number">Browse</span>
-                <span className="creator-stat-label">Campaigns</span>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 lg:gap-6 mb-8">
+          {/* Browse Campaigns Card */}
+          <div 
+            className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 cursor-pointer group"
+            onClick={handleBrowseCampaigns}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors duration-300">
+                <Search className="w-6 h-6 text-white" />
               </div>
-            </div>
-            <div className="creator-stat-card">
-              <div className="creator-stat-icon">🚀</div>
-              <div className="creator-stat-info">
-                <span className="creator-stat-number">{applications.filter(a => a.status === 'approved').length}</span>
-                <span className="creator-stat-label">Approved Campaigns</span>
-              </div>
-            </div>
-            <div className="creator-stat-card">
-              <div className="creator-stat-icon">⏳</div>
-              <div className="creator-stat-info">
-                <span className="creator-stat-number">{applications.filter(a => a.status === 'pending').length}</span>
-                <span className="creator-stat-label">Pending Applications</span>
-              </div>
-            </div>
-            <div className="creator-stat-card">
-              <div className="creator-stat-icon">💰</div>
-              <div className="creator-stat-info">
-                <span className="creator-stat-number">$2,450</span>
-                <span className="creator-stat-label">Total Earnings</span>
-              </div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">New</div>
+              <div className="text-sm text-gray-600">Browse Campaigns</div>
             </div>
           </div>
 
-          {/* Content Grid */}
-          <div className="creator-content-grid">
-            {/* Available Campaigns Section */}
-            <section className="creator-campaigns-section">
-              <div className="creator-section-header">
-                <h2>Available Campaigns</h2>
+          {/* Available Campaigns */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-white" />
               </div>
-              <div className="creator-campaigns-grid">
+              <div className="text-2xl font-bold text-gray-900 mb-1">{getFilteredCampaigns().length}</div>
+              <div className="text-sm text-gray-600">Available Campaigns</div>
+            </div>
+          </div>
+
+          {/* Pending Applications */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4">
+                <Clock className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">{applications.filter(a => a.status === 'pending').length}</div>
+              <div className="text-sm text-gray-600">Pending Applications</div>
+            </div>
+          </div>
+
+          {/* Approved Applications */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4">
+                <DollarSign className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">{applications.filter(a => a.status === 'approved').length}</div>
+              <div className="text-sm text-gray-600">Approved Applications</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+          {/* Available Campaigns Section */}
+          <div className="xl:col-span-2" id="campaigns-section">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 h-fit">
+              <div className="flex items-center mb-6">
+                <div className="w-6 h-6 bg-gradient-to-r from-purple-600 to-teal-600 rounded mr-3">
+                  <Search className="w-6 h-6 text-white p-1" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Recent Campaigns</h2>
+              </div>
+              
+              <div className="space-y-4">
                 {loading ? (
-                  <div className="creator-loading-state">
-                    <p>Loading campaigns...</p>
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                   </div>
                 ) : error ? (
-                  <div className="creator-error-state">
-                    <p>{error}</p>
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <TrendingUp className="w-8 h-8 text-red-600" />
+                    </div>
+                    <p className="text-gray-600">{error}</p>
                   </div>
-                ) : availableCampaigns.length === 0 ? (
-                  <div className="creator-empty-state">
-                    <p>No new campaigns available at the moment. Check back later!</p>
+                ) : getFilteredCampaigns().length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No new campaigns available</h3>
+                    <p className="text-gray-600">You've applied to all available campaigns or check back later for new opportunities!</p>
                   </div>
                 ) : (
-                  availableCampaigns.map((campaign) => (
-                    <div key={campaign.id} className="creator-campaign-card">
-                      <div className="creator-campaign-header">
-                        <h3>{campaign.title}</h3>
-                        <span className="creator-campaign-brand">by {campaign.brandName}</span>
+                  getFilteredCampaigns().slice(0, 3).map((campaign) => (
+                    <div key={campaign.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-1">{campaign.title}</h3>
+                          <div className="flex items-center text-sm text-gray-600 mb-2">
+                            <Target className="w-4 h-4 mr-1" />
+                            <span className="mr-4">{campaign.brandName}</span>
+                            <Users className="w-4 h-4 mr-1" />
+                            <span className="mr-4">{campaign.platforms.join(', ')}</span>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <DollarSign className="w-4 h-4 mr-1" />
+                            <span className="mr-4">{campaign.paymentAmount}</span>
+                            <Calendar className="w-4 h-4 mr-1" />
+                            <span>{new Date(campaign.endDate).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            active
+                          </span>
+                        </div>
                       </div>
-                      <div className="creator-campaign-details">
-                        <p><strong>Budget:</strong> {campaign.paymentAmount}</p>
-                        <p><strong>Platform:</strong> {campaign.platforms.join(', ')}</p>
-                        <p><strong>Deadline:</strong> {new Date(campaign.endDate).toLocaleDateString()}</p>
-                      </div>
-                      <div className="creator-campaign-actions">
-                        <button className="creator-btn-secondary">View Details</button>
+                      <div className="flex gap-2">
+                        <button className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                          View Details
+                        </button>
                         <button 
-                          className="creator-btn-primary"
+                          className="px-4 py-2 text-sm bg-gradient-to-r from-purple-600 to-teal-600 text-white rounded-md hover:from-purple-700 hover:to-teal-700 transition-all duration-200"
                           onClick={() => handleApplyToCampaign(campaign.id)}
                         >
                           Apply Now
@@ -362,37 +227,73 @@ const CreatorDashboard: React.FC = () => {
                   ))
                 )}   
               </div>
-            </section>
+            </div>
+          </div>
 
-            {/* Applications Section */}
-            <section className="creator-applications-section">
-              <div className="creator-section-header">
-                <h2>Recent Applications</h2>
+          {/* Applications Section */}
+          <div className="xl:col-span-1">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 h-fit">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <div className="w-6 h-6 bg-gradient-to-r from-purple-600 to-teal-600 rounded mr-3">
+                    <Eye className="w-6 h-6 text-white p-1" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900">Recent Applications</h2>
+                </div>
               </div>
-              <div className="creator-applications-container">
-                <div className="creator-applications-list">
-                  {applications.map((application) => (
-                    <div key={application.id} className="creator-application-item">
-                      <div className="creator-application-info">
-                        <div className="creator-campaign-details">
-                          <h4>{application.campaignName}</h4>
-                          <p className="creator-platform-info">{application.platform} • {application.followers}</p>
-                          <p className="creator-applied-info">Applied {new Date(application.appliedDate).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric' 
-                          })}</p>
+              
+              <div className="space-y-4">
+                {applications.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Eye className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600 text-center">No applications yet</p>
+                    <button
+                      onClick={handleBrowseCampaigns}
+                      className="mt-4 inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-teal-600 text-white rounded-lg hover:from-purple-700 hover:to-teal-700 transition-all duration-200"
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      Browse Campaigns
+                    </button>
+                  </div>
+                ) : (
+                  applications.slice(0, 5).map((application) => (
+                    <div key={application.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 mb-1">{application.campaignName}</h4>
+                          <div className="flex items-center text-sm text-gray-600 mb-2">
+                            <Users className="w-4 h-4 mr-1" />
+                            <span className="mr-3">{application.platform}</span>
+                            <TrendingUp className="w-4 h-4 mr-1" />
+                            <span>{application.followers}</span>
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            Applied {new Date(application.appliedDate).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </p>
                         </div>
-                        <div className="creator-application-meta">
-                          <span className={`creator-status ${application.status}`}>
+                        <div className="ml-3">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            application.status === 'approved' 
+                              ? 'bg-green-100 text-green-800' 
+                              : application.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
                             {application.status}
                           </span>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  ))
+                )}
               </div>
-            </section>
+            </div>
           </div>
         </div>
       </main>

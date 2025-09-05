@@ -10,6 +10,8 @@ import (
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/jwt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // ClerkConfig holds Clerk configuration
@@ -214,8 +216,26 @@ func getUserTypeFromMetadata(user *clerk.User) (string, error) {
 		return "", fmt.Errorf("user is nil")
 	}
 
-	// Since we're working with a minimal user object from JWT claims,
-	// we don't have access to actual metadata from Clerk API
-	// For now, return a default user type
-	return "creator", nil
+	// Get user ID from Clerk user
+	userID := getUserIDFromClerkUser(user)
+	if userID == "" {
+		return "", fmt.Errorf("cannot get user ID from Clerk user")
+	}
+
+	// Fetch user type from database
+	collection := database.Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var dbUser User
+	err := collection.FindOne(ctx, bson.M{"clerkId": userID}).Decode(&dbUser)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// User not found in database, return empty string
+			return "", nil
+		}
+		return "", fmt.Errorf("error fetching user from database: %v", err)
+	}
+
+	return dbUser.UserType, nil
 }

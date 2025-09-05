@@ -111,7 +111,10 @@ const BrandDashboard = () => {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
+        console.log('Fetching campaigns - User:', user?.id, 'Email:', user?.primaryEmailAddress?.emailAddress); // Debug log
         const token = await getToken();
+        console.log('Token status:', token ? 'Available' : 'Not available'); // Debug log
+        
         if (!token) {
           setError('Please log in to view campaigns');
           return;
@@ -125,8 +128,9 @@ const BrandDashboard = () => {
           },
         });
 
+        console.log('Campaigns response status:', response.status); // Debug log
         if (!response.ok) {
-          throw new Error('Failed to fetch campaigns');
+          throw new Error(`Failed to fetch campaigns: ${response.status} ${response.statusText}`);
         }
 
         const campaignsData = await response.json();
@@ -141,11 +145,14 @@ const BrandDashboard = () => {
 
     const fetchApplications = async () => {
       try {
+        console.log('Fetching applications - User:', user?.id); // Debug log
         const token = await getToken();
         if (!token) {
+          console.log('No token available for applications'); // Debug log
           return;
         }
 
+        console.log('Making applications request with token'); // Debug log
         const response = await fetch('http://localhost:8080/api/applications', {
           method: 'GET',
           headers: {
@@ -154,9 +161,13 @@ const BrandDashboard = () => {
           },
         });
 
+        console.log('Applications response status:', response.status); // Debug log
         if (response.ok) {
           const applicationsData = await response.json();
+          console.log('Applications data:', applicationsData); // Debug log
           setApplications(applicationsData || []);
+        } else {
+          console.error('Applications fetch failed:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Error fetching applications:', error);

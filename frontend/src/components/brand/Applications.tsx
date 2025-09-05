@@ -6,17 +6,16 @@ import { Users, Clock, CheckCircle, XCircle, FileText, Mail, Calendar } from 'lu
 interface Application {
   id: string;
   campaignId: string;
-  campaignTitle: string;
+  campaignName: string;
+  creatorId: string;
   creatorName: string;
   creatorEmail: string;
-  appliedAt: string;
+  followers: string;
+  platform: string;
   status: 'pending' | 'approved' | 'rejected';
-  message?: string;
-  metrics: {
-    followers: number;
-    engagement: number;
-    reach?: number;
-  };
+  appliedDate: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const Applications: React.FC = () => {
@@ -30,7 +29,7 @@ const Applications: React.FC = () => {
       setLoading(true);
       try {
         const token = await getToken();
-        const response = await fetch('http://localhost:8080/api/applications/brand', {
+        const response = await fetch('http://localhost:8080/api/applications', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -41,55 +40,8 @@ const Applications: React.FC = () => {
           const data = await response.json();
           setApplications(data || []);
         } else {
-          // Mock data for development
-          const mockApplications: Application[] = [
-            {
-              id: '1',
-              campaignId: 'camp1',
-              campaignTitle: 'Summer Fashion Collection',
-              creatorName: 'Sarah Johnson',
-              creatorEmail: 'sarah@example.com',
-              appliedAt: '2024-01-15T10:30:00Z',
-              status: 'pending',
-              message: 'I love your brand and would be excited to showcase your summer collection to my fashion-focused audience.',
-              metrics: {
-                followers: 25000,
-                engagement: 4.2,
-                reach: 50000
-              }
-            },
-            {
-              id: '2',
-              campaignId: 'camp1',
-              campaignTitle: 'Summer Fashion Collection',
-              creatorName: 'Mike Chen',
-              creatorEmail: 'mike@example.com',
-              appliedAt: '2024-01-14T15:45:00Z',
-              status: 'approved',
-              message: 'Your brand aligns perfectly with my lifestyle content. Looking forward to collaboration!',
-              metrics: {
-                followers: 45000,
-                engagement: 3.8,
-                reach: 80000
-              }
-            },
-            {
-              id: '3',
-              campaignId: 'camp2',
-              campaignTitle: 'Tech Product Launch',
-              creatorName: 'Alex Rivera',
-              creatorEmail: 'alex@example.com',
-              appliedAt: '2024-01-13T09:20:00Z',
-              status: 'rejected',
-              message: 'I specialize in tech reviews and would love to feature your new product.',
-              metrics: {
-                followers: 15000,
-                engagement: 5.1,
-                reach: 30000
-              }
-            }
-          ];
-          setApplications(mockApplications);
+          console.error('Failed to fetch applications:', response.status);
+          setApplications([]);
         }
       } catch (error) {
         console.error('Error fetching applications:', error);
@@ -106,7 +58,7 @@ const Applications: React.FC = () => {
     try {
       const token = await getToken();
       const response = await fetch(`http://localhost:8080/api/applications/${applicationId}/status`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -279,7 +231,7 @@ const Applications: React.FC = () => {
                           {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                         </div>
                       </div>
-                      <p className="text-gray-600 mb-1">Campaign: <span className="font-medium">{application.campaignTitle}</span></p>
+                      <p className="text-gray-600 mb-1">Campaign: <span className="font-medium">{application.campaignName}</span></p>
                       <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                         <div className="flex items-center gap-1">
                           <Mail className="w-4 h-4" />
@@ -287,7 +239,7 @@ const Applications: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {formatDate(application.appliedAt)}
+                          {formatDate(application.appliedDate)}
                         </div>
                       </div>
                       
@@ -296,31 +248,16 @@ const Applications: React.FC = () => {
                         <div className="text-sm">
                           <span className="text-gray-500">Followers:</span>
                           <span className="font-medium text-gray-900 ml-1">
-                            {application.metrics.followers.toLocaleString()}
+                            {application.followers}
                           </span>
                         </div>
                         <div className="text-sm">
-                          <span className="text-gray-500">Engagement:</span>
+                          <span className="text-gray-500">Platform:</span>
                           <span className="font-medium text-gray-900 ml-1">
-                            {application.metrics.engagement}%
+                            {application.platform}
                           </span>
                         </div>
-                        {application.metrics.reach && (
-                          <div className="text-sm">
-                            <span className="text-gray-500">Reach:</span>
-                            <span className="font-medium text-gray-900 ml-1">
-                              {application.metrics.reach.toLocaleString()}
-                            </span>
-                          </div>
-                        )}
                       </div>
-
-                      {/* Message */}
-                      {application.message && (
-                        <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                          <p className="text-sm text-gray-700">{application.message}</p>
-                        </div>
-                      )}
                     </div>
                   </div>
 
