@@ -1,8 +1,8 @@
 // App Configuration - Change app name here and it will reflect everywhere
 export const APP_CONFIG = {
   // App Identity
-  name: 'SponsorConnect',
-  displayName: 'SponsorConnect',
+  name: 'Vouch',
+  displayName: 'Vouch',
   tagline: 'Connect Brands with Influencers',
   
   // Database/Backend related (lowercase, no spaces)

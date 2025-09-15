@@ -210,6 +210,81 @@ const CreateCampaign: React.FC = () => {
     'Portuguese', 'Japanese', 'Korean', 'Chinese'
   ];
 
+  // Age Groups
+  const ageGroups = [
+    '13-17', '18-24', '25-34', '35-44', '45-54', '55-64', '65+'
+  ];
+
+  // Gender Options
+  const genderOptions = [
+    'Any', 'Male', 'Female', 'Non-binary'
+  ];
+
+  // Location Options
+  const locationOptions = [
+    'Global', 'North America', 'Europe', 'Asia', 'South America', 
+    'Africa', 'Oceania', 'United States', 'Canada', 'United Kingdom', 
+    'Germany', 'France', 'India', 'Japan', 'Australia'
+  ];
+
+  // Follower Count Options
+  const followerCountOptions = [
+    '1K+', '5K+', '10K+', '25K+', '50K+', '100K+', '250K+', '500K+', '1M+'
+  ];
+
+  // Engagement Rate Options
+  const engagementRateOptions = [
+    '1%+', '2%+', '3%+', '4%+', '5%+', '7%+', '10%+'
+  ];
+
+  // Content Style Options
+  const contentStyleOptions = [
+    'Casual', 'Professional', 'Trendy', 'Educational', 'Humorous', 
+    'Luxury', 'Minimalist', 'Energetic', 'Lifestyle'
+  ];
+
+  // Budget Ranges
+  const budgetRanges = [
+    'Under $500', '$500-$1,000', '$1,000-$2,500', '$2,500-$5,000', 
+    '$5,000-$10,000', '$10,000-$25,000', '$25,000+'
+  ];
+
+  // Currency Options
+  const currencyOptions = [
+    'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'INR'
+  ];
+
+  // Communication Channels
+  const communicationChannels = [
+    'Email', 'Slack', 'Discord', 'WhatsApp', 'Telegram', 'Teams', 'Direct Message'
+  ];
+
+  // Time Zones
+  const timeZones = [
+    'UTC', 'EST (UTC-5)', 'PST (UTC-8)', 'GMT (UTC+0)', 'CET (UTC+1)', 
+    'JST (UTC+9)', 'AEST (UTC+10)', 'IST (UTC+5:30)'
+  ];
+
+  // Common Deliverable Packages
+  const deliverablePackages = [
+    '1 Instagram post',
+    '1 Instagram reel',
+    '1 Instagram story',
+    '1 YouTube video',
+    '1 YouTube short',
+    '1 TikTok video',
+    '1 Instagram post + 1 story',
+    '1 Instagram reel + 1 story',
+    '2 Instagram posts',
+    '3 Instagram posts',
+    '1 YouTube video + 1 Instagram post',
+    '1 YouTube video + 1 Instagram reel',
+    '2 Instagram reels + 1 story',
+    '1 blog post',
+    '1 livestream',
+    'Custom package (specify in description)'
+  ];
+
   // Compensation Types
   const compensationTypes = [
     'Fixed Payment',
@@ -678,6 +753,36 @@ const CreateCampaign: React.FC = () => {
                       />
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Budget Range</label>
+                      <select
+                        value={formData.budget}
+                        onChange={(e) => handleInputChange('budget', e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      >
+                        <option value="">Select budget range</option>
+                        {budgetRanges.map(range => (
+                          <option key={range} value={range}>{range}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Currency</label>
+                      <select
+                        value={formData.currency}
+                        onChange={(e) => handleInputChange('currency', e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                      >
+                        <option value="">Select currency</option>
+                        {currencyOptions.map(currency => (
+                          <option key={currency} value={currency}>{currency}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -701,24 +806,30 @@ const CreateCampaign: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">Location</label>
-                        <input
-                          type="text"
+                        <select
                           value={formData.targetAudience.location}
                           onChange={(e) => handleInputChange('targetAudience.location', e.target.value)}
-                          placeholder="e.g., Global, US, Europe"
                           className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                        />
+                        >
+                          <option value="">Select location</option>
+                          {locationOptions.map(location => (
+                            <option key={location} value={location}>{location}</option>
+                          ))}
+                        </select>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">Age Group</label>
-                        <input
-                          type="text"
+                        <select
                           value={formData.targetAudience.ageGroup}
                           onChange={(e) => handleInputChange('targetAudience.ageGroup', e.target.value)}
-                          placeholder="e.g., 18-35"
                           className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                        />
+                        >
+                          <option value="">Select age group</option>
+                          {ageGroups.map(age => (
+                            <option key={age} value={age}>{age}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
@@ -730,10 +841,10 @@ const CreateCampaign: React.FC = () => {
                           onChange={(e) => handleInputChange('targetAudience.gender', e.target.value)}
                           className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                         >
-                          <option value="">Any</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Non-binary">Non-binary</option>
+                          <option value="">Select gender</option>
+                          {genderOptions.map(gender => (
+                            <option key={gender} value={gender}>{gender}</option>
+                          ))}
                         </select>
                       </div>
 
@@ -783,36 +894,45 @@ const CreateCampaign: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">Minimum Followers</label>
-                        <input
-                          type="text"
+                        <select
                           value={formData.minRequirements.followersCount}
                           onChange={(e) => handleInputChange('minRequirements.followersCount', e.target.value)}
-                          placeholder="e.g., 10K, 100K+"
                           className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                        />
+                        >
+                          <option value="">Select minimum followers</option>
+                          {followerCountOptions.map(count => (
+                            <option key={count} value={count}>{count}</option>
+                          ))}
+                        </select>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">Minimum Engagement Rate</label>
-                        <input
-                          type="text"
+                        <select
                           value={formData.minRequirements.engagementRate}
                           onChange={(e) => handleInputChange('minRequirements.engagementRate', e.target.value)}
-                          placeholder="e.g., 3%, 5%+"
                           className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                        />
+                        >
+                          <option value="">Select minimum engagement</option>
+                          {engagementRateOptions.map(rate => (
+                            <option key={rate} value={rate}>{rate}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">Content Style/Tone</label>
-                      <input
-                        type="text"
+                      <select
                         value={formData.minRequirements.contentStyle}
                         onChange={(e) => handleInputChange('minRequirements.contentStyle', e.target.value)}
-                        placeholder="e.g., Professional, Casual, Humorous"
                         className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                      />
+                      >
+                        <option value="">Select content style</option>
+                        {contentStyleOptions.map(style => (
+                          <option key={style} value={style}>{style}</option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
@@ -848,13 +968,16 @@ const CreateCampaign: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Geographic Restrictions</label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.geographicRestrictions}
                       onChange={(e) => handleInputChange('geographicRestrictions', e.target.value)}
-                      placeholder="e.g., US only, English-speaking countries"
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                    />
+                    >
+                      <option value="">No restrictions</option>
+                      {locationOptions.map(location => (
+                        <option key={location} value={location}>{location} only</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -888,14 +1011,17 @@ const CreateCampaign: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Number of Posts/Videos *</label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.numberOfPosts}
                       onChange={(e) => handleInputChange('numberOfPosts', e.target.value)}
-                      placeholder="e.g., 2 Instagram posts + 1 story"
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                       required
-                    />
+                    >
+                      <option value="">Select deliverable package</option>
+                      {deliverablePackages.map(package_option => (
+                        <option key={package_option} value={package_option}>{package_option}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
@@ -948,14 +1074,29 @@ const CreateCampaign: React.FC = () => {
 
                   {(formData.compensationType === 'Fixed Payment' || formData.compensationType === 'Commission/Affiliate') && (
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Payment Amount/Range</label>
-                      <input
-                        type="text"
-                        value={formData.paymentAmount}
-                        onChange={(e) => handleInputChange('paymentAmount', e.target.value)}
-                        placeholder="e.g., $500-1000, 5% commission"
-                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        {formData.compensationType === 'Fixed Payment' ? 'Payment Range' : 'Commission Rate/Details'}
+                      </label>
+                      {formData.compensationType === 'Fixed Payment' ? (
+                        <select
+                          value={formData.paymentAmount}
+                          onChange={(e) => handleInputChange('paymentAmount', e.target.value)}
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        >
+                          <option value="">Select payment range</option>
+                          {budgetRanges.map(range => (
+                            <option key={range} value={range}>{range}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={formData.paymentAmount}
+                          onChange={(e) => handleInputChange('paymentAmount', e.target.value)}
+                          placeholder="e.g., 5% commission, $10 per sale"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        />
+                      )}
                     </div>
                   )}
 

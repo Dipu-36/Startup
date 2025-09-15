@@ -110,7 +110,7 @@ const LandingPage: React.FC = () => {
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-fadeIn">
-            AdFluence is the professional platform where content creators and brands collaborate on authentic influencer
+            Vouch is the professional platform where content creators and brands collaborate on authentic influencer
             marketing campaigns. Build trust, track performance, and grow together.
           </p>
           
@@ -138,7 +138,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Why Choose <span className="text-gradient">AdFluence</span>?
+              Why Choose <span className="text-gradient">Vouch</span>?
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Built for transparency, trust, and successful collaborations between creators and brands.
@@ -212,7 +212,7 @@ const LandingPage: React.FC = () => {
             Ready to Start <span className="text-gradient">Collaborating</span>?
           </h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Join thousands of creators and brands already using AdFluence to build successful partnerships.
+            Join thousands of creators and brands already using Vouch to build successful partnerships.
           </p>
           <SignUpButton mode="modal" fallbackRedirectUrl="/dashboard">
             <button className="btn-primary animate-pulse-glow flex items-center justify-center space-x-2 mx-auto">
