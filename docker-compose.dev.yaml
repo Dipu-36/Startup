@@ -15,6 +15,8 @@ services:
       - /app/tmp  # For Air hot reload cache
     networks:
       - sponsorconnect-network
+    environment:
+      - GO_ENV=development
 
   # Frontend with hot reload
   frontend:
@@ -25,8 +27,13 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - ./frontend/.env  # Load Clerk and other environment variables
     environment:
-      - REACT_APP_API_URL=http://localhost:8080/api
+      - REACT_APP_API_URL=http://backend:8080/api
+      - CHOKIDAR_USEPOLLING=true  # Better file watching on Windows
+      - WATCHPACK_POLLING=true    # Additional polling for hot reload
+      # Clerk environment variables will be loaded from .env file
     volumes:
       - ./frontend:/app
       - /app/node_modules  # Prevent overwriting node_modules
@@ -34,6 +41,7 @@ services:
       - sponsorconnect-network
     depends_on:
       - backend
+    stdin_open: true  # Keep stdin open for interactive development
 
 # Networks
 networks:
