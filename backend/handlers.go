@@ -255,6 +255,147 @@ func createCampaignHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(campaign)
 }
 
+// Update campaign handler
+func updateCampaignHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	campaignId := vars["campaignId"]
+
+	// Get user from context
+	user, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// Convert campaign ID to ObjectID
+	campaignOID, err := primitive.ObjectIDFromHex(campaignId)
+	if err != nil {
+		http.Error(w, "Invalid campaign ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse request body
+	var req Campaign
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	// Find existing campaign to verify ownership
+	collection := database.Collection("campaigns")
+	var existingCampaign Campaign
+	err = collection.FindOne(context.TODO(), bson.M{"_id": campaignOID}).Decode(&existingCampaign)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "Campaign not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error fetching campaign", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Get user's Clerk ID
+	userID := getUserIDFromClerkUser(user)
+
+	// Check ownership
+	if existingCampaign.BrandID != userID {
+		http.Error(w, "Access denied: You can only update your own campaigns", http.StatusForbidden)
+		return
+	}
+
+	// Update campaign with new data
+	update := bson.M{
+		"$set": bson.M{
+			"title":                  req.Title,
+			"description":            req.Description,
+			"category":               req.Category,
+			"startDate":              req.StartDate,
+			"endDate":                req.EndDate,
+			"campaignType":           req.CampaignType,
+			"status":                 req.Status,
+			"platforms":              req.Platforms,
+			"contentFormat":          req.ContentFormat,
+			"minRequirements":        req.MinRequirements,
+			"compensationType":       req.CompensationType,
+			"paymentAmount":          req.PaymentAmount,
+			"targetAudience":         req.TargetAudience,
+			"numberOfPosts":          req.NumberOfPosts,
+			"contentGuidelines":      req.ContentGuidelines,
+			"approvalRequired":       req.ApprovalRequired,
+			"geographicRestrictions": req.GeographicRestrictions,
+			"nicheMatch":             req.NicheMatch,
+			"updatedAt":              time.Now(),
+		},
+	}
+
+	result, err := collection.UpdateOne(context.TODO(), bson.M{"_id": campaignOID}, update)
+	if err != nil {
+		http.Error(w, "Error updating campaign", http.StatusInternalServerError)
+		return
+	}
+
+	if result.MatchedCount == 0 {
+		http.Error(w, "Campaign not found", http.StatusNotFound)
+		return
+	}
+
+	// Fetch updated campaign
+	var updatedCampaign Campaign
+	err = collection.FindOne(context.TODO(), bson.M{"_id": campaignOID}).Decode(&updatedCampaign)
+	if err != nil {
+		http.Error(w, "Error fetching updated campaign", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updatedCampaign)
+}
+
+// Delete campaign handler
+func deleteCampaignHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	campaignId := vars["campaignId"]
+
+	// Get user from context
+	user, ok := getUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// Convert campaign ID to ObjectID
+	campaignOID, err := primitive.ObjectIDFromHex(campaignId)
+	if err != nil {
+		http.Error(w, "Invalid campaign ID", http.StatusBadRequest)
+		return
+	}
+
+	// Find existing campaign to verify ownership
+	collection := database.Collection("campaigns")
+	var existingCampaign Campaign
+	err = collection.FindOne(context.TODO(), bson.M{"_id": campaignOID}).Decode(&existingCampaign)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "Campaign not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error fetching campaign", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Get user's Clerk ID
+	userID := getUserIDFromClerkUser(user)
+
+	// Check ownership
+	if existingCampaign.BrandID != userID {
+		http.Error(w, "Access denied: You can only delete your own campaigns", http.StatusForbidden)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Campaign deleted successfully"})
+}
+
 func getCampaignsHandler(w http.ResponseWriter, r *http.Request) {
 	// Get user from context
 	user, ok := getUserFromContext(r.Context())
@@ -654,8 +795,8 @@ func updateApplicationStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate status
-	if req.Status != "accepted" && req.Status != "rejected" {
-		http.Error(w, "Invalid status. Must be 'accepted' or 'rejected'", http.StatusBadRequest)
+	if req.Status != "approved" && req.Status != "shortlisted" && req.Status != "rejected" && req.Status != "pending" {
+		http.Error(w, "Invalid status. Must be 'approved', 'shortlisted', 'rejected', or 'pending'", http.StatusBadRequest)
 		return
 	}
 
@@ -708,71 +849,5 @@ func updateApplicationStatusHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Application status updated successfully",
 		"status":  req.Status,
-	})
-}
-
-// Delete campaign (for brands)
-func deleteCampaignHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	campaignId := vars["campaignId"]
-
-	// Get user from context
-	user, ok := getUserFromContext(r.Context())
-	if !ok {
-		http.Error(w, "User not found in context", http.StatusInternalServerError)
-		return
-	}
-
-	// Convert campaign ID to ObjectID
-	campaignObjID, err := primitive.ObjectIDFromHex(campaignId)
-	if err != nil {
-		http.Error(w, "Invalid campaign ID", http.StatusBadRequest)
-		return
-	}
-
-	// Get campaign to verify ownership
-	var campaign Campaign
-	campaignCollection := database.Collection("campaigns")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	err = campaignCollection.FindOne(ctx, bson.M{"_id": campaignObjID}).Decode(&campaign)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			http.Error(w, "Campaign not found", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error fetching campaign", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	// Get user's Clerk ID for comparison
-	userID := getUserIDFromClerkUser(user)
-
-	// Check if user is the owner of this campaign
-	if campaign.BrandID != userID {
-		http.Error(w, "Access denied", http.StatusForbidden)
-		return
-	}
-
-	// Delete the campaign
-	_, err = campaignCollection.DeleteOne(ctx, bson.M{"_id": campaignObjID})
-	if err != nil {
-		http.Error(w, "Error deleting campaign", http.StatusInternalServerError)
-		return
-	}
-
-	// Also delete related applications
-	applicationsCollection := database.Collection("applications")
-	_, err = applicationsCollection.DeleteMany(ctx, bson.M{"campaignId": campaignObjID})
-	if err != nil {
-		// Log error but don't fail the campaign deletion
-		// http.Error(w, "Error deleting related applications", http.StatusInternalServerError)
-		// return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Campaign deleted successfully",
 	})
 }

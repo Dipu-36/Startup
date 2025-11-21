@@ -119,16 +119,82 @@ const ManageCampaign: React.FC = () => {
   };
 
   // Campaign action handlers
-  const handlePauseCampaign = () => {
-    console.log('Pause campaign');
+  const handlePauseCampaign = async () => {
+    if (!campaignId || !campaign) return;
+    
+    try {
+      setLoading(true);
+      const token = await getToken();
+      if (!token) {
+        setError('Please log in to pause campaign');
+        return;
+      }
+      
+      const response = await fetch(`http://localhost:8080/api/campaigns/${campaignId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...campaign,
+          status: 'paused'
+        })
+      });
+      
+      if (response.ok) {
+        const updatedCampaign = await response.json();
+        setCampaign(updatedCampaign);
+        setSuccessMessage('Campaign paused successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error pausing campaign:', error);
+      setError(error instanceof Error ? error.message : 'Failed to pause campaign');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEndCampaign = () => {
-    console.log('End campaign');
+  const handleEndCampaign = async () => {
+    if (!campaignId || !campaign) return;
+    
+    try {
+      setLoading(true);
+      const token = await getToken();
+      if (!token) {
+        setError('Please log in to end campaign');
+        return;
+      }
+      
+      const response = await fetch(`http://localhost:8080/api/campaigns/${campaignId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...campaign,
+          status: 'completed'
+        })
+      });
+      
+      if (response.ok) {
+        const updatedCampaign = await response.json();
+        setCampaign(updatedCampaign);
+        setSuccessMessage('Campaign ended successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error ending campaign:', error);
+      setError(error instanceof Error ? error.message : 'Failed to end campaign');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditCampaign = () => {
-    console.log('Edit campaign');
+    navigate(`/brand/campaigns/edit/${campaignId}`);
   };
 
   const handlePublishCampaign = async () => {
@@ -150,6 +216,43 @@ const ManageCampaign: React.FC = () => {
       console.error('Error publishing campaign:', error);
       setError(error instanceof Error ? error.message : 'Failed to publish campaign');
       setTimeout(() => setError(''), 5000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResumeCampaign = async () => {
+    if (!campaignId || !campaign) return;
+    
+    try {
+      setLoading(true);
+      const token = await getToken();
+      if (!token) {
+        setError('Please log in to resume campaign');
+        return;
+      }
+      
+      const response = await fetch(`http://localhost:8080/api/campaigns/${campaignId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...campaign,
+          status: 'active'
+        })
+      });
+      
+      if (response.ok) {
+        const updatedCampaign = await response.json();
+        setCampaign(updatedCampaign);
+        setSuccessMessage('Campaign resumed successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error resuming campaign:', error);
+      setError(error instanceof Error ? error.message : 'Failed to resume campaign');
     } finally {
       setLoading(false);
     }
@@ -392,126 +495,141 @@ const ManageCampaign: React.FC = () => {
       )}
 
       {/* Main Content */}
-      <main className="relative z-10 px-4 sm:px-6 py-8 sm:py-12">
+      <main className="relative z-10 px-4 sm:px-6 py-8 sm:py-2">
         {/* Campaign Header */}
         <div className="mb-8 sm:mb-12">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-2">
             <button 
               onClick={handleBackToCampaigns}
               className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-all duration-200 group"
             >
               <div className="p-2 rounded-xl bg-muted/50 group-hover:bg-muted transition-colors duration-200">
-                <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4" />
               </div>
               <span className="font-medium">Back to Campaigns</span>
             </button>
           </div>
 
-          <div className="bg-gradient-to-r from-card/60 to-card/40 backdrop-blur-md border border-border/50 rounded-2xl p-6 mb-6 shadow-lg">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
-              <div className="mb-4 lg:mb-0">
-                <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3">{campaign.title}</h1>
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <span className={`px-4 py-2 rounded-full text-sm font-semibold shadow-sm ${getStatusBadgeClass(campaign.status)}`}>
-                    {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-                  </span>
-                  <span className="flex items-center space-x-2 text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg">
-                    <Clock className="w-4 h-4" />
-                    <span>{new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}</span>
-                  </span>
-                  <span className="px-3 py-2 bg-primary/10 text-primary rounded-lg font-medium">{campaign.category}</span>
-                </div>
+          <div className="bg-gradient-to-r from-card/60 to-card/40 backdrop-blur-md border border-border/50 rounded-2xl p-4 mb-6 shadow-lg">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
+              <div className="mb-3 lg:mb-0">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-2">{campaign.title}</h1>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <span className={`px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm ${getStatusBadgeClass(campaign.status)}`}>
+              {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+            </span>
+            <span className="flex items-center space-x-2 text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-lg">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm">{new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}</span>
+            </span>
+            <span className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg font-medium text-sm">{campaign.category}</span>
+          </div>
               </div>
               
               <div className="flex flex-wrap gap-3">
-                {campaign.status === 'active' && (
-                  <>
-                    <button 
-                      className="px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                      onClick={handlePauseCampaign}
-                    >
-                      <Pause className="w-4 h-4" />
-                      <span>Pause</span>
-                    </button>
-                    <button 
-                      className="px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                      onClick={handleEndCampaign}
-                    >
-                      <Square className="w-4 h-4" />
-                      <span>End</span>
-                    </button>
-                  </>
-                )}
-                {campaign.status === 'draft' && (
-                  <button 
-                    className="px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                    onClick={handlePublishCampaign}
-                  >
-                    <Play className="w-4 h-4" />
-                    <span>Publish Campaign</span>
-                  </button>
-                )}
-                <button 
-                  className="px-5 py-2.5 bg-gradient-to-r from-muted to-muted/80 hover:from-muted/90 hover:to-muted text-foreground rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                  onClick={handleEditCampaign}
-                >
-                  <Edit className="w-4 h-4" />
-                  <span>Edit</span>
-                </button>
+          {campaign.status === 'active' && (
+            <>
+              <button 
+                className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-sm"
+                onClick={handlePauseCampaign}
+              >
+                <Pause className="w-4 h-4" />
+                <span className="text-sm">Pause</span>
+              </button>
+              <button 
+                className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-sm"
+                onClick={handleEndCampaign}
+              >
+                <Square className="w-4 h-4" />
+                <span className="text-sm">End</span>
+              </button>
+            </>
+          )}
+          {campaign.status === 'paused' && (
+            <>
+              <button 
+                className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-sm"
+                onClick={handleResumeCampaign}
+              >
+                <Play className="w-4 h-4" />
+                <span className="text-sm">Resume</span>
+              </button>
+              <button 
+                className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-sm"
+                onClick={handleEndCampaign}
+              >
+                <Square className="w-4 h-4" />
+                <span className="text-sm">End</span>
+              </button>
+            </>
+          )}
+          {campaign.status === 'draft' && (
+            <button 
+              className="px-4 py-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-sm"
+              onClick={handlePublishCampaign}
+            >
+              <Play className="w-4 h-4" />
+              <span className="text-sm">Publish</span>
+            </button>
+          )}
+          <button 
+            className="px-4 py-2 bg-muted/10 hover:bg-muted/20 text-foreground rounded-xl transition-all duration-200 flex items-center space-x-2 shadow-sm"
+            onClick={handleEditCampaign}
+          >
+            <Edit className="w-4 h-4" />
+            <span className="text-sm">Edit</span>
+          </button>
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-3xl font-bold text-blue-600 mb-1">{campaign.applicantsCount}</p>
-                    <p className="text-sm font-medium text-blue-700/80">Total Applicants</p>
-                  </div>
-                  <div className="p-3 bg-blue-500/10 rounded-2xl">
-                    <Users className="w-8 h-8 text-blue-500" />
-                  </div>
-                </div>
+            {/* Quick Stats (icon right, data on left) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50 rounded-2xl px-3 py-3 hover:shadow-md transition-all duration-200 flex items-center min-h-[64px]">
+          <div className="flex flex-col items-start justify-center flex-1">
+            <div className="text-lg sm:text-xl font-bold text-blue-600 leading-tight">
+              {applications.length}
+            </div>
+            <div className="text-xs font-medium text-blue-700/80 mt-1">Total Applicants</div>
+          </div>
+          <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
+            <Users className="w-5 h-5 text-blue-500" />
+          </div>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100/50 border border-green-200/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-3xl font-bold text-green-600 mb-1">{campaign.approvedCreators}</p>
-                    <p className="text-sm font-medium text-green-700/80">Approved Creators</p>
-                  </div>
-                  <div className="p-3 bg-green-500/10 rounded-2xl">
-                    <CheckCircle className="w-8 h-8 text-green-500" />
-                  </div>
-                </div>
+
+              <div className="bg-gradient-to-br from-green-50 to-green-100/50 border border-green-200/50 rounded-2xl px-3 py-3 hover:shadow-md transition-all duration-200 flex items-center min-h-[64px]">
+          <div className="flex flex-col items-start justify-center flex-1">
+            <div className="text-lg sm:text-xl font-bold text-green-600 leading-tight">
+              {approvedCreators.length}
+            </div>
+            <div className="text-xs font-medium text-green-700/80 mt-1">Approved Creators</div>
+          </div>
+          <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
+            <CheckCircle className="w-5 h-5 text-green-500" />
+          </div>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-3xl font-bold text-purple-600 mb-1">{campaign.deliverablesCount}</p>
-                    <p className="text-sm font-medium text-purple-700/80">Deliverables</p>
-                  </div>
-                  <div className="p-3 bg-purple-500/10 rounded-2xl">
-                    <FileText className="w-8 h-8 text-purple-500" />
-                  </div>
-                </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50 rounded-2xl px-3 py-3 hover:shadow-md transition-all duration-200 flex items-center min-h-[64px]">
+          <div className="flex flex-col items-start justify-center flex-1">
+            <div className="text-lg sm:text-xl font-bold text-purple-600 leading-tight">
+              {deliverables.length}
+            </div>
+            <div className="text-xs font-medium text-purple-700/80 mt-1">Deliverables</div>
+          </div>
+          <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
+            <FileText className="w-5 h-5 text-purple-500" />
+          </div>
               </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 border border-yellow-200/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-3xl font-bold text-yellow-600 mb-1">${(campaign.usedBudget || 0).toLocaleString()}</p>
-                    <p className="text-sm font-medium text-yellow-700/80">Budget Used</p>
-                    <div className="w-full bg-yellow-200/50 rounded-full h-2.5 mt-3">
-                      <div 
-                        className="bg-gradient-to-r from-yellow-500 to-yellow-600 h-2.5 rounded-full transition-all duration-500 shadow-sm"
-                        style={{ width: `${Math.min(((campaign.usedBudget || 0) / (campaign.budget || 1)) * 100, 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-yellow-500/10 rounded-2xl">
-                    <DollarSign className="w-8 h-8 text-yellow-500" />
-                  </div>
-                </div>
+
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 border border-yellow-200/50 rounded-2xl px-3 py-3 hover:shadow-md transition-all duration-200 flex items-center min-h-[64px]">
+          <div className="flex flex-col items-start justify-center flex-1">
+            <div className="text-lg sm:text-xl font-bold text-yellow-600 leading-tight">
+              ${(campaign.budget || 0).toLocaleString()}
+            </div>
+            <div className="text-xs font-medium text-yellow-700/80 mt-1">Total Budget</div>
+          </div>
+          <div className="w-12 h-12 bg-yellow-500/10 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
+            <DollarSign className="w-5 h-5 text-yellow-500" />
+          </div>
               </div>
             </div>
           </div>

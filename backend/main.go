@@ -53,6 +53,8 @@ func main() {
 	api.HandleFunc("/campaigns", authMiddleware(getCampaignsHandler)).Methods("GET")
 	api.HandleFunc("/campaigns/all", authMiddleware(getAllCampaignsHandler)).Methods("GET")
 	api.HandleFunc("/campaigns/{campaignId}", authMiddleware(getCampaignHandler)).Methods("GET")
+	api.HandleFunc("/campaigns/{campaignId}", authMiddleware(updateCampaignHandler)).Methods("PUT")
+	api.HandleFunc("/campaigns/{campaignId}", authMiddleware(deleteCampaignHandler)).Methods("DELETE")
 	api.HandleFunc("/campaigns/{campaignId}/applications", authMiddleware(getCampaignApplicationsHandler)).Methods("GET")
 
 	// Application routes
