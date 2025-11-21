@@ -1,4 +1,4 @@
-package main
+package auth
 
 // AppConfig holds all application configuration
 type AppConfig struct {

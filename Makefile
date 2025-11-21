@@ -1,4 +1,4 @@
-# 🚀 SponsorConnect - One Command Setup
+# SponsorConnect - One Command Setup
 # Just run: make up
 
 # Check for environment setup
@@ -15,6 +15,7 @@ build-with-clerk: check-env
 
 # Main commands for Docker setup
 .PHONY: up
+<<<<<<< HEAD
 up: check-env
 	@echo "Starting SponsorConnect with Docker..."
 	@echo "Using MongoDB Atlas (cloud database)"
@@ -49,6 +50,31 @@ dev-detached:
 .PHONY: down
 down:
 	@echo "Stopping SponsorConnect..."
+=======
+up:
+	docker-compose up --build -d
+	@echo "Application has been built and has started!"
+	@echo "Frontend: http://localhost:3000"
+	@echo "Backend:  http://localhost:8080"
+	@echo "Health:   http://localhost:8080/api/health"
+#down command is for stopping the containers without tearing them down
+# USE THIS TO STOP CONTAINERS 
+.PHONY: stop 
+stop:
+	@docker stop sponsorconnect-backend sponsorconnect-frontend
+	@echo "Containers have been stopped"
+#start command is for starting the preexisiting containers
+# USE THIS COMMAND FOR STARTING THE CONTAINERS ONLY IF
+# - No chnges in dependencies of the app has been made
+# - Using this command will save time
+.PHONY: start
+start:
+	@docker start sponsorconnect-backend sponsorconnect-frontend
+	@echo "Starting the containers..."
+#down command is for tearing down and deletng the containers
+.PHONY: down
+down:
+>>>>>>> 642e7c2608befb16b23cb768f1f7ebd913ecad33
 	@docker-compose down
 	@docker-compose -f docker-compose.dev.yaml down
 	@echo "Application stopped!"
@@ -81,15 +107,24 @@ clean:
 
 .PHONY: status
 status:
+<<<<<<< HEAD
 	@echo "SponsorConnect Status:"
+=======
+	@echo "Status: "
+>>>>>>> 642e7c2608befb16b23cb768f1f7ebd913ecad33
 	@docker-compose ps
 
 # Health check
 .PHONY: health
 health:
 	@echo "Health Check:"
+<<<<<<< HEAD
 	@powershell -Command "try { Invoke-RestMethod http://localhost:8080/api/health | ConvertTo-Json } catch { Write-Host '❌ Backend not responding' }"
 	@powershell -Command "try { Invoke-WebRequest http://localhost:3000 -UseBasicParsing | Out-Null; Write-Host '✅ Frontend is running' } catch { Write-Host '❌ Frontend not responding' }"
+=======
+	@powershell -Command "try { Invoke-RestMethod http://localhost:8080/api/health | ConvertTo-Json } catch { Write-Host 'Backend not responding' }"
+	@powershell -Command "try { Invoke-WebRequest http://localhost:3000 -UseBasicParsing | Out-Null; Write-Host 'Frontend is running' } catch { Write-Host 'Frontend not responding' }"
+>>>>>>> 642e7c2608befb16b23cb768f1f7ebd913ecad33
 
 # Local development commands (without Docker)
 .PHONY: run-backend-local

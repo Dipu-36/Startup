@@ -1,4 +1,7 @@
-package main
+// Package storage defines the structure of the database entites and defines the realtionships between these entites
+// - it also abstracts the Database by creating an interface over which the application interacts
+// - the package uses the DB credentials from the env file and uses it for connection pooling and maintence
+package storage
 
 import (
 	"time"
@@ -6,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// User defines the model for User
 type User struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	ClerkID   string             `bson:"clerkId" json:"clerkId"` // Clerk user ID for linking
@@ -16,6 +20,7 @@ type User struct {
 	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
+// Campaign defines the model for Campaign
 type Campaign struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	BrandID      string             `bson:"brandId" json:"brandId"` // Now using Clerk ID instead of ObjectID
@@ -96,6 +101,7 @@ type Campaign struct {
 	UpdatedAt  time.Time `bson:"updatedAt" json:"updatedAt"`
 }
 
+<<<<<<< HEAD:backend/models.go
 type Application struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	CampaignID   primitive.ObjectID `bson:"campaignId" json:"campaignId"`
@@ -112,6 +118,29 @@ type Application struct {
 }
 
 // CampaignRequest represents the request payload for creating a campaign
+=======
+// LoginRequest defines the model for Loginrequest
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// SignupRequest defines the model for SignupRequest
+type SignupRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Name     string `json:"name"`
+	UserType string `json:"userType"`
+}
+
+// AuthResponse defines the model for AuthResponse
+type AuthResponse struct {
+	Token string `json:"token"`
+	User  User   `json:"user"`
+}
+
+// CampaignRequest defines the model for CampaignRequest
+>>>>>>> 642e7c2608befb16b23cb768f1f7ebd913ecad33:backend/internal/storage/models.go
 type CampaignRequest struct {
 	Title        string `json:"title"`
 	Description  string `json:"description"`
