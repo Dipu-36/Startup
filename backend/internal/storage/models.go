@@ -135,3 +135,22 @@ type CampaignRequest struct {
 	ReferenceLinks string `json:"referenceLinks"`
 	Status         string `json:"status"`
 }
+// CreatorSnapshot is the canonical, normalized snapshot stored for each creator at a point in time.
+type CreatorSnapshot struct {
+    ID             string            `bson:"_id,omitempty" json:"id,omitempty"` 
+    CreatorUserID  string            `bson:"creator_user_id" json:"creator_user_id"` // your internal user id
+    Platform       string            `bson:"platform" json:"platform"`                 // "youtube"
+    PlatformID     string            `bson:"platform_id" json:"platform_id"`           // platform-specific creator id
+    SnapshotAt     time.Time         `bson:"snapshot_at" json:"snapshot_at"`           // time of snapshot
+    FollowerCount  int64             `bson:"follower_count" json:"follower_count"`
+    ViewCount      int64             `bson:"view_count" json:"view_count"`         // total views (if available)
+    AvgEngagement  float64           `bson:"avg_engagement" json:"avg_engagement"` // normalized engagement rate (0..1)
+    RegionCounts   map[string]int64  `bson:"region_counts,omitempty" json:"region_counts,omitempty"`   // e.g. {"IN": 1200, "US": 300}
+    AgeBuckets     map[string]int64  `bson:"age_buckets,omitempty" json:"age_buckets,omitempty"`       // e.g. {"13-17":100,"18-24":200}
+    TopTopics      []string          `bson:"top_topics,omitempty" json:"top_topics,omitempty"`         // extracted tags/topics
+    RawPayload     map[string]interface{} `bson:"raw_payload,omitempty" json:"raw_payload,omitempty"` // raw API response for debugging
+    CreatedAt      time.Time         `bson:"created_at" json:"created_at"`
+    UpdatedAt      time.Time         `bson:"updated_at" json:"updated_at"`
+}
+
+
