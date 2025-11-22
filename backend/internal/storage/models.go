@@ -152,5 +152,26 @@ type CreatorSnapshot struct {
     CreatedAt      time.Time         `bson:"created_at" json:"created_at"`
     UpdatedAt      time.Time         `bson:"updated_at" json:"updated_at"`
 }
+// Add to storage/models.go
+type ChannelAnalytics struct {
+    ChannelName     string    `bson:"channelName" json:"channelName"`
+    Subscribers     int64     `bson:"subscribers" json:"subscribers"`
+    TotalViews      int64     `bson:"totalViews" json:"totalViews"`
+    TotalVideos     int64     `bson:"totalVideos" json:"totalVideos"`
+    AvgEngagement   float64   `bson:"avgEngagement" json:"avgEngagement"`
+    ViewsLast30Days int64     `bson:"viewsLast30Days" json:"viewsLast30Days"`
+    WatchTimeHours  float64   `bson:"watchTimeHours" json:"watchTimeHours"`
+    TopTopics       []string  `bson:"topTopics" json:"topTopics"`
+    SnapshotDate    time.Time `bson:"snapshotDate" json:"snapshotDate"`
+}
+// Add to your storage/models.go
+type InfluencerProfile struct {
+	ID               primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID           primitive.ObjectID `bson:"userId" json:"userId"`
+	YouTubeChannel   string             `bson:"youtubeChannel" json:"youtubeChannel"`
+	ChannelAnalytics *ChannelAnalytics  `bson:"channelAnalytics" json:"channelAnalytics"`
+	LastUpdated      time.Time          `bson:"lastUpdated" json:"lastUpdated"`
+	CreatedAt        time.Time          `bson:"createdAt" json:"createdAt"`
+}
 
 

@@ -64,7 +64,9 @@ func (s *APIServer) routes() {
 	api.HandleFunc("/campaigns", auth.AuthMiddleware(s.handlers.GetCampaignsHandler)).Methods("GET")
 
 	api.HandleFunc("/campaigns/all", auth.AuthMiddleware(s.handlers.GetAllCampaignsHandler)).Methods("GET")
-
+	api.HandleFunc("/youtube/connect", auth.AuthMiddleware(s.handlers.ConnectYouTubeHandler)).Methods("POST")
+	api.HandleFunc("/analytics", auth.AuthMiddleware(s.handlers.GetInfluencerAnalyticsHandler)).Methods("GET")
+	api.HandleFunc("/influencer/{id}", auth.AuthMiddleware(s.handlers.GetInfluencerProfileHandler)).Methods("GET") // For brands to view
 }
 
 // Run starts the HTTP server and begins listening for incoming requests

@@ -1,3 +1,4 @@
+// storage/snapshot.go
 package storage
 
 import (
@@ -7,8 +8,6 @@ import (
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
     "go.mongodb.org/mongo-driver/mongo/options"
-
-    "yourmodule/pkg/models"
 )
 
 const snapshotColl = "creator_snapshots"
@@ -33,7 +32,7 @@ func EnsureSnapshotIndexes(ctx context.Context, db *mongo.Database) error {
 }
 
 // SaveSnapshot inserts a snapshot (or upserts if you prefer). Typically insert to keep history.
-func SaveSnapshot(ctx context.Context, db *mongo.Database, s *models.CreatorSnapshot) error {
+func SaveSnapshot(ctx context.Context, db *mongo.Database, s *CreatorSnapshot) error {
     coll := db.Collection(snapshotColl)
     now := time.Now().UTC()
     if s.CreatedAt.IsZero() {
@@ -45,11 +44,11 @@ func SaveSnapshot(ctx context.Context, db *mongo.Database, s *models.CreatorSnap
 }
 
 // LatestSnapshotForPlatformID fetches the most recent snapshot for a platform-specific creator ID
-func LatestSnapshotForPlatformID(ctx context.Context, db *mongo.Database, platform, platformID string) (*models.CreatorSnapshot, error) {
+func LatestSnapshotForPlatformID(ctx context.Context, db *mongo.Database, platform, platformID string) (*CreatorSnapshot, error) {
     coll := db.Collection(snapshotColl)
     filter := bson.M{"platform": platform, "platform_id": platformID}
     opts := options.FindOne().SetSort(bson.D{{Key: "snapshot_at", Value: -1}})
-    var res models.CreatorSnapshot
+    var res CreatorSnapshot
     err := coll.FindOne(ctx, filter, opts).Decode(&res)
     if err == mongo.ErrNoDocuments {
         return nil, nil
@@ -57,3 +56,15 @@ func LatestSnapshotForPlatformID(ctx context.Context, db *mongo.Database, platfo
     return &res, err
 }
 
+// LatestSnapshotForUserID fetches the most recent snapshot for a specific user
+func LatestSnapshotForUserID(ctx context.Context, db *mongo.Database, userID string) (*CreatorSnapshot, error) {
+    coll := db.Collection(snapshotColl)
+    filter := bson.M{"creator_user_id": userID}
+    opts := options.FindOne().SetSort(bson.D{{Key: "snapshot_at", Value: -1}})
+    var res CreatorSnapshot
+    err := coll.FindOne(ctx, filter, opts).Decode(&res)
+    if err == mongo.ErrNoDocuments {
+        return nil, nil
+    }
+    return &res, err
+}
